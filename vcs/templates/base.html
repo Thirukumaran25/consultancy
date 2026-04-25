@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ ui_settings.site_name|default:"Vetri Consultancy Services" }}{% endblock %}</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap');
+    </style>
+    
+    <style type="text/tailwindcss">
+        @layer components {
+            .nav-link { @apply text-white font-semibold text-[15px] hover:text-gray-200 transition-colors duration-200 cursor-pointer; }
+            .footer-link { @apply text-white/90 text-[13px] hover:text-white hover:underline transition-colors duration-200 block mb-2; }
+            .social-icon { @apply text-[20px] text-white hover:text-gray-200 transition-colors duration-200; }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="font-['Exo',sans-serif] antialiased bg-[#eef2f7] min-h-screen flex flex-col">
+
+    <nav class="bg-[#4238ca] text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-[1400px] mx-auto px-4 md:px-8 flex justify-between items-center h-[70px]">
+            
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 no-underline">
+                <div class="w-[45px] h-[45px] bg-white rounded-full p-1 flex items-center justify-center shadow-sm">
+                    <img src="{% if ui_settings.logo %}{{ ui_settings.logo.url }}{% else %}/static/images/logo.png{% endif %}" alt="Logo" class="w-full h-full rounded-full object-cover">
+                </div>
+                <span class="text-[20px] font-bold tracking-wide hidden sm:block">
+                    {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}
+                </span>
+            </a>
+
+            <div class="hidden md:flex items-center gap-8">
+                <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
+                <a href="#jobs" class="nav-link">Jobs</a>
+                <a href="#services" class="nav-link">Services</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-6">
+                <a href="{% if request.user.role == 'candidate' %}{% url 'candidate_profile' %}{% else %}{% url 'dashboard' %}{% endif %}" class="flex items-center gap-2 text-white font-semibold hover:text-gray-200 transition-colors">
+                    <i class="fa-solid fa-circle-user text-[24px]"></i>
+                    <span class="text-[15px]">
+                        {% if request.user.is_authenticated %}
+                            {% if request.user.role == 'candidate' %}
+                                {{ request.user.candidate_profile.full_name }}
+                            {% elif request.user.role == 'company' %}
+                                {{ request.user.company_profile.company_name }}
+                            {% elif request.user.role == 'trainee' %}
+                                {{ request.user.trainee_profile.full_name }}
+                            {% else %}
+                                {{ request.user.username }}
+                            {% endif %}
+                        {% else %}
+                            My Profile
+                        {% endif %}
+                    </span>
+                </a>
+                <a href="{% url 'logout' %}" class="bg-[#f44336] hover:bg-[#d32f2f] text-white font-bold py-2 px-4 rounded-[8px] flex items-center gap-2 transition-colors shadow-sm">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                </a>
+            </div>
+
+            <button id="mobileMenuBtn" class="md:hidden text-white text-[24px] focus:outline-none">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden bg-[#3730a3] border-t border-white/10 px-4 pt-2 pb-4 space-y-3 shadow-inner">
+            <a href="{% url 'dashboard' %}" class="block nav-link">Home</a>
+            <a href="#jobs" class="block nav-link">Jobs</a>
+            <a href="#services" class="block nav-link">Services</a>
+            <hr class="border-white/20">
+            <a href="{% if request.user.role == 'candidate' %}{% url 'candidate_profile' %}{% else %}{% url 'dashboard' %}{% endif %}" class="flex items-center gap-2 nav-link">
+                <i class="fa-solid fa-circle-user"></i> 
+                {% if request.user.is_authenticated %}
+                    {% if request.user.role == 'candidate' %}
+                        {{ request.user.candidate_profile.full_name }}
+                    {% elif request.user.role == 'company' %}
+                        {{ request.user.company_profile.company_name }}
+                    {% elif request.user.role == 'trainee' %}
+                        {{ request.user.trainee_profile.full_name }}
+                    {% else %}
+                        {{ request.user.username }}
+                    {% endif %}
+                {% else %}
+                    My Profile
+                {% endif %}
+            </a>
+            <a href="{% url 'logout' %}" class="inline-flex items-center gap-2 bg-[#f44336] text-white py-2 px-4 rounded-[8px] font-bold mt-2">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-1">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="bg-[#4238ca] text-white pt-12 pb-6 relative border-t border-[#3730a3]">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-10">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-[45px] h-[45px] bg-white rounded-full p-1 flex items-center justify-center">
+                            <img src="{% if ui_settings.logo %}{{ ui_settings.logo.url }}{% else %}/static/images/logo.png{% endif %}" alt="Logo" class="w-full h-full rounded-full object-cover">
+                        </div>
+                        <div class="leading-tight">
+                            <span class="text-[16px] font-bold block">{{ ui_settings.site_name|default:"Vetri Consultancy" }}</span>
+                            <span class="text-[16px] font-bold block">Services</span>
+                        </div>
+                    </div>
+                    <p class="text-[13px] text-white/80 mt-3">Your Career, Digitally Empowered</p>
+                </div>
+
+                <div>
+                    <h3 class="text-[16px] font-bold mb-4">Quick Links</h3>
+                    <a href="{% url 'dashboard' %}" class="footer-link">Home</a>
+                    <a href="#jobs" class="footer-link">Jobs</a>
+                    <a href="#profile" class="footer-link">Profile</a>
+                    <a href="#services" class="footer-link">Services</a>
+                </div>
+
+                <div>
+                    <h3 class="text-[16px] font-bold mb-4">Contact Us</h3>
+                    <div class="flex items-start gap-3 mb-3 text-[13px] text-white/90">
+                        <i class="fa-regular fa-envelope mt-1"></i>
+                        <span>contact@vetri.com</span>
+                    </div>
+                    <div class="flex items-start gap-3 mb-3 text-[13px] text-white/90">
+                        <i class="fa-solid fa-phone mt-1"></i>
+                        <span>+91 12345 67890</span>
+                    </div>
+                    <div class="flex items-start gap-3 text-[13px] text-white/90">
+                        <i class="fa-solid fa-location-dot mt-1"></i>
+                        <span>Vetri Consultancy Services,<br>Surandai</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-[16px] font-bold mb-4">Follow Us</h3>
+                    <div class="flex gap-4">
+                        <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="social-icon"><i class="fa-brands fa-linkedin"></i></a>
+                        <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-white/20 pt-6 text-center text-[12.5px] text-white/80">
+                © {% now "Y" %} {{ ui_settings.site_name|default:"Vetri Consultancy Service" }}. All rights reserved.
+            </div>
+            
+        </div>
+    </footer>
+
+    <button class="fixed bottom-6 right-6 w-[56px] h-[56px] bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-full shadow-lg flex items-center justify-center text-[24px] transition-transform duration-200 hover:scale-105 z-50 focus:outline-none">
+        <i class="fa-solid fa-robot"></i>
+    </button>
+
+    <script>
+        const btn = document.getElementById('mobileMenuBtn');
+        const menu = document.getElementById('mobileMenu');
+        
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

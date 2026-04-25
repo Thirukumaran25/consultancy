@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Candidate Dashboard - {{ ui_settings.site_name|default:"VCS" }}{% endblock %}
+
+{% block content %}
+<div class="max-w-[1400px] mx-auto px-5 md:px-8 py-8 md:py-10">
+
+    <div class="bg-gradient-to-br from-[#3d35c4] to-[#5b50e8] rounded-[16px] p-6 md:p-8 text-white mb-8 shadow-lg shadow-[#3d35c4]/20">
+        <div class="inline-block bg-white/20 rounded-[20px] px-3.5 py-1 text-[12px] font-bold mb-3.5 tracking-[0.5px]">
+            <i class="fa-solid fa-user-tie"></i> &nbsp;Candidate
+        </div>
+        <h1 class="text-[24px] font-extrabold mb-1.5">Hello, {{ profile.full_name }} 👋</h1>
+        <p class="text-[14px] opacity-85">Welcome to your dashboard. Explore job opportunities and manage your profile.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        
+        <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:-translate-y-1">
+            <div class="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[18px] mb-3.5 bg-[#ede9ff] text-[#3d35c4]">
+                <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <div class="text-[12px] text-[#7a8fa6] font-semibold mb-1">Applied Jobs</div>
+            <div class="text-[22px] font-extrabold text-[#1a2b4a]">0</div>
+        </div>
+
+        <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:-translate-y-1">
+            <div class="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[18px] mb-3.5 bg-[#e6fff0] text-[#057a2e]">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="text-[12px] text-[#7a8fa6] font-semibold mb-1">Shortlisted</div>
+            <div class="text-[22px] font-extrabold text-[#1a2b4a]">0</div>
+        </div>
+
+        <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:-translate-y-1">
+            <div class="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[18px] mb-3.5 bg-[#fff7e6] text-[#b45309]">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="text-[12px] text-[#7a8fa6] font-semibold mb-1">Pending</div>
+            <div class="text-[22px] font-extrabold text-[#1a2b4a]">0</div>
+        </div>
+
+        <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:-translate-y-1">
+            <div class="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[18px] mb-3.5 bg-[#fee2e2] text-[#b91c1c]">
+                <i class="fa-solid fa-xmark"></i>
+            </div>
+            <div class="text-[12px] text-[#7a8fa6] font-semibold mb-1">Rejected</div>
+            <div class="text-[22px] font-extrabold text-[#1a2b4a]">0</div>
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] max-w-2xl">
+        <h3 class="text-[15px] font-bold text-[#1a2b4a] mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-[#3d35c4]"></i> Account Info
+        </h3>
+        
+        <div class="flex justify-between py-2.5 border-b border-[#f0f4f8] text-[13px]">
+            <span class="text-[#7a8fa6] font-semibold">Full Name</span>
+            <span class="text-[#1a2b4a] font-bold">{{ profile.full_name }}</span>
+        </div>
+        
+        <div class="flex justify-between py-2.5 border-b border-[#f0f4f8] text-[13px]">
+            <span class="text-[#7a8fa6] font-semibold">Username</span>
+            <span class="text-[#1a2b4a] font-bold">{{ request.user.username }}</span>
+        </div>
+        
+        <div class="flex justify-between py-2.5 border-b border-[#f0f4f8] text-[13px]">
+            <span class="text-[#7a8fa6] font-semibold">Email</span>
+            <span class="text-[#1a2b4a] font-bold">{{ request.user.email }}</span>
+        </div>
+        
+        <div class="flex justify-between py-2.5 border-b border-[#f0f4f8] text-[13px]">
+            <span class="text-[#7a8fa6] font-semibold">Member Since</span>
+            <span class="text-[#1a2b4a] font-bold">{{ profile.created_at|date:"d M Y" }}</span>
+        </div>
+        
+        <div class="flex justify-between py-2.5 text-[13px]">
+            <span class="text-[#7a8fa6] font-semibold">Account Type</span>
+            <span class="text-[#1a2b4a] font-bold">Candidate</span>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

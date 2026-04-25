@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Registration - {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap');
+    </style>
+    
+    <style type="text/tailwindcss">
+        @layer components {
+            input.input-error { @apply border-[#e74c3c] shadow-[0_0_0_3px_rgba(231,76,60,0.15)] !important; }
+            
+            /* Alerts */
+            .field-alert { @apply hidden items-center gap-[5px] text-[11.5px] mt-[5px] py-1 px-2.5 rounded-[6px] font-semibold; }
+            .field-alert.show { @apply flex; }
+            .field-alert.err { @apply text-[#c0392b] bg-[#fff0f0]; }
+            .field-alert.ok  { @apply text-[#27ae60] bg-[#f0fff4]; }
+
+            /* Upload Boxes */
+            .upload-box.has-file { @apply border-[#27ae60] bg-[#f0fff5]; }
+            .upload-box.has-file .upload-icon { @apply text-[#27ae60]; }
+            .upload-box.has-file .upload-label-text { @apply text-[#27ae60]; }
+            .upload-box.has-file .upload-filename { @apply block; }
+
+            .photo-upload-area.has-files { @apply border-[#22c55e] bg-[#f0fff5]; }
+            .photo-upload-area.has-files .photo-upload-icon { @apply text-[#22c55e]; }
+            .photo-upload-area.has-files .photo-upload-text { @apply text-[#22c55e]; }
+        }
+    </style>
+</head>
+<body class="font-['Exo',sans-serif] antialiased bg-[#eef2f7] min-h-screen flex items-center justify-center p-5">
+
+<div class="bg-white rounded-[20px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] flex w-full max-w-[1040px] overflow-hidden flex-col md:flex-row">
+    
+    <div class="hidden md:flex flex-col w-[280px] min-w-[280px] bg-gradient-to-br from-[#ddeeff] to-[#c8e4ff] p-[30px]">
+        <div class="flex items-center gap-[10px] mb-[24px]">
+            <div class="w-[50px] h-[50px] bg-white rounded-full p-1 flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
+                <img src="{% if ui_settings.logo %}{{ ui_settings.logo.url }}{% else %}/static/images/logo.png{% endif %}" alt="Logo" class="w-full rounded-full object-cover">
+            </div>
+            <span class="text-[14px] font-bold text-[#1a2b4a]">{{ ui_settings.site_name|default:"Vetri Consultancy Services" }}</span>
+        </div>
+
+        <p class="text-[11px] font-bold uppercase tracking-[1px] text-[#5a7fa6] mb-[14px]">Registration Steps</p>
+
+        <div class="flex items-start gap-3 mb-[18px]">
+            <div class="w-[28px] h-[28px] min-w-[28px] bg-[#3d35c4] text-white rounded-full flex items-center justify-center text-[12px] font-extrabold shadow-[0_2px_6px_rgba(0,0,0,0.08)]">1</div>
+            <div>
+                <strong class="block text-[12.5px] font-bold text-[#1a2b4a] mb-0.5">Company Details</strong>
+                <span class="text-[11px] text-[#6a8fa6]">Fill in basic information</span>
+            </div>
+        </div>
+        <div class="w-[2px] h-[14px] bg-[#b8d8f0] ml-[13px] mb-1"></div>
+        <div class="flex items-start gap-3 mb-[18px]">
+            <div class="w-[28px] h-[28px] min-w-[28px] bg-white text-[#3d35c4] rounded-full flex items-center justify-center text-[12px] font-extrabold shadow-[0_2px_6px_rgba(0,0,0,0.08)]">2</div>
+            <div>
+                <strong class="block text-[12.5px] font-bold text-[#1a2b4a] mb-0.5">Upload Documents</strong>
+                <span class="text-[11px] text-[#6a8fa6]">Reg. cert, GST, photos</span>
+            </div>
+        </div>
+        <div class="w-[2px] h-[14px] bg-[#b8d8f0] ml-[13px] mb-1"></div>
+        <div class="flex items-start gap-3 mb-[18px]">
+            <div class="w-[28px] h-[28px] min-w-[28px] bg-white text-[#3d35c4] rounded-full flex items-center justify-center text-[12px] font-extrabold shadow-[0_2px_6px_rgba(0,0,0,0.08)]">3</div>
+            <div>
+                <strong class="block text-[12.5px] font-bold text-[#1a2b4a] mb-0.5">Admin Approval</strong>
+                <span class="text-[11px] text-[#6a8fa6]">Wait for verification</span>
+            </div>
+        </div>
+        <div class="w-[2px] h-[14px] bg-[#b8d8f0] ml-[13px] mb-1"></div>
+        <div class="flex items-start gap-3 mb-[18px]">
+            <div class="w-[28px] h-[28px] min-w-[28px] bg-white text-[#3d35c4] rounded-full flex items-center justify-center text-[12px] font-extrabold shadow-[0_2px_6px_rgba(0,0,0,0.08)]">4</div>
+            <div>
+                <strong class="block text-[12.5px] font-bold text-[#1a2b4a] mb-0.5">Get Access</strong>
+                <span class="text-[11px] text-[#6a8fa6]">Login to dashboard</span>
+            </div>
+        </div>
+
+        <div class="mt-auto bg-gradient-to-br from-[#a8d4ff] to-[#b8e0ff] rounded-[14px] h-[150px] flex items-center justify-center overflow-hidden shadow-[0_6px_18px_rgba(100,160,255,0.25)]">
+            <img src="{% if ui_settings.login_illustration %}{{ ui_settings.login_illustration.url }}{% else %}/static/images/login.png{% endif %}" alt="Illustration" class="w-full h-full object-cover">
+        </div>
+    </div>
+
+    <div class="flex-1 p-[28px_22px] md:p-[36px_44px] overflow-y-auto">
+        <div class="flex justify-between items-center mb-1">
+            <div class="inline-flex items-center gap-1.5 bg-[#fff3e0] text-[#3d35c4] text-[11.5px] font-bold py-1 px-3 rounded-[20px] mb-2.5 w-fit">
+                <i class="fa-solid fa-building"></i> Company Registration
+            </div>
+            <a href="{% url 'login' %}" class="text-[#4b6cf5] font-semibold text-[13px] no-underline hover:underline">back</a>
+        </div>
+        
+        <h1 class="text-[24px] font-extrabold text-[#1a2b4a] mb-1">Register Your Company</h1>
+        <p class="text-[13px] text-[#7a8fa6] mb-6">Submit your details for admin verification and approval.</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-2.5 px-[14px] rounded-lg mb-4 text-[13px] text-center border {% if message.tags == 'error' %}bg-[#fff0f0] text-[#c0392b] border-[#ffd0d0]{% else %}bg-[#e6fff0] text-[#057a2e] border-[#b2f2bb]{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="bg-[#fffbf0] border-[1.5px] border-[#fde68a] rounded-[10px] py-2.5 px-3.5 text-[12px] text-[#92710a] mb-[18px] flex gap-2 items-start">
+            <i class="fa-solid fa-circle-info text-[#f59e0b] mt-px"></i>
+            <span>After submission, admin will review your documents. You'll receive an email once approved. Only official company email addresses are accepted.</span>
+        </div>
+
+        <form method="POST" action="{% url 'company_register' %}" enctype="multipart/form-data" id="companyForm" novalidate>
+            {% csrf_token %}
+            
+            <div class="text-[11px] font-extrabold uppercase tracking-[0.8px] text-[#3d35c4] mb-3 pb-1.5 border-b-2 border-[#eef2ff] flex items-center gap-1.5">
+                <i class="fa-solid fa-building-columns"></i> Company Information
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-[14px]">
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Company Name</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-building absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="text" name="company_name" placeholder="Acme Pvt Ltd" id="id_company_name" maxlength="200" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Username</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-at absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="text" name="username" placeholder="no spaces allowed" id="id_username" maxlength="150" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                    </div>
+                    <div class="field-alert" id="username-alert">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span id="username-alert-msg"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-[14px]">
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Company Email</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="email" name="company_email" placeholder="hr@yourcompany.com" id="id_company_email" maxlength="254" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                    </div>
+                    <div class="field-alert" id="email-alert">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="email-alert-msg"></span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Location / Address</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-location-dot absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="text" name="location" placeholder="Chennai, Tamil Nadu" id="id_location" maxlength="300" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-[14px]">
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="password" name="password" placeholder="••••••••" id="id_password" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <i class="fa-solid fa-eye absolute right-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] cursor-pointer hover:text-[#4b6cf5] eye-icon"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Confirm Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="password" name="confirm_password" placeholder="••••••••" id="id_confirm_password" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <i class="fa-solid fa-eye absolute right-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] cursor-pointer hover:text-[#4b6cf5] eye-icon"></i>
+                    </div>
+                    <div class="field-alert" id="confirm-alert">
+                        <i class="fa-solid fa-circle-xmark"></i> <span>Passwords do not match</span>
+                    </div>
+                    <div class="field-alert" id="confirm-ok">
+                        <i class="fa-solid fa-circle-check"></i> <span>Passwords match</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-[11px] font-extrabold uppercase tracking-[0.8px] text-[#3d35c4] mb-3 pb-1.5 border-b-2 border-[#eef2ff] flex items-center gap-1.5 mt-1.5">
+                <i class="fa-solid fa-file-shield"></i> Company Documents
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-[14px]">
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Company Registration Document</label>
+                    <div class="upload-box border-2 border-dashed border-[#c8d8f0] rounded-[12px] p-[16px_14px] text-center cursor-pointer transition-colors duration-200 bg-[#f8fbff] relative w-full md:w-full hover:border-[#4b6cf5] hover:bg-[#f0f4ff]" id="box-reg">
+                        <input type="file" name="registration_document" id="file-reg" accept=".pdf,.jpg,.jpeg,.png" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+                        <div class="upload-icon text-[22px] text-[#8aaad8] mb-1.5"><i class="fa-solid fa-file-pdf"></i></div>
+                        <span class="upload-label-text text-[12px] font-bold text-[#5a7fa6] block">Click to upload</span>
+                        <span class="upload-sub text-[11px] text-[#9ab0c8] mt-0.5 block">PDF / JPG / PNG</span>
+                        <div class="upload-filename hidden text-[11.5px] text-[#27ae60] font-bold mt-1 overflow-hidden text-ellipsis whitespace-nowrap" id="name-reg"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">GST Document</label>
+                    <div class="upload-box border-2 border-dashed border-[#c8d8f0] rounded-[12px] p-[16px_14px] text-center cursor-pointer transition-colors duration-200 bg-[#f8fbff] relative w-full md:w-full hover:border-[#4b6cf5] hover:bg-[#f0f4ff]" id="box-gst">
+                        <input type="file" name="gst_document" id="file-gst" accept=".pdf,.jpg,.jpeg,.png" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+                        <div class="upload-icon text-[22px] text-[#8aaad8] mb-1.5"><i class="fa-solid fa-file-invoice"></i></div>
+                        <span class="upload-label-text text-[12px] font-bold text-[#5a7fa6] block">Click to upload</span>
+                        <span class="upload-sub text-[11px] text-[#9ab0c8] mt-0.5 block">PDF / JPG / PNG</span>
+                        <div class="upload-filename hidden text-[11.5px] text-[#27ae60] font-bold mt-1 overflow-hidden text-ellipsis whitespace-nowrap" id="name-gst"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-[14px]">
+                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">
+                    Company Photos with Location
+                    <span class="text-[10.5px] font-semibold text-[#9ab0c8] ml-1">(1–5 photos with office / location)</span>
+                </label>
+                <div class="photo-upload-area border-2 border-dashed border-[#c8d8f0] rounded-[14px] p-[20px_16px_14px] bg-[#f8fbff] transition-colors duration-200 cursor-pointer relative hover:border-[#4b6cf5] hover:bg-[#f0f4ff]" id="photo-area">
+                    <input type="file" name="company_photos" id="file-photos" accept=".jpg,.jpeg,.png" multiple class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+                    <div class="text-center pointer-events-none">
+                        <div class="photo-upload-icon text-[28px] text-[#8aaad8] mb-2"><i class="fa-solid fa-images"></i></div>
+                        <div class="photo-upload-text text-[13px] font-bold text-[#5a7fa6]">Click to upload company photos</div>
+                        <div class="text-[11.5px] text-[#9ab0c8] mt-1">JPG / PNG · Max 5 photos</div>
+                        <div class="photo-count-badge hidden mt-2 mx-auto bg-[#dcfce7] text-[#15803d] text-[12px] font-bold py-1 px-3 rounded-[20px] w-fit" id="photo-count-badge"></div>
+                    </div>
+                </div>
+                <div id="photo-error" class="hidden bg-[#fff0f0] border border-[#fca5a5] text-[#c0392b] text-[12px] font-bold py-1.5 px-3 rounded-lg mt-1.5"></div>
+                <div class="flex flex-wrap gap-2 mt-2.5" id="photo-previews"></div>
+            </div>
+
+            <div class="text-[11px] font-extrabold uppercase tracking-[0.8px] text-[#3d35c4] mb-3 pb-1.5 border-b-2 border-[#eef2ff] flex items-center gap-1.5 mt-1.5">
+                <i class="fa-solid fa-share-nodes"></i> Online Presence
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-[14px]">
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">LinkedIn Profile <span class="text-[10.5px] font-semibold text-[#9ab0c8] ml-1"></span></label>
+                    <div class="relative">
+                        <i class="fa-brands fa-linkedin absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="url" name="linkedin_url" placeholder="https://linkedin.com/company/yourcompany" id="id_linkedin_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Company Website <span class="text-[10.5px] font-semibold text-[#9ab0c8] ml-1"></span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-globe absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="url" name="website_url" placeholder="https://yourcompany.com" id="id_website_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-[14px]">
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Instagram <span class="text-[10.5px] font-semibold text-[#9ab0c8] ml-1">(optional)</span></label>
+                    <div class="relative">
+                        <i class="fa-brands fa-instagram absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="url" name="instagram_url" placeholder="https://instagram.com/yourcompany" id="id_instagram_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Facebook <span class="text-[10.5px] font-semibold text-[#9ab0c8] ml-1">(optional)</span></label>
+                    <div class="relative">
+                        <i class="fa-brands fa-facebook absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
+                        <input type="url" name="facebook_url" placeholder="https://facebook.com/yourcompany" id="id_facebook_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-center gap-2 mb-4 mt-2">
+                <input type="checkbox" id="terms" name="terms" required class="w-4 h-4 cursor-pointer accent-[#3d35c4]">
+                <label for="terms" class="text-[12.5px] text-[#7a8fa6] font-medium m-0 cursor-pointer">
+                    I agree to the 
+                    <a href="/terms/company/" target="_blank" class="text-[#4338CA] font-bold no-underline hover:underline">Terms and Conditions</a>
+                </label>
+            </div>
+
+            <button type="submit" class="w-full p-[14px] bg-gradient-to-br from-[#645dec] to-[#3d35c4] text-white border-none rounded-[10px] font-['Exo',sans-serif] text-[15px] font-bold cursor-pointer mt-2 transition-all duration-200 tracking-[0.3px] flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.99]" id="submitBtn">
+                <i class="fa-solid fa-paper-plane"></i> Submit for Approval
+            </button>
+        </form>
+
+        <div class="text-center mt-4 text-[13px] text-[#7a8fa6]">
+            Already approved? <a href="{% url 'login' %}" class="text-[#4b6cf5] font-bold no-underline hover:underline">Company Login</a>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ── Eye toggle ── */
+document.querySelectorAll(".eye-icon").forEach(icon => {
+    icon.addEventListener("click", function () {
+        const input = this.parentElement.querySelector("input");
+        if (input.type === "password") {
+            input.type = "text";
+            this.classList.replace("fa-eye", "fa-eye-slash");
+        } else {
+            input.type = "password";
+            this.classList.replace("fa-eye-slash", "fa-eye");
+        }
+    });
+});
+
+/* ── Username validation ── */
+const unInput = document.querySelector('#id_username');
+const unAlert = document.getElementById('username-alert');
+const unMsg   = document.getElementById('username-alert-msg');
+
+unInput.addEventListener('input', function () {
+    const v = this.value;
+    if (!v) { unAlert.className = 'field-alert'; return; }
+    if (/\s/.test(v)) {
+        unMsg.textContent = 'Username cannot contain spaces';
+        unAlert.className = 'field-alert show err';
+    } else {
+        unMsg.textContent = 'Looks good!';
+        unAlert.className = 'field-alert show ok';
+    }
+});
+
+/* ── Email: client-side informal check for personal providers ── */
+const BLOCKED = new Set([
+    'gmail.com','yahoo.com','yahoo.in','yahoo.co.in',
+    'hotmail.com','outlook.com','live.com','msn.com',
+    'icloud.com','me.com','mac.com','aol.com',
+    'protonmail.com','proton.me','rediffmail.com',
+    'sify.com','zoho.com','mailinator.com',
+    'guerrillamail.com','tempmail.com','yopmail.com',
+    'trashmail.com','maildrop.cc','yogee.com',
+]);
+
+const emailInput = document.querySelector('#id_company_email');
+const emailAlert = document.getElementById('email-alert');
+const emailMsg   = document.getElementById('email-alert-msg');
+
+emailInput.addEventListener('input', function () {
+    const v = this.value.trim().toLowerCase();
+    if (!v || !v.includes('@')) { emailAlert.className = 'field-alert'; return; }
+    const domain = v.split('@')[1];
+    if (BLOCKED.has(domain)) {
+        emailMsg.textContent = 'Personal/free email not allowed. Use official company email.';
+        emailAlert.className = 'field-alert show err';
+    } else {
+        emailAlert.className = 'field-alert';
+    }
+});
+
+/* ── Confirm password ── */
+const pwd1 = document.querySelector('#id_password');
+const pwd2 = document.querySelector('#id_confirm_password');
+
+function checkConfirm() {
+    if (!pwd2.value) {
+        document.getElementById('confirm-alert').className = 'field-alert';
+        document.getElementById('confirm-ok').className    = 'field-alert';
+        return;
+    }
+    if (pwd1.value !== pwd2.value) {
+        document.getElementById('confirm-alert').className = 'field-alert show err';
+        document.getElementById('confirm-ok').className    = 'field-alert';
+    } else {
+        document.getElementById('confirm-alert').className = 'field-alert';
+        document.getElementById('confirm-ok').className    = 'field-alert show ok';
+    }
+}
+pwd2.addEventListener('input', checkConfirm);
+pwd1.addEventListener('input', checkConfirm);
+
+/* ── Single file upload boxes ── */
+function setupUpload(fileId, boxId, nameId) {
+    const fileInput = document.getElementById(fileId);
+    const box       = document.getElementById(boxId);
+    const nameEl    = document.getElementById(nameId);
+    fileInput.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            box.classList.add('has-file');
+            nameEl.textContent = this.files[0].name;
+        } else {
+            box.classList.remove('has-file');
+            nameEl.textContent = '';
+        }
+    });
+}
+setupUpload('file-reg', 'box-reg', 'name-reg');
+setupUpload('file-gst', 'box-gst', 'name-gst');
+
+/* ── Multiple photo upload ── */
+const photoInput    = document.getElementById('file-photos');
+const photoArea     = document.getElementById('photo-area');
+const photoCountBdg = document.getElementById('photo-count-badge');
+const photoPreviews = document.getElementById('photo-previews');
+const photoError    = document.getElementById('photo-error');
+
+const MAX_PHOTOS = 5;
+const MIN_PHOTOS = 1;
+
+photoInput.addEventListener('change', function () {
+    const files = Array.from(this.files);
+    photoPreviews.innerHTML = '';
+    photoError.style.display = 'none';
+    photoCountBdg.style.display = 'none';
+
+    if (files.length === 0) {
+        photoArea.classList.remove('has-files');
+        return;
+    }
+
+    if (files.length > MAX_PHOTOS) {
+        photoError.textContent = `Maximum ${MAX_PHOTOS} photos allowed. You selected ${files.length}.`;
+        photoError.style.display = 'block';
+        photoArea.classList.remove('has-files');
+        this.value = '';
+        return;
+    }
+
+    photoArea.classList.add('has-files');
+    photoCountBdg.textContent = `${files.length} photo${files.length > 1 ? 's' : ''} selected`;
+    photoCountBdg.style.display = 'block';
+
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            // Tailwind classes for the preview thumbnails
+            img.className = 'w-[68px] h-[68px] rounded-lg object-cover border-2 border-[#86efac] shadow-[0_2px_6px_rgba(0,0,0,0.08)]';
+            img.alt = file.name;
+            photoPreviews.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+/* ── Form submit: final validation ── */
+document.getElementById('companyForm').addEventListener('submit', function (e) {
+    let hasError = false;
+
+    // Clear previous errors
+    document.querySelectorAll('.field-error-msg').forEach(el => el.remove());
+    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+    const requiredFields = [
+        ['id_company_name',    'Company Name'],
+        ['id_username',        'Username'],
+        ['id_company_email',   'Company Email'],
+        ['id_location',        'Location / Address'],
+        ['id_password',        'Password'],
+        ['id_confirm_password','Confirm Password'],
+    ];
+
+    requiredFields.forEach(([id, label]) => {
+        const field = document.getElementById(id);
+        if (!field) return;
+        if (!field.value.trim()) {
+            hasError = true;
+            field.classList.add('input-error');
+
+            const msg = document.createElement('div');
+            msg.className = 'field-error-msg';
+            msg.style.cssText = 'font-size:11.5px;color:#c0392b;background:#fff0f0;padding:4px 10px;border-radius:6px;margin-top:5px;font-weight:600;display:flex;align-items:center;gap:5px;';
+            msg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + label + ' is required';
+            field.closest('.relative').after(msg);
+
+            // Remove error on input
+            field.addEventListener('input', function () {
+                this.classList.remove('input-error');
+                const errEl = this.closest('div').parentElement.querySelector('.field-error-msg');
+                if (errEl) errEl.remove();
+            }, { once: true });
+        }
+    });
+
+    // Registration document
+    const regFile = document.getElementById('file-reg');
+    if (!regFile.files || regFile.files.length === 0) {
+        hasError = true;
+        const box = document.getElementById('box-reg');
+        box.style.borderColor = '#e74c3c';
+        showDocError(box, 'Registration Document is required');
+    }
+
+    // GST document
+    const gstFile = document.getElementById('file-gst');
+    if (!gstFile.files || gstFile.files.length === 0) {
+        hasError = true;
+        const box = document.getElementById('box-gst');
+        box.style.borderColor = '#e74c3c';
+        showDocError(box, 'GST Document is required');
+    }
+
+    // Email domain check
+    const domain = emailInput.value.trim().toLowerCase().split('@')[1] || '';
+    if (BLOCKED.has(domain)) {
+        e.preventDefault();
+        emailMsg.textContent = 'Personal/free email not allowed. Use official company email.';
+        emailAlert.className = 'field-alert show err';
+        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    // Photos check
+    const photos = photoInput.files;
+    if (!photos || photos.length < 1) {
+        hasError = true;
+        photoError.textContent = 'Please upload at least 1 company photo.';
+        photoError.style.display = 'block';
+        document.getElementById('photo-area').style.borderColor = '#e74c3c';
+    }
+
+    if (hasError) {
+        e.preventDefault();
+        // Scroll to first error
+        const firstErr = document.querySelector('.field-error-msg, #photo-error[style*="block"]');
+        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+
+function showDocError(box, msg) {
+    let existing = box.parentElement.querySelector('.doc-error-msg');
+    if (!existing) {
+        const el = document.createElement('div');
+        el.className = 'doc-error-msg field-error-msg';
+        el.style.cssText = 'font-size:11.5px;color:#c0392b;background:#fff0f0;padding:4px 10px;border-radius:6px;margin-top:5px;font-weight:600;display:flex;align-items:center;gap:5px;';
+        el.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + msg;
+        box.after(el);
+        
+        // Remove error outline on click
+        box.addEventListener('click', function() {
+            this.style.borderColor = '';
+            const msgEl = this.parentElement.querySelector('.doc-error-msg');
+            if (msgEl) msgEl.remove();
+        }, { once: true });
+    }
+}
+</script>
+</body>
+</html>

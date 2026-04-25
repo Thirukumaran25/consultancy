@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - {{ ui_settings.site_name|default:"VCS" }}{% endblock %}
+
+{% block content %}
+<div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+    
+    <div class="mb-6 flex justify-between items-center">
+        <h1 class="text-[22px] font-extrabold text-[#1a2b4a]">My Profile</h1>
+        <span class="text-[13px] text-[#7a8fa6]">Last updated today</span>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-6">
+        
+        <div class="lg:w-1/3 space-y-6">
+            
+            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-[80px] bg-gradient-to-r from-[#4238ca] to-[#3b82f6]"></div>
+                
+                <div class="relative z-10 flex flex-col items-center mt-4">
+                    <div class="w-[100px] h-[100px] bg-white rounded-full p-1 shadow-md mb-3 relative">
+                        <img src="https://ui-avatars.com/api/?name={{ profile.full_name|urlencode }}&background=eef2f7&color=4238ca" alt="Profile" class="w-full h-full rounded-full object-cover">
+                        <button class="absolute bottom-0 right-0 bg-white text-[#4238ca] w-8 h-8 rounded-full shadow-md flex items-center justify-center border border-gray-100 hover:bg-gray-50 transition">
+                            <i class="fa-solid fa-camera text-[13px]"></i>
+                        </button>
+                    </div>
+                    
+                    <h2 class="text-[18px] font-bold text-[#1a2b4a]">{{ profile.full_name }}</h2>
+                    <p class="text-[13px] text-[#7a8fa6] mb-4">Python Full-Stack Developer</p>
+                    
+                    <div class="w-full space-y-2 text-[13px] text-[#4a5568]">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-envelope text-[#aab8c8] w-4"></i> {{ request.user.email }}</div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-phone text-[#aab8c8] w-4"></i> {{ profile.phone_number|default:"+91 Add your number" }}</div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-location-dot text-[#aab8c8] w-4"></i> Chennai, Tamil Nadu</div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-briefcase text-[#aab8c8] w-4"></i> 2 Years 4 Months</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-[15px] font-bold text-[#1a2b4a]">Profile Strength</h3>
+                    <span class="text-[14px] font-extrabold text-[#22c55e]">70%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                    <div class="bg-[#22c55e] h-2 rounded-full" style="width: 70%"></div>
+                </div>
+                <p class="text-[12px] text-[#7a8fa6] mb-3">Add missing details to boost your visibility to recruiters.</p>
+                <ul class="text-[12.5px] space-y-2 text-[#4a5568]">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-circle-plus text-[#f59e0b]"></i> <a href="#projects" class="text-[#4b6cf5] hover:underline">Add Projects</a> ( +10% )</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-circle-plus text-[#f59e0b]"></i> <a href="#certifications" class="text-[#4b6cf5] hover:underline">Add Certifications</a> ( +10% )</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-[16px] py-4 shadow-sm border border-gray-100 hidden lg:block sticky top-[90px]">
+                <h3 class="text-[14px] font-bold text-[#1a2b4a] px-6 mb-2 uppercase tracking-wide">Quick Links</h3>
+                <nav class="flex flex-col text-[13.5px] font-semibold text-[#4a5568]">
+                    <a href="#resume" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Resume</a>
+                    <a href="#headline" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Resume Headline</a>
+                    <a href="#summary" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Profile Summary</a>
+                    <a href="#skills" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Key Skills</a>
+                    <a href="#employment" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Employment</a>
+                    <a href="#education" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Education</a>
+                    <a href="#projects" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Projects</a>
+                    <a href="#personal" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Personal Details</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="lg:w-2/3 space-y-5">
+            
+            <div id="resume" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-1">Resume</h3>
+                    <p class="text-[13px] text-[#7a8fa6]">Resume is the most important document recruiters look for.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] font-bold text-[13px] px-4 py-2 rounded-[8px] transition">
+                        <i class="fa-solid fa-download mr-1"></i> Download
+                    </button>
+                    <button class="text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[13px] px-4 py-2 rounded-[8px] transition">
+                        Update Resume
+                    </button>
+                </div>
+            </div>
+
+            <div id="headline" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
+                <button class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-3">Resume Headline</h3>
+                <p class="text-[14px] text-[#4a5568] leading-relaxed">
+                    Software Engineer with 2+ years of experience in developing scalable web applications using Python, Django, and Tailwind CSS. Passionate about transitioning into AI engineering and building intelligent agents.
+                </p>
+            </div>
+
+            <div id="summary" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
+                <button class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-3">Profile Summary</h3>
+                <p class="text-[14px] text-[#4a5568] leading-relaxed">
+                    Full-stack developer highly proficient in backend logic (Django/Python) and responsive frontend designs (Tailwind CSS). Proven track record of delivering enterprise-level projects like management systems and cloud deployments on Render. Currently upskilling in MLOps, LLMs, and RAG architectures to transition into an AI Engineering role.
+                </p>
+            </div>
+
+            <div id="skills" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
+                <button class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-4">Key Skills</h3>
+                <div class="flex flex-wrap gap-2.5">
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">Python</span>
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">Django</span>
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">Tailwind CSS</span>
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">REST APIs</span>
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">PostgreSQL</span>
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">Git</span>
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">ChromaDB</span>
+                    <span class="bg-white border-2 border-dashed border-[#aab8c8] text-[#7a8fa6] text-[13px] font-bold px-4 py-1.5 rounded-full cursor-pointer hover:border-[#4b6cf5] hover:text-[#4b6cf5] transition">
+                        <i class="fa-solid fa-plus"></i> Add Skill
+                    </span>
+                </div>
+            </div>
+
+            <div id="employment" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
+                <button class="absolute top-5 right-5 text-[#4b6cf5] font-bold text-[13px] hover:underline">Add Employment</button>
+                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Employment</h3>
+                
+                <div class="relative pl-6 border-l-2 border-[#e4eaf2] space-y-6">
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-3 h-3 bg-[#4b6cf5] rounded-full border-4 border-white"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-[15px] font-bold text-[#1a2b4a]">Software Engineer</h4>
+                                <p class="text-[13.5px] text-[#4a5568] font-semibold">TechCorp Solutions <span class="text-[#7a8fa6] font-normal">| Full Time</span></p>
+                                <p class="text-[12.5px] text-[#7a8fa6] mt-0.5">Jan 2024 - Present (2 yrs 4 mos) | Chennai</p>
+                            </div>
+                            <button class="text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+                        </div>
+                        <ul class="mt-3 list-disc pl-4 text-[13.5px] text-[#4a5568] space-y-1 marker:text-[#aab8c8]">
+                            <li>Developed scalable backend systems using Python and Django for enterprise clients.</li>
+                            <li>Integrated Vector databases (ChromaDB) for advanced semantic search features.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="education" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
+                <button class="absolute top-5 right-5 text-[#4b6cf5] font-bold text-[13px] hover:underline">Add Education</button>
+                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Education</h3>
+                
+                <div class="border-b border-[#f0f4f8] pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="text-[15px] font-bold text-[#1a2b4a]">B.Tech / B.E. (Computer Science)</h4>
+                            <p class="text-[13.5px] text-[#4a5568] font-semibold">Anna University</p>
+                            <p class="text-[12.5px] text-[#7a8fa6] mt-0.5">2019 - 2023 | Full Time</p>
+                        </div>
+                        <button class="text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="projects" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
+                <button class="absolute top-5 right-5 text-[#4b6cf5] font-bold text-[13px] hover:underline">Add Project</button>
+                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Projects</h3>
+                
+                <div class="border-b border-[#f0f4f8] pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="text-[15px] font-bold text-[#1a2b4a] flex items-center gap-2">
+                                Semantic Cinema <a href="#" class="text-[#4b6cf5] text-[12px]"><i class="fa-solid fa-link"></i></a>
+                            </h4>
+                            <p class="text-[12.5px] text-[#7a8fa6] mt-0.5 mb-2">Feb 2026 - Present</p>
+                            <p class="text-[13.5px] text-[#4a5568] leading-relaxed">
+                                A movie database project integrating vector search capabilities using ChromaDB and Django management commands for data syncing.
+                            </p>
+                        </div>
+                        <button class="text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="personal" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
+                <button class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Personal Details</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                    <div>
+                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Gender</span>
+                        <span class="text-[14px] text-[#1a2b4a] font-semibold">Male</span>
+                    </div>
+                    <div>
+                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Marital Status</span>
+                        <span class="text-[14px] text-[#1a2b4a] font-semibold">Single</span>
+                    </div>
+                    <div>
+                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Date of Birth</span>
+                        <span class="text-[14px] text-[#1a2b4a] font-semibold">15 Aug 2001</span>
+                    </div>
+                    <div>
+                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Languages Known</span>
+                        <span class="text-[14px] text-[#1a2b4a] font-semibold">English, Tamil</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
