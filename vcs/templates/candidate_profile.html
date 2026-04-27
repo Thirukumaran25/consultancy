@@ -1,201 +1,381 @@
 {% extends 'base.html' %}
-
 {% block title %}My Profile - {{ ui_settings.site_name|default:"VCS" }}{% endblock %}
 
 {% block content %}
 <div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
-    
+
     <div class="mb-6 flex justify-between items-center">
         <h1 class="text-[22px] font-extrabold text-[#1a2b4a]">My Profile</h1>
-        <span class="text-[13px] text-[#7a8fa6]">Last updated today</span>
+        <span class="text-[13px] text-[#7a8fa6]">
+            Member since {{ profile.created_at|date:"d M Y" }}
+        </span>
     </div>
 
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-3 px-4 rounded-lg text-[13px]
+                {% if message.tags == 'error' %}bg-[#ffe5e5] text-[#b30000]
+                {% else %}bg-[#e6fff0] text-[#057a2e]{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <div class="flex flex-col lg:flex-row gap-6">
-        
+
+        <!-- ── LEFT SIDEBAR ── -->
         <div class="lg:w-1/3 space-y-6">
-            
-            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-[80px] bg-gradient-to-r from-[#4238ca] to-[#3b82f6]"></div>
-                
-                <div class="relative z-10 flex flex-col items-center mt-4">
-                    <div class="w-[100px] h-[100px] bg-white rounded-full p-1 shadow-md mb-3 relative">
-                        <img src="https://ui-avatars.com/api/?name={{ profile.full_name|urlencode }}&background=eef2f7&color=4238ca" alt="Profile" class="w-full h-full rounded-full object-cover">
-                        <button class="absolute bottom-0 right-0 bg-white text-[#4238ca] w-8 h-8 rounded-full shadow-md flex items-center justify-center border border-gray-100 hover:bg-gray-50 transition">
-                            <i class="fa-solid fa-camera text-[13px]"></i>
-                        </button>
+
+            <!-- Profile Card -->
+            <div class="bg-white rounded-[16px] shadow-sm border border-gray-100 relative overflow-hidden">
+                <div class="h-[80px] bg-gradient-to-r from-[#4238ca] to-[#3b82f6]"></div>
+                <div class="px-6 pb-6 flex flex-col items-center -mt-10">
+                    <div class="w-[90px] h-[90px] bg-white rounded-full p-1 shadow-md mb-3">
+                        <img src="https://ui-avatars.com/api/?name={{ profile.full_name|urlencode }}&background=eef2f7&color=4238ca&size=200"
+                             alt="Profile" class="w-full h-full rounded-full object-cover">
                     </div>
-                    
-                    <h2 class="text-[18px] font-bold text-[#1a2b4a]">{{ profile.full_name }}</h2>
-                    <p class="text-[13px] text-[#7a8fa6] mb-4">Python Full-Stack Developer</p>
-                    
+                    <h2 class="text-[18px] font-bold text-[#1a2b4a] text-center">{{ profile.full_name }}</h2>
+                    <p class="text-[13px] text-[#7a8fa6] text-center mb-4">
+                        {{ profile.resume_headline|default:"Add your resume headline" }}
+                    </p>
                     <div class="w-full space-y-2 text-[13px] text-[#4a5568]">
-                        <div class="flex items-center gap-3"><i class="fa-solid fa-envelope text-[#aab8c8] w-4"></i> {{ request.user.email }}</div>
-                        <div class="flex items-center gap-3"><i class="fa-solid fa-phone text-[#aab8c8] w-4"></i> {{ profile.phone_number|default:"+91 Add your number" }}</div>
-                        <div class="flex items-center gap-3"><i class="fa-solid fa-location-dot text-[#aab8c8] w-4"></i> Chennai, Tamil Nadu</div>
-                        <div class="flex items-center gap-3"><i class="fa-solid fa-briefcase text-[#aab8c8] w-4"></i> 2 Years 4 Months</div>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-envelope text-[#aab8c8] w-4"></i>
+                            {{ request.user.email }}
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-phone text-[#aab8c8] w-4"></i>
+                            {{ profile.phone_number|default:"Add phone number" }}
+                        </div>
+                        {% if profile.date_of_birth %}
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-cake-candles text-[#aab8c8] w-4"></i>
+                            {{ profile.date_of_birth|date:"d M Y" }}
+                        </div>
+                        {% endif %}
+                        {% if profile.languages_known %}
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-language text-[#aab8c8] w-4"></i>
+                            {{ profile.languages_known }}
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
+            <!-- Profile Strength -->
+            {% with emp_count=profile.employments.count edu_count=profile.educations.count proj_count=profile.projects.count skill_count=profile.skills.count %}
+            {% with strength=0 %}
             <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-[15px] font-bold text-[#1a2b4a]">Profile Strength</h3>
-                    <span class="text-[14px] font-extrabold text-[#22c55e]">70%</span>
+                    <span class="text-[14px] font-extrabold text-[#22c55e]" id="strength-pct">—</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
-                    <div class="bg-[#22c55e] h-2 rounded-full" style="width: 70%"></div>
+                    <div class="bg-[#22c55e] h-2 rounded-full transition-all" id="strength-bar" style="width:0%"></div>
                 </div>
-                <p class="text-[12px] text-[#7a8fa6] mb-3">Add missing details to boost your visibility to recruiters.</p>
-                <ul class="text-[12.5px] space-y-2 text-[#4a5568]">
-                    <li class="flex items-center gap-2"><i class="fa-solid fa-circle-plus text-[#f59e0b]"></i> <a href="#projects" class="text-[#4b6cf5] hover:underline">Add Projects</a> ( +10% )</li>
-                    <li class="flex items-center gap-2"><i class="fa-solid fa-circle-plus text-[#f59e0b]"></i> <a href="#certifications" class="text-[#4b6cf5] hover:underline">Add Certifications</a> ( +10% )</li>
-                </ul>
+                <p class="text-[12px] text-[#7a8fa6] mb-3">Complete your profile to boost recruiter visibility.</p>
+                <ul class="text-[12.5px] space-y-2 text-[#4a5568]" id="strength-tips"></ul>
             </div>
+            {% endwith %}
+            {% endwith %}
 
+            <!-- Quick Links -->
             <div class="bg-white rounded-[16px] py-4 shadow-sm border border-gray-100 hidden lg:block sticky top-[90px]">
-                <h3 class="text-[14px] font-bold text-[#1a2b4a] px-6 mb-2 uppercase tracking-wide">Quick Links</h3>
-                <nav class="flex flex-col text-[13.5px] font-semibold text-[#4a5568]">
-                    <a href="#resume" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Resume</a>
-                    <a href="#headline" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Resume Headline</a>
-                    <a href="#summary" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Profile Summary</a>
-                    <a href="#skills" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Key Skills</a>
-                    <a href="#employment" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Employment</a>
-                    <a href="#education" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Education</a>
-                    <a href="#projects" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Projects</a>
-                    <a href="#personal" class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">Personal Details</a>
+                <h3 class="text-[13px] font-bold text-[#1a2b4a] px-6 mb-2 uppercase tracking-wide">Quick Links</h3>
+                <nav class="flex flex-col text-[13px] font-semibold text-[#4a5568]">
+                    {% for anchor, label in quick_links %}
+                    <a href="#{{ anchor }}"
+                       class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-2 border-transparent hover:border-[#4b6cf5]">
+                        {{ label }}
+                    </a>
+                    {% endfor %}
                 </nav>
             </div>
         </div>
 
+        <!-- ── RIGHT MAIN CONTENT ── -->
         <div class="lg:w-2/3 space-y-5">
-            
-            <div id="resume" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+
+            <!-- Resume -->
+            <div id="resume" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between flex-wrap gap-4">
                 <div>
                     <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-1">Resume</h3>
-                    <p class="text-[13px] text-[#7a8fa6]">Resume is the most important document recruiters look for.</p>
+                    {% if profile.resume %}
+                        <p class="text-[13px] text-[#7a8fa6]">{{ profile.resume.name|cut:"resumes/" }}</p>
+                    {% else %}
+                        <p class="text-[13px] text-[#e05c5c]">No resume uploaded yet.</p>
+                    {% endif %}
                 </div>
-                <div class="flex gap-3">
-                    <button class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] font-bold text-[13px] px-4 py-2 rounded-[8px] transition">
+                <div class="flex gap-3 flex-wrap">
+                    {% if profile.resume %}
+                    <a href="{{ profile.resume.url }}" target="_blank"
+                       class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] font-bold text-[13px] px-4 py-2 rounded-[8px] transition">
                         <i class="fa-solid fa-download mr-1"></i> Download
-                    </button>
-                    <button class="text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[13px] px-4 py-2 rounded-[8px] transition">
-                        Update Resume
-                    </button>
+                    </a>
+                    {% endif %}
+                    <form method="POST" action="{% url 'update_resume' %}" enctype="multipart/form-data" class="flex items-center gap-2">
+                        {% csrf_token %}
+                        <label class="text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[13px] px-4 py-2 rounded-[8px] transition cursor-pointer">
+                            {% if profile.resume %}Update Resume{% else %}Upload Resume{% endif %}
+                            <input type="file" name="resume" accept=".pdf,.doc,.docx" class="hidden" onchange="this.form.submit()">
+                        </label>
+                    </form>
                 </div>
             </div>
 
-            <div id="headline" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
-                <button class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+            <!-- Resume Headline -->
+            <div id="headline" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+                <button onclick="openModal('modal-headline')"
+                        class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
                 <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-3">Resume Headline</h3>
-                <p class="text-[14px] text-[#4a5568] leading-relaxed">
-                    Software Engineer with 2+ years of experience in developing scalable web applications using Python, Django, and Tailwind CSS. Passionate about transitioning into AI engineering and building intelligent agents.
-                </p>
+                {% if profile.resume_headline %}
+                    <p class="text-[14px] text-[#4a5568] leading-relaxed">{{ profile.resume_headline }}</p>
+                {% else %}
+                    <p class="text-[13px] text-[#aab8c8] italic">No headline added yet. Click the edit button to add one.</p>
+                {% endif %}
             </div>
 
-            <div id="summary" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
-                <button class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+            <!-- Profile Summary -->
+            <div id="summary" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+                <button onclick="openModal('modal-summary')"
+                        class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
                 <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-3">Profile Summary</h3>
-                <p class="text-[14px] text-[#4a5568] leading-relaxed">
-                    Full-stack developer highly proficient in backend logic (Django/Python) and responsive frontend designs (Tailwind CSS). Proven track record of delivering enterprise-level projects like management systems and cloud deployments on Render. Currently upskilling in MLOps, LLMs, and RAG architectures to transition into an AI Engineering role.
-                </p>
+                {% if profile.profile_summary %}
+                    <p class="text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ profile.profile_summary }}</p>
+                {% else %}
+                    <p class="text-[13px] text-[#aab8c8] italic">No summary added yet. Click the edit button to add one.</p>
+                {% endif %}
             </div>
 
-            <div id="skills" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
-                <button class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+            <!-- Key Skills -->
+            <div id="skills" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+                <button onclick="openModal('modal-skill')"
+                        class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
                 <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-4">Key Skills</h3>
                 <div class="flex flex-wrap gap-2.5">
-                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">Python</span>
-                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">Django</span>
-                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">Tailwind CSS</span>
-                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">REST APIs</span>
-                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">PostgreSQL</span>
-                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">Git</span>
-                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full">ChromaDB</span>
-                    <span class="bg-white border-2 border-dashed border-[#aab8c8] text-[#7a8fa6] text-[13px] font-bold px-4 py-1.5 rounded-full cursor-pointer hover:border-[#4b6cf5] hover:text-[#4b6cf5] transition">
-                        <i class="fa-solid fa-plus"></i> Add Skill
+                    {% for skill in profile.skills.all %}
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full flex items-center gap-2">
+                        {{ skill.name }}
+                        <form method="POST" action="{% url 'remove_skill' skill.id %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[11px]">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </form>
                     </span>
+                    {% empty %}
+                    <p class="text-[13px] text-[#aab8c8] italic">No skills added yet.</p>
+                    {% endfor %}
+                    <button onclick="openModal('modal-skill')"
+                        class="bg-white border-2 border-dashed border-[#aab8c8] text-[#7a8fa6] text-[13px] font-bold px-4 py-1.5 rounded-full cursor-pointer hover:border-[#4b6cf5] hover:text-[#4b6cf5] transition">
+                        <i class="fa-solid fa-plus"></i> Add Skill
+                    </button>
                 </div>
             </div>
 
-            <div id="employment" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
-                <button class="absolute top-5 right-5 text-[#4b6cf5] font-bold text-[13px] hover:underline">Add Employment</button>
-                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Employment</h3>
-                
+            <!-- Employment -->
+            <div id="employment" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-[16px] font-bold text-[#1a2b4a]">Employment</h3>
+                    <button onclick="openModal('modal-employment')"
+                            class="text-[#4b6cf5] font-bold text-[13px] hover:underline">
+                        + Add Employment
+                    </button>
+                </div>
+
+                {% if profile.employments.all %}
                 <div class="relative pl-6 border-l-2 border-[#e4eaf2] space-y-6">
+                    {% for emp in profile.employments.all %}
                     <div class="relative">
                         <div class="absolute -left-[31px] top-1 w-3 h-3 bg-[#4b6cf5] rounded-full border-4 border-white"></div>
                         <div class="flex justify-between items-start">
                             <div>
-                                <h4 class="text-[15px] font-bold text-[#1a2b4a]">Software Engineer</h4>
-                                <p class="text-[13.5px] text-[#4a5568] font-semibold">TechCorp Solutions <span class="text-[#7a8fa6] font-normal">| Full Time</span></p>
-                                <p class="text-[12.5px] text-[#7a8fa6] mt-0.5">Jan 2024 - Present (2 yrs 4 mos) | Chennai</p>
+                                <h4 class="text-[15px] font-bold text-[#1a2b4a]">{{ emp.designation }}</h4>
+                                <p class="text-[13.5px] text-[#4a5568] font-semibold">
+                                    {{ emp.company_name }}
+                                </p>
+                                <p class="text-[12.5px] text-[#7a8fa6] mt-0.5">
+                                    {{ emp.start_date|date:"M Y" }} –
+                                    {% if emp.is_current %}Present{% else %}{{ emp.end_date|date:"M Y" }}{% endif %}
+                                    {% if emp.location %} | {{ emp.location }}{% endif %}
+                                </p>
                             </div>
-                            <button class="text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+                            <div class="flex gap-2">
+                                <button onclick="openEditEmployment({{ emp.id }}, '{{ emp.designation }}', '{{ emp.company_name }}', '{{ emp.start_date|date:'Y-m-d' }}', '{{ emp.end_date|date:'Y-m-d' }}', {{ emp.is_current|yesno:'true,false' }}, '{{ emp.location }}', `{{ emp.description|escapejs }}`)"
+                                    class="text-[#aab8c8] hover:text-[#4b6cf5] transition text-[13px]">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <form method="POST" action="{% url 'delete_employment' emp.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[13px]"
+                                            onclick="return confirm('Delete this employment?')">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <ul class="mt-3 list-disc pl-4 text-[13.5px] text-[#4a5568] space-y-1 marker:text-[#aab8c8]">
-                            <li>Developed scalable backend systems using Python and Django for enterprise clients.</li>
-                            <li>Integrated Vector databases (ChromaDB) for advanced semantic search features.</li>
-                        </ul>
+                        {% if emp.description %}
+                        <p class="mt-2 text-[13.5px] text-[#4a5568] leading-relaxed">{{ emp.description }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <!-- Fresher option -->
+                <div class="border-2 border-dashed border-[#e4eaf2] rounded-[12px] p-6 text-center">
+                    <i class="fa-solid fa-briefcase text-[32px] text-[#d8e4f0] mb-3"></i>
+                    <p class="text-[14px] font-bold text-[#1a2b4a] mb-1">No experience added yet</p>
+                    <p class="text-[13px] text-[#7a8fa6] mb-4">Are you a fresher or have work experience?</p>
+                    <div class="flex gap-3 justify-center flex-wrap">
+                        <button onclick="openModal('modal-employment')"
+                            class="bg-[#4b6cf5] text-white font-bold text-[13px] px-5 py-2 rounded-[8px] hover:bg-[#3b5ce5] transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Add Work Experience
+                        </button>
+                        <form method="POST" action="{% url 'mark_fresher' %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="bg-[#f1f5fb] text-[#4a5568] font-bold text-[13px] px-5 py-2 rounded-[8px] border border-[#d8e4f0] hover:bg-[#e4eaf2] transition">
+                                <i class="fa-solid fa-user-graduate mr-1"></i> I am a Fresher
+                            </button>
+                        </form>
                     </div>
                 </div>
+                {% endif %}
+
+                {% if profile.is_fresher %}
+                <div class="mt-3 flex items-center gap-2 text-[13px] text-[#057a2e] bg-[#e6fff0] px-4 py-2 rounded-[8px]">
+                    <i class="fa-solid fa-circle-check"></i>
+                    Marked as Fresher — recruiters will see you are open to entry-level roles.
+                    <form method="POST" action="{% url 'mark_fresher' %}" class="ml-auto">
+                        {% csrf_token %}
+                        <input type="hidden" name="unmark" value="1">
+                        <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] text-[12px] font-bold">Remove</button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
 
-            <div id="education" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
-                <button class="absolute top-5 right-5 text-[#4b6cf5] font-bold text-[13px] hover:underline">Add Education</button>
-                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Education</h3>
-                
+            <!-- Education -->
+            <div id="education" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-[16px] font-bold text-[#1a2b4a]">Education</h3>
+                    <button onclick="openModal('modal-education')"
+                            class="text-[#4b6cf5] font-bold text-[13px] hover:underline">
+                        + Add Education
+                    </button>
+                </div>
+                {% for edu in profile.educations.all %}
                 <div class="border-b border-[#f0f4f8] pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
                     <div class="flex justify-between items-start">
                         <div>
-                            <h4 class="text-[15px] font-bold text-[#1a2b4a]">B.Tech / B.E. (Computer Science)</h4>
-                            <p class="text-[13.5px] text-[#4a5568] font-semibold">Anna University</p>
-                            <p class="text-[12.5px] text-[#7a8fa6] mt-0.5">2019 - 2023 | Full Time</p>
-                        </div>
-                        <button class="text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="projects" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
-                <button class="absolute top-5 right-5 text-[#4b6cf5] font-bold text-[13px] hover:underline">Add Project</button>
-                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Projects</h3>
-                
-                <div class="border-b border-[#f0f4f8] pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="text-[15px] font-bold text-[#1a2b4a] flex items-center gap-2">
-                                Semantic Cinema <a href="#" class="text-[#4b6cf5] text-[12px]"><i class="fa-solid fa-link"></i></a>
+                            <h4 class="text-[15px] font-bold text-[#1a2b4a]">
+                                {{ edu.education_level }}{% if edu.course %} — {{ edu.course }}{% endif %}
                             </h4>
-                            <p class="text-[12.5px] text-[#7a8fa6] mt-0.5 mb-2">Feb 2026 - Present</p>
-                            <p class="text-[13.5px] text-[#4a5568] leading-relaxed">
-                                A movie database project integrating vector search capabilities using ChromaDB and Django management commands for data syncing.
+                            <p class="text-[13.5px] text-[#4a5568] font-semibold">{{ edu.university }}</p>
+                            <p class="text-[12.5px] text-[#7a8fa6] mt-0.5">
+                                {{ edu.start_year }} – {{ edu.end_year }} | {{ edu.course_type }}
                             </p>
                         </div>
-                        <button class="text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+                        <div class="flex gap-2">
+                            <button onclick="openEditEducation({{ edu.id }}, '{{ edu.education_level }}', '{{ edu.course }}', '{{ edu.university }}', {{ edu.start_year }}, {{ edu.end_year }}, '{{ edu.course_type }}')"
+                                class="text-[#aab8c8] hover:text-[#4b6cf5] transition text-[13px]">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <form method="POST" action="{% url 'delete_education' edu.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[13px]"
+                                        onclick="return confirm('Delete this education?')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
+                {% empty %}
+                <p class="text-[13px] text-[#aab8c8] italic">No education added yet.</p>
+                {% endfor %}
             </div>
 
-            <div id="personal" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative group">
-                <button class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition"><i class="fa-solid fa-pen"></i></button>
+            <!-- Projects -->
+            <div id="projects" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-[16px] font-bold text-[#1a2b4a]">Projects</h3>
+                    <button onclick="openModal('modal-project')"
+                            class="text-[#4b6cf5] font-bold text-[13px] hover:underline">
+                        + Add Project
+                    </button>
+                </div>
+                {% for proj in profile.projects.all %}
+                <div class="border-b border-[#f0f4f8] pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-4">
+                            <h4 class="text-[15px] font-bold text-[#1a2b4a] flex items-center gap-2">
+                                {{ proj.title }}
+                                {% if proj.project_url %}
+                                <a href="{{ proj.project_url }}" target="_blank" class="text-[#4b6cf5] text-[12px]">
+                                    <i class="fa-solid fa-link"></i>
+                                </a>
+                                {% endif %}
+                            </h4>
+                            <p class="text-[12.5px] text-[#7a8fa6] mt-0.5 mb-2">
+                                {% if proj.start_date %}{{ proj.start_date|date:"M Y" }} – {% endif %}
+                                {% if proj.is_ongoing %}Present{% elif proj.end_date %}{{ proj.end_date|date:"M Y" }}{% endif %}
+                            </p>
+                            <p class="text-[13.5px] text-[#4a5568] leading-relaxed">{{ proj.description }}</p>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <button onclick="openEditProject({{ proj.id }}, '{{ proj.title }}', '{{ proj.project_url|default:'' }}', '{{ proj.start_date|date:'Y-m-d' }}', '{{ proj.end_date|date:'Y-m-d' }}', {{ proj.is_ongoing|yesno:'true,false' }}, `{{ proj.description|escapejs }}`)"
+                                class="text-[#aab8c8] hover:text-[#4b6cf5] transition text-[13px]">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <form method="POST" action="{% url 'delete_project' proj.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[13px]"
+                                        onclick="return confirm('Delete this project?')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-[13px] text-[#aab8c8] italic">No projects added yet.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Personal Details -->
+            <div id="personal" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+                <button onclick="openModal('modal-personal')"
+                        class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
                 <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Personal Details</h3>
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
                     <div>
                         <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Gender</span>
-                        <span class="text-[14px] text-[#1a2b4a] font-semibold">Male</span>
+                        <span class="text-[14px] text-[#1a2b4a] font-semibold">{{ profile.gender|default:"—" }}</span>
                     </div>
                     <div>
                         <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Marital Status</span>
-                        <span class="text-[14px] text-[#1a2b4a] font-semibold">Single</span>
+                        <span class="text-[14px] text-[#1a2b4a] font-semibold">{{ profile.marital_status|default:"—" }}</span>
                     </div>
                     <div>
                         <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Date of Birth</span>
-                        <span class="text-[14px] text-[#1a2b4a] font-semibold">15 Aug 2001</span>
+                        <span class="text-[14px] text-[#1a2b4a] font-semibold">
+                            {{ profile.date_of_birth|date:"d M Y"|default:"—" }}
+                        </span>
                     </div>
                     <div>
                         <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Languages Known</span>
-                        <span class="text-[14px] text-[#1a2b4a] font-semibold">English, Tamil</span>
+                        <span class="text-[14px] text-[#1a2b4a] font-semibold">{{ profile.languages_known|default:"—" }}</span>
                     </div>
                 </div>
             </div>
@@ -203,4 +383,391 @@
         </div>
     </div>
 </div>
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+
+<!-- Backdrop -->
+<div id="modal-backdrop" onclick="closeAllModals()"
+     class="hidden fixed inset-0 bg-black/40 z-40 transition-opacity"></div>
+
+<!-- Modal base style (reused for all) -->
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 50;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.modal.open { display: block; }
+.modal-title { font-size: 18px; font-weight: 800; color: #1a2b4a; margin-bottom: 20px; }
+.form-label { display: block; font-size: 12.5px; font-weight: 700; color: #1a2b4a; margin-bottom: 6px; }
+.form-input {
+    width: 100%; padding: 10px 14px;
+    border: 1.5px solid #d8e4f0; border-radius: 10px;
+    font-size: 13px; color: #1a2b4a; background: #f8fbff;
+    outline: none; font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus { border-color: #4b6cf5; box-shadow: 0 0 0 3px rgba(75,108,245,0.12); background:#fff; }
+.btn-primary {
+    background: #3d35c4; color: white; border: none;
+    padding: 11px 24px; border-radius: 10px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s; font-family: inherit;
+}
+.btn-primary:hover { background: #2d27a8; }
+.btn-cancel {
+    background: #f1f5fb; color: #4a5568; border: none;
+    padding: 11px 24px; border-radius: 10px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: inherit;
+}
+</style>
+
+<!-- Headline Modal -->
+<div class="modal" id="modal-headline">
+    <p class="modal-title">Edit Resume Headline</p>
+    <form method="POST" action="{% url 'update_headline' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="form-label">Headline</label>
+            <input type="text" name="resume_headline" maxlength="255"
+                   value="{{ profile.resume_headline|default:'' }}"
+                   placeholder="e.g. Python Full-Stack Developer with 2 years experience"
+                   class="form-input">
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+        </div>
+    </form>
+</div>
+
+<!-- Summary Modal -->
+<div class="modal" id="modal-summary">
+    <p class="modal-title">Edit Profile Summary</p>
+    <form method="POST" action="{% url 'update_summary' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="form-label">Summary</label>
+            <textarea name="profile_summary" rows="6" placeholder="Write a brief professional summary..."
+                      class="form-input resize-none">{{ profile.profile_summary|default:'' }}</textarea>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+        </div>
+    </form>
+</div>
+
+<!-- Skill Modal -->
+<div class="modal" id="modal-skill">
+    <p class="modal-title">Add Skill</p>
+    <form method="POST" action="{% url 'add_skill' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="form-label">Skill Name</label>
+            <input type="text" name="skill_name" placeholder="e.g. Python, React, Django"
+                   class="form-input" required>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Add</button>
+        </div>
+    </form>
+</div>
+
+<!-- Employment Modal -->
+<div class="modal" id="modal-employment">
+    <p class="modal-title" id="emp-modal-title">Add Employment</p>
+    <form method="POST" action="{% url 'save_employment' %}" id="emp-form">
+        {% csrf_token %}
+        <input type="hidden" name="emp_id" id="emp_id" value="">
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="col-span-2">
+                <label class="form-label">Job Title / Designation</label>
+                <input type="text" name="designation" id="emp_designation" placeholder="e.g. Software Engineer" class="form-input" required>
+            </div>
+            <div class="col-span-2">
+                <label class="form-label">Company Name</label>
+                <input type="text" name="company_name" id="emp_company" placeholder="e.g. TechCorp Solutions" class="form-input" required>
+            </div>
+            <div>
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" id="emp_start" class="form-input" required>
+            </div>
+            <div id="end-date-wrapper">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" id="emp_end" class="form-input">
+            </div>
+            <div class="col-span-2 flex items-center gap-2">
+                <input type="checkbox" name="is_current" id="emp_current" class="accent-[#3d35c4] w-4 h-4">
+                <label for="emp_current" class="text-[13px] font-semibold text-[#4a5568] cursor-pointer">
+                    I currently work here
+                </label>
+            </div>
+            <div>
+                <label class="form-label">Location <span class="text-[#aab8c8] font-normal">(optional)</span></label>
+                <input type="text" name="location" id="emp_location" placeholder="e.g. Chennai" class="form-input">
+            </div>
+            <div class="col-span-2">
+                <label class="form-label">Description <span class="text-[#aab8c8] font-normal">(optional)</span></label>
+                <textarea name="description" id="emp_desc" rows="3" placeholder="Key responsibilities and achievements..." class="form-input resize-none"></textarea>
+            </div>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+        </div>
+    </form>
+</div>
+
+<!-- Education Modal -->
+<div class="modal" id="modal-education">
+    <p class="modal-title" id="edu-modal-title">Add Education</p>
+    <form method="POST" action="{% url 'save_education' %}" id="edu-form">
+        {% csrf_token %}
+        <input type="hidden" name="edu_id" id="edu_id" value="">
+        <div class="space-y-3 mb-3">
+            <div>
+                <label class="form-label">Education Level</label>
+                <input type="text" name="education_level" id="edu_level" placeholder="e.g. B.Tech / B.E." class="form-input" required>
+            </div>
+            <div>
+                <label class="form-label">Course / Specialization</label>
+                <input type="text" name="course" id="edu_course" placeholder="e.g. Computer Science" class="form-input">
+            </div>
+            <div>
+                <label class="form-label">University / Institution</label>
+                <input type="text" name="university" id="edu_university" placeholder="e.g. Anna University" class="form-input" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="form-label">Start Year</label>
+                    <input type="number" name="start_year" id="edu_start" placeholder="2019" min="1950" max="2099" class="form-input" required>
+                </div>
+                <div>
+                    <label class="form-label">End Year</label>
+                    <input type="number" name="end_year" id="edu_end" placeholder="2023" min="1950" max="2099" class="form-input" required>
+                </div>
+            </div>
+            <div>
+                <label class="form-label">Course Type</label>
+                <select name="course_type" id="edu_type" class="form-input">
+                    <option value="Full Time">Full Time</option>
+                    <option value="Part Time">Part Time</option>
+                    <option value="Correspondence">Correspondence</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+        </div>
+    </form>
+</div>
+
+<!-- Project Modal -->
+<div class="modal" id="modal-project">
+    <p class="modal-title" id="proj-modal-title">Add Project</p>
+    <form method="POST" action="{% url 'save_project' %}" id="proj-form">
+        {% csrf_token %}
+        <input type="hidden" name="proj_id" id="proj_id" value="">
+        <div class="space-y-3 mb-3">
+            <div>
+                <label class="form-label">Project Title</label>
+                <input type="text" name="title" id="proj_title" placeholder="e.g. E-Commerce Platform" class="form-input" required>
+            </div>
+            <div>
+                <label class="form-label">Project URL <span class="text-[#aab8c8] font-normal">(optional)</span></label>
+                <input type="url" name="project_url" id="proj_url" placeholder="https://github.com/..." class="form-input">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" id="proj_start" class="form-input">
+                </div>
+                <div id="proj-end-wrapper">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" id="proj_end" class="form-input">
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" name="is_ongoing" id="proj_ongoing" class="accent-[#3d35c4] w-4 h-4">
+                <label for="proj_ongoing" class="text-[13px] font-semibold text-[#4a5568] cursor-pointer">
+                    This is an ongoing project
+                </label>
+            </div>
+            <div>
+                <label class="form-label">Description</label>
+                <textarea name="description" id="proj_desc" rows="3"
+                          placeholder="Brief description of the project..." class="form-input resize-none" required></textarea>
+            </div>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+        </div>
+    </form>
+</div>
+
+<!-- Personal Details Modal -->
+<div class="modal" id="modal-personal">
+    <p class="modal-title">Edit Personal Details</p>
+    <form method="POST" action="{% url 'update_personal' %}">
+        {% csrf_token %}
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+                <label class="form-label">Gender</label>
+                <select name="gender" class="form-input">
+                    <option value="">— Select —</option>
+                    <option value="Male" {% if profile.gender == 'Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if profile.gender == 'Female' %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if profile.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Marital Status</label>
+                <select name="marital_status" class="form-input">
+                    <option value="">— Select —</option>
+                    <option value="Single" {% if profile.marital_status == 'Single' %}selected{% endif %}>Single</option>
+                    <option value="Married" {% if profile.marital_status == 'Married' %}selected{% endif %}>Married</option>
+                    <option value="Other" {% if profile.marital_status == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Date of Birth</label>
+                <input type="date" name="date_of_birth" class="form-input"
+                       value="{{ profile.date_of_birth|date:'Y-m-d'|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label">Phone Number</label>
+                <input type="tel" name="phone_number" class="form-input"
+                       value="{{ profile.phone_number|default:'' }}" placeholder="+91 00000 00000">
+            </div>
+            <div class="col-span-2">
+                <label class="form-label">Languages Known</label>
+                <input type="text" name="languages_known" class="form-input"
+                       value="{{ profile.languages_known|default:'' }}"
+                       placeholder="e.g. English, Tamil, Hindi">
+            </div>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+        </div>
+    </form>
+</div>
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script>
+/* ── Modal helpers ── */
+function openModal(id) {
+    document.getElementById('modal-backdrop').classList.remove('hidden');
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeAllModals() {
+    document.getElementById('modal-backdrop').classList.add('hidden');
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
+
+/* ── Employment: current job toggle ── */
+document.getElementById('emp_current').addEventListener('change', function () {
+    document.getElementById('end-date-wrapper').style.opacity = this.checked ? '0.4' : '1';
+    document.getElementById('emp_end').disabled = this.checked;
+});
+
+/* ── Employment: open edit ── */
+function openEditEmployment(id, designation, company, start, end, isCurrent, location, desc) {
+    document.getElementById('emp-modal-title').textContent = 'Edit Employment';
+    document.getElementById('emp_id').value         = id;
+    document.getElementById('emp_designation').value = designation;
+    document.getElementById('emp_company').value     = company;
+    document.getElementById('emp_start').value       = start;
+    document.getElementById('emp_end').value         = end;
+    document.getElementById('emp_location').value    = location;
+    document.getElementById('emp_desc').value        = desc;
+    document.getElementById('emp_current').checked   = isCurrent;
+    if (isCurrent) {
+        document.getElementById('end-date-wrapper').style.opacity = '0.4';
+        document.getElementById('emp_end').disabled = true;
+    }
+    openModal('modal-employment');
+}
+
+/* ── Project: ongoing toggle ── */
+document.getElementById('proj_ongoing').addEventListener('change', function () {
+    document.getElementById('proj-end-wrapper').style.opacity = this.checked ? '0.4' : '1';
+    document.getElementById('proj_end').disabled = this.checked;
+});
+
+/* ── Project: open edit ── */
+function openEditProject(id, title, url, start, end, ongoing, desc) {
+    document.getElementById('proj-modal-title').textContent = 'Edit Project';
+    document.getElementById('proj_id').value    = id;
+    document.getElementById('proj_title').value = title;
+    document.getElementById('proj_url').value   = url;
+    document.getElementById('proj_start').value = start;
+    document.getElementById('proj_end').value   = end;
+    document.getElementById('proj_desc').value  = desc;
+    document.getElementById('proj_ongoing').checked = ongoing;
+    if (ongoing) {
+        document.getElementById('proj-end-wrapper').style.opacity = '0.4';
+        document.getElementById('proj_end').disabled = true;
+    }
+    openModal('modal-project');
+}
+
+/* ── Education: open edit ── */
+function openEditEducation(id, level, course, university, startYear, endYear, type) {
+    document.getElementById('edu-modal-title').textContent = 'Edit Education';
+    document.getElementById('edu_id').value         = id;
+    document.getElementById('edu_level').value      = level;
+    document.getElementById('edu_course').value     = course;
+    document.getElementById('edu_university').value = university;
+    document.getElementById('edu_start').value      = startYear;
+    document.getElementById('edu_end').value        = endYear;
+    document.getElementById('edu_type').value       = type;
+    openModal('modal-education');
+}
+
+/* ── Profile Strength Calculator ── */
+(function () {
+    const items = [
+        { key: 'headline',  label: 'Resume Headline',  has: {{ profile.resume_headline|yesno:'true,false' }},  href: '#headline',  pct: 10 },
+        { key: 'summary',   label: 'Profile Summary',  has: {{ profile.profile_summary|yesno:'true,false' }},  href: '#summary',   pct: 15 },
+        { key: 'resume',    label: 'Resume Upload',    has: {{ profile.resume|yesno:'true,false' }},            href: '#resume',    pct: 20 },
+        { key: 'skills',    label: 'Key Skills',       has: {{ profile.skills.exists|yesno:'true,false' }},    href: '#skills',    pct: 15 },
+        { key: 'employment',label: 'Employment / Fresher', has: {{ has_employment|yesno:'true,false' }},        href: '#employment',pct: 20 },
+        { key: 'education', label: 'Education',        has: {{ profile.educations.exists|yesno:'true,false' }},href: '#education', pct: 10 },
+        { key: 'projects',  label: 'Projects',         has: {{ profile.projects.exists|yesno:'true,false' }},  href: '#projects',  pct: 10 },
+    ];
+
+    let total = 0;
+    const tips = [];
+    items.forEach(i => {
+        if (i.has) { total += i.pct; }
+        else { tips.push(`<li class="flex items-center gap-2"><i class="fa-solid fa-circle-plus text-[#f59e0b]"></i> <a href="${i.href}" class="text-[#4b6cf5] hover:underline">Add ${i.label}</a> <span class="text-[#aab8c8]">(+${i.pct}%)</span></li>`); }
+    });
+
+    document.getElementById('strength-pct').textContent  = total + '%';
+    document.getElementById('strength-bar').style.width  = total + '%';
+    document.getElementById('strength-pct').style.color  = total >= 70 ? '#22c55e' : total >= 40 ? '#f59e0b' : '#e05c5c';
+    document.getElementById('strength-bar').style.background = total >= 70 ? '#22c55e' : total >= 40 ? '#f59e0b' : '#e05c5c';
+    document.getElementById('strength-tips').innerHTML   = tips.join('');
+})();
+</script>
+
 {% endblock %}

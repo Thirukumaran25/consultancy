@@ -5,71 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Candidate Sign Up - {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap');
-    </style>
 
-    <style type="text/tailwindcss">
-        @layer components {
-            input.error { @apply border-[#e74c3c] bg-[#fff5f5] !important; }
-            input.success { @apply border-[#27ae60] bg-[#f5fff9] !important; }
+        body { font-family: "Exo", sans-serif; }
 
-            .field-alert { @apply hidden items-center gap-[5px] text-[11.5px] mt-[5px] py-1 px-2.5 rounded-[6px] font-semibold; }
-            .field-alert.show { @apply flex; }
-            .field-alert.err { @apply text-[#c0392b] bg-[#fff0f0]; }
-            .field-alert.ok { @apply text-[#27ae60] bg-[#f0fff4]; }
+        input.error  { border-color: #e74c3c !important; background: #fff5f5 !important; }
+        input.success { border-color: #27ae60 !important; background: #f5fff9 !important; }
 
-            .pwd-checklist { @apply hidden mt-[7px] p-[10px_12px] bg-[#f8fbff] border-[1.5px] border-[#e0ebf8] rounded-[9px]; }
-            .pwd-checklist.show { @apply block; }
-            
-            .pwd-check-item { @apply flex items-center gap-[7px] text-[11.5px] text-[#7a8fa6] mb-[3px] font-semibold transition-colors duration-200; }
-            .pwd-check-item:last-child { @apply mb-0; }
-            .pwd-check-item i { @apply text-[11px] w-[14px] text-[#ccd8e8] transition-colors duration-200; }
-            
-            .pwd-check-item.met { @apply text-[#27ae60]; }
-            .pwd-check-item.met i { @apply text-[#27ae60]; }
+        .field-alert {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            margin-top: 5px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .field-alert.show { display: flex; }
+        .field-alert.err  { color: #c0392b; background: #fff0f0; }
+        .field-alert.ok   { color: #27ae60; background: #f0fff4; }
+
+        .pwd-checklist {
+            display: none;
+            margin-top: 7px;
+            padding: 10px 12px;
+            background: #f8fbff;
+            border: 1.5px solid #e0ebf8;
+            border-radius: 9px;
+        }
+        .pwd-checklist.show { display: block; }
+
+        .pwd-check-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 11.5px;
+            color: #7a8fa6;
+            margin-bottom: 3px;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .pwd-check-item:last-child { margin-bottom: 0; }
+        .pwd-check-item i { font-size: 11px; width: 14px; color: #ccd8e8; transition: color 0.2s; }
+        .pwd-check-item.met { color: #27ae60; }
+        .pwd-check-item.met i { color: #27ae60; }
+
+        .input-base {
+            width: 100%;
+            padding: 11px 14px 11px 38px;
+            border: 1.5px solid #d8e4f0;
+            border-radius: 10px;
+            font-family: "Exo", sans-serif;
+            font-size: 13px;
+            color: #1a2b4a;
+            background: #f8fbff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .input-base:focus {
+            border-color: #4b6cf5;
+            box-shadow: 0 0 0 3px rgba(75,108,245,0.12);
+            background: #fff;
+        }
+        .input-base::placeholder { color: #b0bfcc; }
+
+        .eye-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 13px;
+            color: #aab8c8;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .eye-icon:hover { color: #4b6cf5; }
+
+        .field-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 13px;
+            color: #aab8c8;
+            pointer-events: none;
         }
     </style>
 </head>
-<body class="font-['Exo',sans-serif] antialiased bg-[#eef2f7] min-h-screen flex items-center justify-center p-5">
+<body class="antialiased bg-[#eef2f7] min-h-screen flex items-center justify-center p-5">
 
-<div class="bg-white rounded-[20px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] flex w-full max-w-[960px] min-h-[600px] overflow-hidden flex-col md:flex-row">
-    
-    <div class="hidden md:flex flex-1 bg-gradient-to-br from-[#ddeeff] to-[#c8e4ff] p-[30px] flex-col">
+<div class="bg-white rounded-[20px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] flex w-full max-w-[960px] overflow-hidden flex-col md:flex-row">
+
+    <!-- ── LEFT PANEL ── -->
+    <div class="hidden md:flex flex-col flex-1 bg-gradient-to-br from-[#ddeeff] to-[#c8e4ff] p-[30px]">
         <div class="flex items-center gap-[10px] mb-5">
-            <div class="w-[55px] h-[55px] bg-white rounded-full p-[5px] flex items-center justify-center text-[20px] shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
-                <img src="{% if ui_settings.logo %}{{ ui_settings.logo.url }}{% else %}/static/images/logo.png{% endif %}" alt="Logo" class="w-full rounded-full object-cover">
+            <div class="w-[55px] h-[55px] bg-white rounded-full p-[5px] flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
+                <img src="{% if ui_settings.logo %}{{ ui_settings.logo.url }}{% else %}/static/images/logo.png{% endif %}"
+                     alt="Logo" class="w-full rounded-full object-cover">
             </div>
-            <span class="text-[16px] font-bold text-[#1a2b4a]">{{ ui_settings.site_name|default:"Vetri Consultancy Services" }}</span>
+            <span class="text-[16px] font-bold text-[#1a2b4a]">
+                {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}
+            </span>
         </div>
         <div class="flex-1 flex items-center justify-center">
-            <div class="bg-gradient-to-br from-[#a8d4ff] to-[#b8e0ff] rounded-[16px] w-full h-[300px] flex items-center justify-center relative overflow-visible shadow-[0_8px_24px_rgba(100,160,255,0.3)]">
-                <span class="absolute top-[20px] left-1/2 -translate-x-1/2 text-[13px] font-extrabold text-[#1a4a8a] whitespace-nowrap bg-white/40 px-[14px] py-1 rounded-[20px] shadow-sm">
-                    {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}
-                </span>
-                <img src="{% if ui_settings.login_illustration %}{{ ui_settings.login_illustration.url }}{% else %}/static/images/login.png{% endif %}" alt="Illustration" class="w-full h-full object-cover rounded-[15px]">
+            <div class="bg-gradient-to-br from-[#a8d4ff] to-[#b8e0ff] rounded-[16px] w-full overflow-hidden shadow-[0_8px_24px_rgba(100,160,255,0.3)]">
+                <img src="{% if ui_settings.login_illustration %}{{ ui_settings.login_illustration.url }}{% else %}/static/images/login.png{% endif %}"
+                     alt="Illustration" class="w-full h-full object-cover">
             </div>
         </div>
     </div>
 
+    <!-- ── RIGHT PANEL ── -->
     <div class="flex-1 p-[32px_22px] md:p-[36px_44px] flex flex-col justify-center overflow-y-auto">
-        
+
+        <!-- Header -->
         <div class="flex justify-between items-center mb-1">
-            <div class="inline-flex items-center gap-1.5 bg-[#eef3ff] text-[#4b6cf5] text-[11.5px] font-bold py-1 px-3 rounded-[20px] mb-3 w-fit">
+            <div class="inline-flex items-center gap-1.5 bg-[#eef3ff] text-[#4b6cf5] text-[11.5px] font-bold py-1 px-3 rounded-[20px]">
                 <i class="fa-solid fa-user-tie"></i> Candidate Registration
             </div>
-            <a href="{% url 'login' %}" class="text-[#4b6cf5] font-semibold text-[13px] no-underline hover:underline">back to Login</a>
+            <a href="{% url 'login' %}" class="text-[#4b6cf5] font-semibold text-[13px] no-underline hover:underline">
+                ← Back to Login
+            </a>
         </div>
-        
-        <h1 class="text-[25px] font-extrabold text-[#1a2b4a] mb-1">Create Your Account</h1>
-        <p class="text-[13px] text-[#7a8fa6] mb-5">Find your dream job with {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}.</p>
 
+        <h1 class="text-[25px] font-extrabold text-[#1a2b4a] mb-1 mt-3">Create Your Account</h1>
+        <p class="text-[13px] text-[#7a8fa6] mb-5">
+            Find your dream job with {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}.
+        </p>
+
+        <!-- Django messages -->
         {% if messages %}
             {% for message in messages %}
-                <div class="p-2.5 px-[14px] rounded-lg mb-[15px] text-[13px] text-center {% if message.tags == 'error' %}bg-[#ffe5e5] text-[#b30000]{% else %}bg-[#e6fff0] text-[#057a2e]{% endif %}">
+                <div class="p-2.5 px-[14px] rounded-lg mb-4 text-[13px] text-center
+                    {% if message.tags == 'error' %}bg-[#ffe5e5] text-[#b30000]
+                    {% else %}bg-[#e6fff0] text-[#057a2e]{% endif %}">
                     {{ message }}
                 </div>
             {% endfor %}
@@ -77,47 +149,89 @@
 
         <form method="POST" action="{% url 'candidate_register' %}" id="candidateForm" novalidate>
             {% csrf_token %}
-            
+
+            <!-- Full Name -->
             <div class="mb-[13px]">
                 <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Full Name</label>
                 <div class="relative">
-                    <i class="fa-solid fa-id-card absolute left-[14px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                    <input type="text" name="full_name" placeholder="Your full name" maxlength="200" required id="id_full_name" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                    <i class="fa-solid fa-id-card field-icon"></i>
+                    <input type="text" name="full_name" id="id_full_name"
+                           placeholder="Your full name" maxlength="200" required
+                           value="{{ form_data.full_name|default:'' }}"
+                           class="input-base {% if errors.full_name %}error{% endif %}">
                 </div>
+                {% if errors.full_name %}
+                    <div class="field-alert show err">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ errors.full_name }}
+                    </div>
+                {% endif %}
             </div>
 
+            <!-- Username + Email -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-[13px]">
                 <div>
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Username</label>
                     <div class="relative">
-                        <i class="fa-solid fa-at absolute left-[14px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="text" name="username" maxlength="150" autofocus placeholder="no spaces allowed" required aria-describedby="id_username_helptext" id="id_username" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <i class="fa-solid fa-at field-icon"></i>
+                        <input type="text" name="username" id="id_username"
+                               placeholder="no spaces allowed" maxlength="150" required
+                               value="{{ form_data.username|default:'' }}"
+                               class="input-base {% if errors.username %}error{% endif %}">
                     </div>
-                    <div class="field-alert" id="username-alert">
+                    <div class="field-alert {% if errors.username %}show err{% endif %}" id="username-alert">
                         <i class="fa-solid fa-circle-exclamation"></i>
-                        <span id="username-alert-msg"></span>
+                        <span id="username-alert-msg">{{ errors.username|default:'' }}</span>
                     </div>
                 </div>
                 <div>
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Email ID</label>
                     <div class="relative">
-                        <i class="fa-solid fa-envelope absolute left-[14px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="email" name="email" placeholder="you@email.com" maxlength="320" required id="id_email" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <i class="fa-solid fa-envelope field-icon"></i>
+                        <input type="email" name="email" id="id_email"
+                               placeholder="you@email.com" maxlength="320" required
+                               value="{{ form_data.email|default:'' }}"
+                               class="input-base {% if errors.email %}error{% endif %}">
                     </div>
-                    <div class="field-alert" id="email-alert">
+                    <div class="field-alert {% if errors.email %}show err{% endif %}" id="email-alert">
                         <i class="fa-solid fa-circle-exclamation"></i>
-                        <span id="email-alert-msg"></span>
+                        <span id="email-alert-msg">{{ errors.email|default:'' }}</span>
                     </div>
                 </div>
             </div>
 
+            <!-- Mobile Number -->
+            <div class="mb-[13px]">
+                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Mobile Number</label>
+                <div class="relative">
+                    <i class="fa-solid fa-phone field-icon"></i>
+                    <input type="tel" name="phone_number" id="id_phone"
+                           placeholder="+91 00000 00000" required
+                           value="{{ form_data.phone|default:'' }}"
+                           class="input-base {% if errors.phone_number %}error{% endif %}">
+                </div>
+                {% if errors.phone_number %}
+                    <div class="field-alert show err">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ errors.phone_number }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Password -->
             <div class="mb-[13px]">
                 <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Password</label>
                 <div class="relative">
-                    <i class="fa-solid fa-lock absolute left-[14px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                    <input type="password" name="password1" autocomplete="new-password" placeholder="••••••••" required aria-describedby="id_password1_helptext" id="id_password1" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
-                    <i class="fa-solid fa-eye absolute right-[14px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] cursor-pointer transition-colors duration-200 hover:text-[#4b6cf5] eye-icon" id="eye1"></i>
+                    <i class="fa-solid fa-lock field-icon"></i>
+                    <input type="password" name="password1" id="id_password1"
+                           placeholder="••••••••" autocomplete="new-password" required
+                           class="input-base pr-[38px] {% if errors.password1 %}error{% endif %}">
+                    <i class="fa-solid fa-eye eye-icon" id="eye1"></i>
                 </div>
+                {% if errors.password1 %}
+                    <div class="field-alert show err">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ errors.password1 }}
+                    </div>
+                {% endif %}
+                <!-- Password checklist -->
                 <div class="pwd-checklist" id="pwdChecklist">
                     <div class="pwd-check-item" id="chk-letter">
                         <i class="fa-solid fa-circle-check"></i> At least one letter (A-Z)
@@ -134,143 +248,202 @@
                 </div>
             </div>
 
+            <!-- Confirm Password -->
             <div class="mb-[13px]">
                 <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Confirm Password</label>
                 <div class="relative">
-                    <i class="fa-solid fa-lock absolute left-[14px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                    <input type="password" name="password2" autocomplete="new-password" placeholder="••••••••" required aria-describedby="id_password2_helptext" id="id_password2" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
-                    <i class="fa-solid fa-eye absolute right-[14px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] cursor-pointer transition-colors duration-200 hover:text-[#4b6cf5] eye-icon" id="eye2"></i>
+                    <i class="fa-solid fa-lock field-icon"></i>
+                    <input type="password" name="password2" id="id_password2"
+                           placeholder="••••••••" autocomplete="new-password" required
+                           class="input-base pr-[38px] {% if errors.password2 %}error{% endif %}">
+                    <i class="fa-solid fa-eye eye-icon" id="eye2"></i>
                 </div>
                 <div class="field-alert" id="confirm-alert">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                    <span>Passwords do not match</span>
+                    <i class="fa-solid fa-circle-xmark"></i> Passwords do not match
                 </div>
                 <div class="field-alert" id="confirm-ok">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <span>Passwords match</span>
+                    <i class="fa-solid fa-circle-check"></i> Passwords match
                 </div>
+                {% if errors.password2 %}
+                    <div class="field-alert show err">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ errors.password2 }}
+                    </div>
+                {% endif %}
             </div>
 
-            <div class="flex items-center justify-center gap-2 mb-4 mt-2">
-                <input type="checkbox" id="terms" name="terms" required class="w-4 h-4 cursor-pointer accent-[#3d35c4]">
-                <label for="terms" class="text-[12.5px] text-[#7a8fa6] font-medium m-0 cursor-pointer">
-                    I agree to the 
-                    <a href="/terms/candidate/" target="_blank" class="text-[#4338CA] font-bold no-underline hover:underline">Terms and Conditions</a>
+            <!-- Terms -->
+            <div class="flex items-center gap-2 mb-4 mt-2">
+                <input type="checkbox" id="terms" name="terms" required
+                       class="w-4 h-4 cursor-pointer accent-[#3d35c4]">
+                <label for="terms" class="text-[12.5px] text-[#7a8fa6] font-medium cursor-pointer m-0">
+                    I agree to the
+                    <a href="/terms/candidate/" target="_blank"
+                       class="text-[#4338CA] font-bold no-underline hover:underline">
+                        Terms and Conditions
+                    </a>
                 </label>
             </div>
+            {% if errors.terms %}
+                <div class="field-alert show err mb-3">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.terms }}
+                </div>
+            {% endif %}
 
-            <button type="submit" class="w-full p-[13px] bg-[#3d35c4] text-white border-none rounded-[10px] font-['Exo',sans-serif] text-[15px] font-bold cursor-pointer mt-1 transition-all duration-200 tracking-[0.3px] hover:bg-[#2d27a8] active:scale-[0.99] flex justify-center items-center" id="submitBtn">
-                <i class="fa-solid fa-user-plus mr-2"></i> Create Account
+            <!-- Step 1 Button: Trigger verification -->
+            <button type="button" id="triggerVerifyBtn"
+                class="w-full p-[13px] bg-[#3d35c4] text-white border-none rounded-[10px]
+                       font-['Exo',sans-serif] text-[15px] font-bold cursor-pointer mt-1
+                       transition-all duration-200 hover:bg-[#2d27a8] active:scale-[0.99]
+                       flex justify-center items-center gap-2">
+                <i class="fa-solid fa-user-plus"></i> Create Account
             </button>
+
+            <!-- Step 2: Email verification box -->
+            <div class="hidden mb-[16px] bg-[#fcfdff] border border-[#e4eaf2] p-[16px] rounded-[10px] mt-4 shadow-sm"
+                 id="verification-box">
+                <p class="text-[13px] font-bold text-[#1a2b4a] mb-1">
+                    <i class="fa-solid fa-envelope text-[#4b6cf5]"></i>
+                    Verify your email address
+                </p>
+                <p class="text-[12px] text-[#7a8fa6] mb-3" id="email-display-label"></p>
+
+                <button type="button" id="btn-send-otp"
+                    class="bg-[#f4f7fc] text-[#4b6cf5] font-bold text-[13px] py-2 px-5
+                           rounded-[8px] border border-[#d8e4f0] hover:bg-[#ebf0f8]
+                           hover:border-[#c5d4e6] transition-colors">
+                    <i class="fa-solid fa-paper-plane"></i> Send Verification Code
+                </button>
+
+                <div id="otp-status-msg" class="text-[12px] font-bold mt-3 hidden"></div>
+            </div>
+
+            <!-- Step 3: OTP input -->
+            <div class="hidden mt-3" id="otp-input-section">
+                <label class="block text-[12.5px] font-bold text-[#27ae60] mb-1.5">
+                    <i class="fa-solid fa-shield-check"></i> Enter 6-Digit Code
+                </label>
+                <input type="text" name="otp" id="id_otp"
+                       placeholder="1  2  3  4  5  6" maxlength="6" inputmode="numeric"
+                       class="w-full py-[11px] px-[14px] border-[1.5px] border-[#27ae60]
+                              rounded-[10px] font-['Exo',sans-serif] text-[16px] text-center
+                              tracking-[8px] font-bold text-[#1a2b4a] bg-[#f0fff4] outline-none
+                              focus:shadow-[0_0_0_3px_rgba(39,174,96,0.15)]">
+                {% if errors.otp %}
+                    <div class="field-alert show err mt-1">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ errors.otp }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Step 4: Final submit -->
+            <button type="submit" id="submitBtn"
+                class="hidden w-full p-[13px] bg-[#27ae60] text-white border-none rounded-[10px]
+                       font-['Exo',sans-serif] text-[15px] font-bold cursor-pointer mt-4
+                       transition-all duration-200 hover:bg-[#219653] active:scale-[0.99]
+                       justify-center items-center gap-2">
+                <i class="fa-solid fa-circle-check"></i> Verify & Register
+            </button>
+
         </form>
-        
-        <div class="text-center mt-4 text-[13px] text-[#7a8fa6]">
-            Already have an account? <a href="{% url 'login' %}" class="text-[#4b6cf5] font-bold no-underline hover:underline">Log in</a>
+
+        <div class="text-center mt-5 text-[13px] text-[#7a8fa6]">
+            Already have an account?
+            <a href="{% url 'login' %}" class="text-[#4b6cf5] font-bold no-underline hover:underline">
+                Log in
+            </a>
         </div>
     </div>
 </div>
 
 <script>
-/* ── HELPER: Check availability from backend ── */
+const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+/* ── Eye toggle ── */
+function bindEye(eyeId, inputId) {
+    document.getElementById(eyeId).addEventListener('click', function () {
+        const input = document.getElementById(inputId);
+        input.type = input.type === 'password' ? 'text' : 'password';
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+}
+bindEye('eye1', 'id_password1');
+bindEye('eye2', 'id_password2');
+
+/* ── Availability check ── */
 async function checkAvailability(field, value) {
     if (!value) return false;
     try {
-        const response = await fetch(`/check-availability/?${field}=${encodeURIComponent(value)}`);
-        const data = await response.json();
-        return data.is_taken; 
-    } catch (e) {
-        return false;
-    }
+        const res  = await fetch(`/check-availability/?${field}=${encodeURIComponent(value)}`);
+        const data = await res.json();
+        return data.is_taken;
+    } catch { return false; }
 }
 
-/* ── Eye toggle ── */
-document.querySelectorAll(".eye-icon").forEach(icon => {
-    icon.addEventListener("click", function () {
-        const input = this.parentElement.querySelector("input");
-        if (input.type === "password") {
-            input.type = "text";
-            this.classList.replace("fa-eye", "fa-eye-slash");
-        } else {
-            input.type = "password";
-            this.classList.replace("fa-eye-slash", "fa-eye");
-        }
-    });
-});
-
-/* ── Username validation (no spaces + Live Check) ── */
-const usernameInput = document.querySelector('#id_username');
-const usernameAlert = document.getElementById('username-alert');
+/* ── Username live check ── */
+const usernameInput    = document.getElementById('id_username');
+const usernameAlert    = document.getElementById('username-alert');
 const usernameAlertMsg = document.getElementById('username-alert-msg');
 
 usernameInput.addEventListener('input', async function () {
-    const val = this.value;
-    if (val === '') {
+    const val = this.value.trim();
+    if (!val) {
         usernameAlert.className = 'field-alert';
         this.classList.remove('error', 'success');
         return;
     }
-    
     if (/\s/.test(val)) {
         usernameAlertMsg.textContent = 'Username cannot contain spaces';
         usernameAlert.className = 'field-alert show err';
-        this.classList.add('error');
-        this.classList.remove('success');
+        this.classList.add('error'); this.classList.remove('success');
+        return;
+    }
+    const taken = await checkAvailability('username', val);
+    if (taken) {
+        usernameAlertMsg.textContent = 'Username already taken';
+        usernameAlert.className = 'field-alert show err';
+        this.classList.add('error'); this.classList.remove('success');
     } else {
-        // Live Check
-        const isTaken = await checkAvailability('username', val);
-        if (isTaken) {
-            usernameAlertMsg.textContent = 'Username already taken';
-            usernameAlert.className = 'field-alert show err';
-            this.classList.add('error');
-            this.classList.remove('success');
-        } else {
-            usernameAlertMsg.textContent = 'Username is available!';
-            usernameAlert.className = 'field-alert show ok';
-            this.classList.remove('error');
-            this.classList.add('success');
-        }
+        usernameAlertMsg.textContent = 'Username is available!';
+        usernameAlert.className = 'field-alert show ok';
+        this.classList.remove('error'); this.classList.add('success');
     }
 });
 
-/* ── Email validation (Format + Live Check) ── */
-const emailInput = document.querySelector('#id_email');
-const emailAlert = document.getElementById('email-alert');
+/* ── Email live check ── */
+const emailInput    = document.getElementById('id_email');
+const emailAlert    = document.getElementById('email-alert');
 const emailAlertMsg = document.getElementById('email-alert-msg');
 
 emailInput.addEventListener('input', async function () {
-    const val = this.value;
+    const val        = this.value.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (val === '') {
+    if (!val) {
         emailAlert.className = 'field-alert';
         this.classList.remove('error', 'success');
         return;
     }
-
     if (!emailRegex.test(val)) {
         emailAlertMsg.textContent = 'Enter a valid email address';
         emailAlert.className = 'field-alert show err';
-        this.classList.add('error');
-        this.classList.remove('success');
+        this.classList.add('error'); this.classList.remove('success');
+        return;
+    }
+    const taken = await checkAvailability('email', val);
+    if (taken) {
+        emailAlertMsg.textContent = 'Email already registered';
+        emailAlert.className = 'field-alert show err';
+        this.classList.add('error'); this.classList.remove('success');
     } else {
-        // Live Check
-        const isTaken = await checkAvailability('email', val);
-        if (isTaken) {
-            emailAlertMsg.textContent = 'Email already registered';
-            emailAlert.className = 'field-alert show err';
-            this.classList.add('error');
-            this.classList.remove('success');
-        } else {
-            emailAlertMsg.textContent = 'Email is available!';
-            emailAlert.className = 'field-alert show ok';
-            this.classList.remove('error');
-            this.classList.add('success');
-        }
+        emailAlertMsg.textContent = 'Email is available!';
+        emailAlert.className = 'field-alert show ok';
+        this.classList.remove('error'); this.classList.add('success');
     }
 });
 
-/* ── Password strength checklist ── */
-const pwd1 = document.querySelector('#id_password1');
+/* ── Password checklist ── */
+const pwd1         = document.getElementById('id_password1');
+const pwd2         = document.getElementById('id_password2');
 const pwdChecklist = document.getElementById('pwdChecklist');
 const checks = {
     letter:  { el: document.getElementById('chk-letter'),  test: v => /[A-Za-z]/.test(v) },
@@ -281,17 +454,13 @@ const checks = {
 
 pwd1.addEventListener('focus', () => pwdChecklist.classList.add('show'));
 pwd1.addEventListener('blur',  () => { if (!pwd1.value) pwdChecklist.classList.remove('show'); });
-
 pwd1.addEventListener('input', function () {
     const v = this.value;
-    Object.values(checks).forEach(c => {
-        c.el.classList.toggle('met', c.test(v));
-    });
+    Object.values(checks).forEach(c => c.el.classList.toggle('met', c.test(v)));
     checkConfirm();
 });
 
 /* ── Confirm password ── */
-const pwd2 = document.querySelector('#id_password2');
 const confirmAlert = document.getElementById('confirm-alert');
 const confirmOk    = document.getElementById('confirm-ok');
 
@@ -305,37 +474,100 @@ function checkConfirm() {
     if (pwd1.value !== pwd2.value) {
         confirmAlert.className = 'field-alert show err';
         confirmOk.className    = 'field-alert';
-        pwd2.classList.add('error');
-        pwd2.classList.remove('success');
+        pwd2.classList.add('error'); pwd2.classList.remove('success');
     } else {
         confirmAlert.className = 'field-alert';
         confirmOk.className    = 'field-alert show ok';
-        pwd2.classList.remove('error');
-        pwd2.classList.add('success');
+        pwd2.classList.remove('error'); pwd2.classList.add('success');
     }
 }
-
 pwd2.addEventListener('input', checkConfirm);
 
-/* ── Form submit guard ── */
-document.getElementById('candidateForm').addEventListener('submit', function (e) {
-    if (/\s/.test(usernameInput.value)) {
-        e.preventDefault();
-        usernameInput.focus();
-        return;
-    }
+/* ── Step 1: Trigger verification box ── */
+const triggerBtn      = document.getElementById('triggerVerifyBtn');
+const verificationBox = document.getElementById('verification-box');
+const emailDisplayLabel = document.getElementById('email-display-label');
+
+triggerBtn.addEventListener('click', function () {
+    // HTML5 validity
+    const form = document.getElementById('candidateForm');
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    // Custom checks
+    if (/\s/.test(usernameInput.value)) { usernameInput.focus(); return; }
+
     const allMet = Object.values(checks).every(c => c.test(pwd1.value));
-    if (!allMet) {
-        e.preventDefault();
-        pwdChecklist.classList.add('show');
-        pwd1.focus();
-        return;
-    }
-    if (pwd1.value !== pwd2.value) {
-        e.preventDefault();
-        pwd2.focus();
-    }
+    if (!allMet) { pwdChecklist.classList.add('show'); pwd1.focus(); return; }
+
+    if (pwd1.value !== pwd2.value) { pwd2.focus(); return; }
+
+    // Show verification box
+    emailDisplayLabel.textContent = `A 6-digit code will be sent to: ${emailInput.value}`;
+    triggerBtn.classList.add('hidden');
+    verificationBox.classList.remove('hidden');
+    verificationBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 });
+
+/* ── Step 2: Send OTP ── */
+document.getElementById('btn-send-otp').addEventListener('click', async function () {
+    const email     = emailInput.value.trim();
+    const statusMsg = document.getElementById('otp-status-msg');
+
+    this.innerHTML  = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    this.disabled   = true;
+
+    try {
+        const fd = new FormData();
+        fd.append('method', 'email');
+        fd.append('target', email);
+        fd.append('csrfmiddlewaretoken', CSRF);
+
+        const res  = await fetch("{% url 'send_registration_otp' %}", { method: 'POST', body: fd });
+        const data = await res.json();
+
+        statusMsg.classList.remove('hidden');
+
+        if (data.success) {
+            // Show OTP input + submit button
+            document.getElementById('otp-input-section').classList.remove('hidden');
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.classList.remove('hidden');
+            submitBtn.classList.add('flex');
+
+            statusMsg.textContent = '✓ ' + data.message;
+            statusMsg.style.color = '#27ae60';
+
+            this.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Resend Code';
+        } else {
+            statusMsg.textContent = '✗ ' + data.error;
+            statusMsg.style.color = '#c0392b';
+            this.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Verification Code';
+        }
+    } catch (e) {
+        alert('Something went wrong. Please try again.');
+        this.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Verification Code';
+    }
+
+    this.disabled = false;
+});
+
+/* ── OTP: numbers only ── */
+document.getElementById('id_otp').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+});
+
+/* ── Restore OTP section if backend returned OTP error ── */
+{% if errors.otp %}
+    document.getElementById('triggerVerifyBtn').classList.add('hidden');
+    verificationBox.classList.remove('hidden');
+    document.getElementById('otp-input-section').classList.remove('hidden');
+    const sb = document.getElementById('submitBtn');
+    sb.classList.remove('hidden');
+    sb.classList.add('flex');
+    document.getElementById('email-display-label').textContent =
+        'Please request a new code if the previous one expired.';
+{% endif %}
 </script>
+
 </body>
 </html>

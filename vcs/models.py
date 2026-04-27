@@ -54,6 +54,7 @@ class CandidateProfile(models.Model):
     date_of_birth = models.DateField(blank=True, null=True)
     languages_known = models.CharField(max_length=255, blank=True, null=True, help_text="Comma separated, e.g. English, Tamil")
     skills = models.ManyToManyField(Skill, blank=True, related_name='candidates')
+    is_fresher = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.full_name} ({self.user.username})"
