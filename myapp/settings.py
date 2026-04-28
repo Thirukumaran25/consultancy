@@ -75,7 +75,7 @@ AUTHENTICATION_BACKENDS = [
 
 ACCOUNT_LOGIN_METHODS      = {'email'}
 ACCOUNT_SIGNUP_FIELDS      = ['email*', 'password1*', 'password2*']
-ACCOUNT_EMAIL_VERIFICATION    = 'none'   # change to 'mandatory' in production
+ACCOUNT_EMAIL_VERIFICATION    = 'mandatory'   # change to 'mandatory' in production
 LOGIN_REDIRECT_URL  = 'candidate_dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL           = 'login'

@@ -6,9 +6,7 @@
 
     <div class="mb-6 flex justify-between items-center">
         <h1 class="text-[22px] font-extrabold text-[#1a2b4a]">My Profile</h1>
-        <span class="text-[13px] text-[#7a8fa6]">
-            Member since {{ profile.created_at|date:"d M Y" }}
-        </span>
+        <span class="text-[13px] text-[#7a8fa6]">Member since {{ profile.created_at|date:"d M Y" }}</span>
     </div>
 
     {% if messages %}
@@ -29,11 +27,50 @@
             <!-- Profile Card -->
             <div class="bg-white rounded-[16px] shadow-sm border border-gray-100 relative overflow-hidden">
                 <div class="h-[80px] bg-gradient-to-r from-[#4238ca] to-[#3b82f6]"></div>
-                <div class="px-6 pb-6 flex flex-col items-center -mt-10">
-                    <div class="w-[90px] h-[90px] bg-white rounded-full p-1 shadow-md mb-3">
-                        <img src="https://ui-avatars.com/api/?name={{ profile.full_name|urlencode }}&background=eef2f7&color=4238ca&size=200"
-                             alt="Profile" class="w-full h-full rounded-full object-cover">
+                <div class="px-6 pb-6 flex flex-col items-center -mt-12">
+
+                    <!-- Profile Photo with progress ring + upload -->
+                    <div class="relative mb-3">
+                        <!-- SVG Progress Ring -->
+                        <svg class="absolute -top-1 -left-1" width="100" height="100" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="46" fill="none" stroke="#e4eaf2" stroke-width="4"/>
+                            <circle id="progress-ring" cx="50" cy="50" r="46" fill="none"
+                                    stroke="#4238ca" stroke-width="4"
+                                    stroke-linecap="round"
+                                    stroke-dasharray="289"
+                                    stroke-dashoffset="289"
+                                    transform="rotate(-90 50 50)"/>
+                        </svg>
+
+                        <!-- Photo -->
+                        <div class="w-[90px] h-[90px] bg-white rounded-full p-1 shadow-md relative z-10">
+                            {% if profile.profile_photo %}
+                                <img src="{{ profile.profile_photo.url }}"
+                                     alt="Profile" class="w-full h-full rounded-full object-cover" id="profile-img">
+                            {% else %}
+                                <div class="w-full h-full rounded-full bg-[#eef3ff] flex items-center justify-center" id="profile-initials">
+                                    <span class="text-[22px] font-extrabold text-[#4238ca]">
+                                        {{ profile.full_name|slice:":2"|upper }}
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Upload button -->
+                        <form method="POST" action="{% url 'update_profile_photo' %}"
+                              enctype="multipart/form-data" id="photo-form">
+                            {% csrf_token %}
+                            <label class="absolute bottom-0 right-0 z-20 w-[26px] h-[26px] bg-[#4238ca] rounded-full
+                                          flex items-center justify-center cursor-pointer shadow-md
+                                          hover:bg-[#3730a3] transition border-2 border-white"
+                                   title="Upload photo">
+                                <i class="fa-solid fa-camera text-white text-[10px]"></i>
+                                <input type="file" name="profile_photo" accept="image/*"
+                                       class="hidden" onchange="previewPhoto(this)">
+                            </label>
+                        </form>
                     </div>
+
                     <h2 class="text-[18px] font-bold text-[#1a2b4a] text-center">{{ profile.full_name }}</h2>
                     <p class="text-[13px] text-[#7a8fa6] text-center mb-4">
                         {{ profile.resume_headline|default:"Add your resume headline" }}
@@ -64,21 +101,17 @@
             </div>
 
             <!-- Profile Strength -->
-            {% with emp_count=profile.employments.count edu_count=profile.educations.count proj_count=profile.projects.count skill_count=profile.skills.count %}
-            {% with strength=0 %}
             <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-[15px] font-bold text-[#1a2b4a]">Profile Strength</h3>
-                    <span class="text-[14px] font-extrabold text-[#22c55e]" id="strength-pct">—</span>
+                    <span class="text-[14px] font-extrabold" id="strength-pct">—</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
-                    <div class="bg-[#22c55e] h-2 rounded-full transition-all" id="strength-bar" style="width:0%"></div>
+                    <div class="h-2 rounded-full transition-all" id="strength-bar" style="width:0%"></div>
                 </div>
                 <p class="text-[12px] text-[#7a8fa6] mb-3">Complete your profile to boost recruiter visibility.</p>
                 <ul class="text-[12.5px] space-y-2 text-[#4a5568]" id="strength-tips"></ul>
             </div>
-            {% endwith %}
-            {% endwith %}
 
             <!-- Quick Links -->
             <div class="bg-white rounded-[16px] py-4 shadow-sm border border-gray-100 hidden lg:block sticky top-[90px]">
@@ -114,7 +147,7 @@
                         <i class="fa-solid fa-download mr-1"></i> Download
                     </a>
                     {% endif %}
-                    <form method="POST" action="{% url 'update_resume' %}" enctype="multipart/form-data" class="flex items-center gap-2">
+                    <form method="POST" action="{% url 'update_resume' %}" enctype="multipart/form-data">
                         {% csrf_token %}
                         <label class="text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[13px] px-4 py-2 rounded-[8px] transition cursor-pointer">
                             {% if profile.resume %}Update Resume{% else %}Upload Resume{% endif %}
@@ -171,7 +204,7 @@
                         </form>
                     </span>
                     {% empty %}
-                    <p class="text-[13px] text-[#aab8c8] italic">No skills added yet.</p>
+                    <p class="text-[13px] text-[#aab8c8] italic w-full">No skills added yet.</p>
                     {% endfor %}
                     <button onclick="openModal('modal-skill')"
                         class="bg-white border-2 border-dashed border-[#aab8c8] text-[#7a8fa6] text-[13px] font-bold px-4 py-1.5 rounded-full cursor-pointer hover:border-[#4b6cf5] hover:text-[#4b6cf5] transition">
@@ -191,6 +224,7 @@
                 </div>
 
                 {% if profile.employments.all %}
+                <!-- Has work experience -->
                 <div class="relative pl-6 border-l-2 border-[#e4eaf2] space-y-6">
                     {% for emp in profile.employments.all %}
                     <div class="relative">
@@ -198,9 +232,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <h4 class="text-[15px] font-bold text-[#1a2b4a]">{{ emp.designation }}</h4>
-                                <p class="text-[13.5px] text-[#4a5568] font-semibold">
-                                    {{ emp.company_name }}
-                                </p>
+                                <p class="text-[13.5px] text-[#4a5568] font-semibold">{{ emp.company_name }}</p>
                                 <p class="text-[12.5px] text-[#7a8fa6] mt-0.5">
                                     {{ emp.start_date|date:"M Y" }} –
                                     {% if emp.is_current %}Present{% else %}{{ emp.end_date|date:"M Y" }}{% endif %}
@@ -228,10 +260,24 @@
                     {% endfor %}
                 </div>
 
+                {% elif profile.is_fresher %}
+                <!-- Marked as fresher — show only the green badge, NO dashed box -->
+                <div class="flex items-center gap-2 text-[13px] text-[#057a2e] bg-[#e6fff0] px-4 py-3 rounded-[10px]">
+                    <i class="fa-solid fa-circle-check text-[16px]"></i>
+                    <span class="font-semibold">Marked as Fresher — recruiters will see you are open to entry-level roles.</span>
+                    <form method="POST" action="{% url 'mark_fresher' %}" class="ml-auto">
+                        {% csrf_token %}
+                        <input type="hidden" name="unmark" value="1">
+                        <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] text-[12px] font-bold whitespace-nowrap">
+                            Remove
+                        </button>
+                    </form>
+                </div>
+
                 {% else %}
-                <!-- Fresher option -->
+                <!-- No experience, not a fresher — show the choice box -->
                 <div class="border-2 border-dashed border-[#e4eaf2] rounded-[12px] p-6 text-center">
-                    <i class="fa-solid fa-briefcase text-[32px] text-[#d8e4f0] mb-3"></i>
+                    <i class="fa-solid fa-briefcase text-[32px] text-[#d8e4f0] mb-3 block"></i>
                     <p class="text-[14px] font-bold text-[#1a2b4a] mb-1">No experience added yet</p>
                     <p class="text-[13px] text-[#7a8fa6] mb-4">Are you a fresher or have work experience?</p>
                     <div class="flex gap-3 justify-center flex-wrap">
@@ -247,18 +293,6 @@
                             </button>
                         </form>
                     </div>
-                </div>
-                {% endif %}
-
-                {% if profile.is_fresher %}
-                <div class="mt-3 flex items-center gap-2 text-[13px] text-[#057a2e] bg-[#e6fff0] px-4 py-2 rounded-[8px]">
-                    <i class="fa-solid fa-circle-check"></i>
-                    Marked as Fresher — recruiters will see you are open to entry-level roles.
-                    <form method="POST" action="{% url 'mark_fresher' %}" class="ml-auto">
-                        {% csrf_token %}
-                        <input type="hidden" name="unmark" value="1">
-                        <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] text-[12px] font-bold">Remove</button>
-                    </form>
                 </div>
                 {% endif %}
             </div>
@@ -385,26 +419,16 @@
 </div>
 
 <!-- ══════════════════ MODALS ══════════════════ -->
-
-<!-- Backdrop -->
 <div id="modal-backdrop" onclick="closeAllModals()"
      class="hidden fixed inset-0 bg-black/40 z-40 transition-opacity"></div>
 
-<!-- Modal base style (reused for all) -->
 <style>
 .modal {
-    display: none;
-    position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 50;
-    width: 100%;
-    max-width: 520px;
-    max-height: 90vh;
-    overflow-y: auto;
-    background: white;
-    border-radius: 16px;
-    padding: 28px;
+    display: none; position: fixed;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 50; width: 100%; max-width: 520px;
+    max-height: 90vh; overflow-y: auto;
+    background: white; border-radius: 16px; padding: 28px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.15);
 }
 .modal.open { display: block; }
@@ -428,8 +452,7 @@
 .btn-cancel {
     background: #f1f5fb; color: #4a5568; border: none;
     padding: 11px 24px; border-radius: 10px;
-    font-size: 14px; font-weight: 700; cursor: pointer;
-    font-family: inherit;
+    font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
 }
 </style>
 
@@ -471,17 +494,26 @@
 
 <!-- Skill Modal -->
 <div class="modal" id="modal-skill">
-    <p class="modal-title">Add Skill</p>
+    <p class="modal-title">Add Skills</p>
     <form method="POST" action="{% url 'add_skill' %}">
         {% csrf_token %}
-        <div class="mb-4">
-            <label class="form-label">Skill Name</label>
-            <input type="text" name="skill_name" placeholder="e.g. Python, React, Django"
+        <div class="mb-2">
+            <label class="form-label">Skill Name(s)</label>
+            <input type="text" name="skill_name" id="skill-input"
+                   placeholder="e.g. Python, Django, React"
                    class="form-input" required>
+        </div>
+        <p class="text-[11.5px] text-[#7a8fa6] mb-4">
+            <i class="fa-solid fa-circle-info text-[#aab8c8] mr-1"></i>
+            Separate multiple skills with commas
+        </p>
+        <!-- Live preview -->
+        <div id="skill-preview" class="flex flex-wrap gap-2 mb-4 hidden">
+            <p class="text-[12px] text-[#7a8fa6] font-semibold w-full mb-1">Preview:</p>
         </div>
         <div class="flex gap-3 justify-end">
             <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
-            <button type="submit" class="btn-primary">Add</button>
+            <button type="submit" class="btn-primary">Add Skills</button>
         </div>
     </form>
 </div>
@@ -521,7 +553,9 @@
             </div>
             <div class="col-span-2">
                 <label class="form-label">Description <span class="text-[#aab8c8] font-normal">(optional)</span></label>
-                <textarea name="description" id="emp_desc" rows="3" placeholder="Key responsibilities and achievements..." class="form-input resize-none"></textarea>
+                <textarea name="description" id="emp_desc" rows="3"
+                          placeholder="Key responsibilities and achievements..."
+                          class="form-input resize-none"></textarea>
             </div>
         </div>
         <div class="flex gap-3 justify-end">
@@ -540,24 +574,29 @@
         <div class="space-y-3 mb-3">
             <div>
                 <label class="form-label">Education Level</label>
-                <input type="text" name="education_level" id="edu_level" placeholder="e.g. B.Tech / B.E." class="form-input" required>
+                <input type="text" name="education_level" id="edu_level"
+                       placeholder="e.g. B.Tech / B.E." class="form-input" required>
             </div>
             <div>
                 <label class="form-label">Course / Specialization</label>
-                <input type="text" name="course" id="edu_course" placeholder="e.g. Computer Science" class="form-input">
+                <input type="text" name="course" id="edu_course"
+                       placeholder="e.g. Computer Science" class="form-input">
             </div>
             <div>
                 <label class="form-label">University / Institution</label>
-                <input type="text" name="university" id="edu_university" placeholder="e.g. Anna University" class="form-input" required>
+                <input type="text" name="university" id="edu_university"
+                       placeholder="e.g. Anna University" class="form-input" required>
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="form-label">Start Year</label>
-                    <input type="number" name="start_year" id="edu_start" placeholder="2019" min="1950" max="2099" class="form-input" required>
+                    <input type="number" name="start_year" id="edu_start"
+                           placeholder="2019" min="1950" max="2099" class="form-input" required>
                 </div>
                 <div>
                     <label class="form-label">End Year</label>
-                    <input type="number" name="end_year" id="edu_end" placeholder="2023" min="1950" max="2099" class="form-input" required>
+                    <input type="number" name="end_year" id="edu_end"
+                           placeholder="2023" min="1950" max="2099" class="form-input" required>
                 </div>
             </div>
             <div>
@@ -585,11 +624,13 @@
         <div class="space-y-3 mb-3">
             <div>
                 <label class="form-label">Project Title</label>
-                <input type="text" name="title" id="proj_title" placeholder="e.g. E-Commerce Platform" class="form-input" required>
+                <input type="text" name="title" id="proj_title"
+                       placeholder="e.g. E-Commerce Platform" class="form-input" required>
             </div>
             <div>
                 <label class="form-label">Project URL <span class="text-[#aab8c8] font-normal">(optional)</span></label>
-                <input type="url" name="project_url" id="proj_url" placeholder="https://github.com/..." class="form-input">
+                <input type="url" name="project_url" id="proj_url"
+                       placeholder="https://github.com/..." class="form-input">
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
@@ -610,7 +651,8 @@
             <div>
                 <label class="form-label">Description</label>
                 <textarea name="description" id="proj_desc" rows="3"
-                          placeholder="Brief description of the project..." class="form-input resize-none" required></textarea>
+                          placeholder="Brief description of the project..."
+                          class="form-input resize-none" required></textarea>
             </div>
         </div>
         <div class="flex gap-3 justify-end">
@@ -652,7 +694,8 @@
             <div>
                 <label class="form-label">Phone Number</label>
                 <input type="tel" name="phone_number" class="form-input"
-                       value="{{ profile.phone_number|default:'' }}" placeholder="+91 00000 00000">
+                       value="{{ profile.phone_number|default:'' }}"
+                       placeholder="+91 00000 00000">
             </div>
             <div class="col-span-2">
                 <label class="form-label">Languages Known</label>
@@ -683,6 +726,46 @@ function closeAllModals() {
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
 
+/* ── Profile photo preview + auto-submit ── */
+function previewPhoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const container = document.querySelector('.w-\\[90px\\].h-\\[90px\\]');
+            container.innerHTML = `<img src="${e.target.result}" class="w-full h-full rounded-full object-cover">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+        // Auto submit
+        document.getElementById('photo-form').submit();
+    }
+}
+
+/* ── Skill input live preview ── */
+const skillInput   = document.getElementById('skill-input');
+const skillPreview = document.getElementById('skill-preview');
+
+if (skillInput) {
+    skillInput.addEventListener('input', function () {
+        const val = this.value;
+        const parts = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+        // Clear old badges (keep the label)
+        skillPreview.querySelectorAll('.skill-badge').forEach(b => b.remove());
+
+        if (parts.length > 0) {
+            skillPreview.classList.remove('hidden');
+            parts.forEach(p => {
+                const badge = document.createElement('span');
+                badge.className = 'skill-badge bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[12px] font-semibold px-3 py-1 rounded-full';
+                badge.textContent = p;
+                skillPreview.appendChild(badge);
+            });
+        } else {
+            skillPreview.classList.add('hidden');
+        }
+    });
+}
+
 /* ── Employment: current job toggle ── */
 document.getElementById('emp_current').addEventListener('change', function () {
     document.getElementById('end-date-wrapper').style.opacity = this.checked ? '0.4' : '1';
@@ -692,7 +775,7 @@ document.getElementById('emp_current').addEventListener('change', function () {
 /* ── Employment: open edit ── */
 function openEditEmployment(id, designation, company, start, end, isCurrent, location, desc) {
     document.getElementById('emp-modal-title').textContent = 'Edit Employment';
-    document.getElementById('emp_id').value         = id;
+    document.getElementById('emp_id').value          = id;
     document.getElementById('emp_designation').value = designation;
     document.getElementById('emp_company').value     = company;
     document.getElementById('emp_start').value       = start;
@@ -743,30 +826,39 @@ function openEditEducation(id, level, course, university, startYear, endYear, ty
     openModal('modal-education');
 }
 
-/* ── Profile Strength Calculator ── */
+/* ── Profile Strength + Ring ── */
 (function () {
     const items = [
-        { key: 'headline',  label: 'Resume Headline',  has: {{ profile.resume_headline|yesno:'true,false' }},  href: '#headline',  pct: 10 },
-        { key: 'summary',   label: 'Profile Summary',  has: {{ profile.profile_summary|yesno:'true,false' }},  href: '#summary',   pct: 15 },
-        { key: 'resume',    label: 'Resume Upload',    has: {{ profile.resume|yesno:'true,false' }},            href: '#resume',    pct: 20 },
-        { key: 'skills',    label: 'Key Skills',       has: {{ profile.skills.exists|yesno:'true,false' }},    href: '#skills',    pct: 15 },
-        { key: 'employment',label: 'Employment / Fresher', has: {{ has_employment|yesno:'true,false' }},        href: '#employment',pct: 20 },
-        { key: 'education', label: 'Education',        has: {{ profile.educations.exists|yesno:'true,false' }},href: '#education', pct: 10 },
-        { key: 'projects',  label: 'Projects',         has: {{ profile.projects.exists|yesno:'true,false' }},  href: '#projects',  pct: 10 },
+        { label: 'Resume Headline',      has: {{ profile.resume_headline|yesno:'true,false' }},         href: '#headline',   pct: 10 },
+        { label: 'Profile Summary',      has: {{ profile.profile_summary|yesno:'true,false' }},         href: '#summary',    pct: 15 },
+        { label: 'Resume Upload',        has: {{ profile.resume|yesno:'true,false' }},                  href: '#resume',     pct: 20 },
+        { label: 'Key Skills',           has: {{ profile.skills.exists|yesno:'true,false' }},           href: '#skills',     pct: 15 },
+        { label: 'Employment / Fresher', has: {{ has_employment|yesno:'true,false' }},                  href: '#employment', pct: 20 },
+        { label: 'Education',            has: {{ profile.educations.exists|yesno:'true,false' }},       href: '#education',  pct: 10 },
+        { label: 'Projects',             has: {{ profile.projects.exists|yesno:'true,false' }},         href: '#projects',   pct: 10 },
     ];
 
     let total = 0;
     const tips = [];
     items.forEach(i => {
-        if (i.has) { total += i.pct; }
-        else { tips.push(`<li class="flex items-center gap-2"><i class="fa-solid fa-circle-plus text-[#f59e0b]"></i> <a href="${i.href}" class="text-[#4b6cf5] hover:underline">Add ${i.label}</a> <span class="text-[#aab8c8]">(+${i.pct}%)</span></li>`); }
+        if (i.has) total += i.pct;
+        else tips.push(`<li class="flex items-center gap-2"><i class="fa-solid fa-circle-plus text-[#f59e0b]"></i> <a href="${i.href}" class="text-[#4b6cf5] hover:underline">Add ${i.label}</a> <span class="text-[#aab8c8]">(+${i.pct}%)</span></li>`);
     });
 
-    document.getElementById('strength-pct').textContent  = total + '%';
-    document.getElementById('strength-bar').style.width  = total + '%';
-    document.getElementById('strength-pct').style.color  = total >= 70 ? '#22c55e' : total >= 40 ? '#f59e0b' : '#e05c5c';
-    document.getElementById('strength-bar').style.background = total >= 70 ? '#22c55e' : total >= 40 ? '#f59e0b' : '#e05c5c';
-    document.getElementById('strength-tips').innerHTML   = tips.join('');
+    const color = total >= 70 ? '#22c55e' : total >= 40 ? '#f59e0b' : '#e05c5c';
+
+    // Bar
+    document.getElementById('strength-pct').textContent      = total + '%';
+    document.getElementById('strength-pct').style.color      = color;
+    document.getElementById('strength-bar').style.width      = total + '%';
+    document.getElementById('strength-bar').style.background = color;
+    document.getElementById('strength-tips').innerHTML        = tips.join('');
+
+    // SVG Ring — circumference = 2π×46 ≈ 289
+    const ring   = document.getElementById('progress-ring');
+    const offset = 289 - (289 * total / 100);
+    ring.style.strokeDashoffset = offset;
+    ring.style.stroke           = color;
 })();
 </script>
 

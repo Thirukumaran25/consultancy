@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models import Q
 from .models import *
 from .otp_utils import generate_otp, send_otp_email
 
@@ -319,12 +320,20 @@ def update_resume(request):
 @login_required(login_url='login')
 def add_skill(request):
     if request.method == 'POST':
-        name = request.POST.get('skill_name', '').strip()
-        if name:
-            skill, _ = Skill.objects.get_or_create(name__iexact=name, defaults={'name': name})
-            request.user.candidate_profile.skills.add(skill)
-            messages.success(request, f"Skill '{name}' added.")
+        raw = request.POST.get('skill_name', '').strip()
+        if raw:
+            # Split by comma, add each skill separately
+            skill_names = [s.strip() for s in raw.split(',') if s.strip()]
+            for name in skill_names:
+                skill, _ = Skill.objects.get_or_create(
+                    name__iexact=name,
+                    defaults={'name': name}
+                )
+                request.user.candidate_profile.skills.add(skill)
+            count = len(skill_names)
+            messages.success(request, f"{count} skill{'s' if count > 1 else ''} added.")
     return redirect('candidate_profile')
+
 
 
 @login_required(login_url='login')
@@ -334,6 +343,15 @@ def remove_skill(request, skill_id):
         request.user.candidate_profile.skills.remove(skill)
     return redirect('candidate_profile')
 
+
+@login_required(login_url='login')
+def update_profile_photo(request):
+    if request.method == 'POST' and request.FILES.get('profile_photo'):
+        profile = request.user.candidate_profile
+        profile.profile_photo = request.FILES['profile_photo']
+        profile.save()
+        messages.success(request, "Profile photo updated.")
+    return redirect('candidate_profile')
 
 @login_required(login_url='login')
 def save_employment(request):
@@ -553,4 +571,171 @@ def company_dashboard(request):
         return redirect('login')
     return render(request, 'company_dashboard.html', {
         'profile': request.user.company_profile
+    })
+
+
+
+
+def job_list(request):
+    jobs = Job.objects.filter(is_active=True).select_related('category')
+
+    # ── Filters ────────────────────────────────────────────────────────────
+    q          = request.GET.get('q', '').strip()
+    location   = request.GET.get('location', '').strip()
+    job_type   = request.GET.get('job_type', '').strip()
+    work_mode  = request.GET.get('work_mode', '').strip()
+    experience = request.GET.get('experience', '').strip()
+    category   = request.GET.get('category', '').strip()
+    salary     = request.GET.get('salary', '').strip()
+
+    if q:
+        jobs = jobs.filter(
+            Q(title__icontains=q) |
+            Q(company__icontains=q) |
+            Q(skills_required__icontains=q) |
+            Q(location__icontains=q)
+        ).distinct()
+
+    if location:
+        jobs = jobs.filter(location__icontains=location)
+    if job_type:
+        jobs = jobs.filter(job_type=job_type)
+    if work_mode:
+        jobs = jobs.filter(work_mode=work_mode)
+    if experience:
+        jobs = jobs.filter(experience__icontains=experience) # Changed to icontains for manual text
+    if category:
+        jobs = jobs.filter(category__slug=category)
+    if salary:
+        salary_map = {'0-3': (0,3), '3-6': (3,6), '6-10': (6,10), '10+': (10, 9999)}
+        if salary in salary_map:
+            lo, hi = salary_map[salary]
+            jobs = jobs.filter(salary_min__gte=lo, salary_max__lte=hi)
+
+    # ── Sort ───────────────────────────────────────────────────────────────
+    sort = request.GET.get('sort', 'recent')
+    if sort == 'salary':
+        jobs = jobs.order_by('-salary_max')
+    elif sort == 'featured':
+        jobs = jobs.order_by('-is_featured', '-posted_at')
+    else:
+        jobs = jobs.order_by('-posted_at')
+
+    # ── Pagination ─────────────────────────────────────────────────────────
+    from django.core.paginator import Paginator
+    paginator   = Paginator(jobs, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj    = paginator.get_page(page_number)
+
+    # ── Applied job ids (for logged in candidate) ──────────────────────────
+    applied_ids = []
+    if request.user.is_authenticated and request.user.role == 'candidate': # Simplified role check
+        if hasattr(request.user, 'candidate_profile'):
+            applied_ids = list(
+                JobApplication.objects.filter(
+                    candidate=request.user.candidate_profile
+                ).values_list('job_id', flat=True)
+            )
+
+    return render(request, 'jobs/job_list.html', {
+    'page_obj':      page_obj,
+    'total':         paginator.count,
+    'categories':    JobCategory.objects.all(),
+    'job_types':     Job.JobType.choices,
+    'work_modes':    Job.WorkMode.choices,
+    'salary_ranges': [
+        ('0-3',  '0 – 3 LPA'),
+        ('3-6',  '3 – 6 LPA'),
+        ('6-10', '6 – 10 LPA'),
+        ('10+',  '10+ LPA'),
+    ],
+    'applied_ids': applied_ids,
+    'ui_settings': get_ui(),
+    'filters': {
+        'q': q, 'location': location, 'job_type': job_type,
+        'work_mode': work_mode, 'experience': experience,
+        'category': category, 'salary': salary, 'sort': sort,
+    },
+})
+
+
+def job_detail(request, slug):
+    job = Job.objects.select_related('category').get(slug=slug, is_active=True)
+
+    similar = Job.objects.filter(
+        is_active=True, category=job.category
+    ).exclude(id=job.id)[:4]
+
+    already_applied = False
+    application     = None
+    if request.user.is_authenticated and request.user.role == 'candidate':
+        if hasattr(request.user, 'candidate_profile'):
+            application = JobApplication.objects.filter(
+                job=job,
+                candidate=request.user.candidate_profile
+            ).first()
+            already_applied = application is not None
+
+    # Parse comma-separated skills string into list
+    skills_list = [
+        s.strip() for s in (job.skills_required or '').split(',') if s.strip()
+    ]
+
+    return render(request, 'jobs/job_detail.html', {
+        'job':             job,
+        'similar':         similar,
+        'already_applied': already_applied,
+        'application':     application,
+        'skills_list':     skills_list,
+        'responsibilities': [r.strip() for r in (job.responsibilities or '').split('\n') if r.strip()],
+        'requirements':    [r.strip() for r in (job.requirements or '').split('\n') if r.strip()],
+        'benefits':        [r.strip() for r in (job.benefits or '').split('\n') if r.strip()],
+        'ui_settings':     get_ui(),
+    })
+
+@login_required(login_url='login')
+def apply_job(request, slug):
+    if request.user.role != 'candidate':
+        messages.error(request, "Only candidates can apply for jobs.")
+        return redirect('job_detail', slug=slug)
+
+    job     = Job.objects.get(slug=slug, is_active=True)
+    profile = request.user.candidate_profile
+
+    if JobApplication.objects.filter(job=job, candidate=profile).exists():
+        messages.warning(request, "You have already applied for this job.")
+        return redirect('job_detail', slug=slug)
+
+    cover_letter = request.POST.get('cover_letter', '').strip()
+    JobApplication.objects.create(
+        job          = job,
+        candidate    = profile,
+        cover_letter = cover_letter or None,
+    )
+    messages.success(request, f"Successfully applied for {job.title}!")
+    return redirect('job_detail', slug=slug)
+
+
+@login_required(login_url='login')
+def withdraw_application(request, slug):
+    job = Job.objects.get(slug=slug)
+    JobApplication.objects.filter(
+        job=job,
+        candidate=request.user.candidate_profile
+    ).update(status=JobApplication.Status.WITHDRAWN)
+    messages.success(request, "Application withdrawn.")
+    return redirect('job_detail', slug=slug)
+
+
+@login_required(login_url='login')
+def my_applications(request):
+    if request.user.role != 'candidate':
+        return redirect('login')
+    applications = JobApplication.objects.filter(
+        candidate=request.user.candidate_profile
+    ).select_related('job').order_by('-applied_at')
+
+    return render(request, 'jobs/my_applications.html', {
+        'applications': applications,
+        'ui_settings':  get_ui(),
     })

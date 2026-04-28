@@ -7,7 +7,15 @@ urlpatterns = [
     path('logout/',              views.logout_view,         name='logout'),
     path('dashboard/', views.dashboard_router, name='dashboard'),
     path('candidate/register/',  views.candidate_register,  name='candidate_register'),
-    path('send-otp/', views.send_registration_otp, name='send_registration_otp'), # ADD THIS
+    path('send-otp/', views.send_registration_otp, name='send_registration_otp'),
+
+
+    path('jobs/',                        views.job_list,            name='job_list'),
+    path('jobs/<slug:slug>/',            views.job_detail,          name='job_detail'),
+    path('jobs/<slug:slug>/apply/',      views.apply_job,           name='apply_job'),
+    path('jobs/<slug:slug>/withdraw/',   views.withdraw_application, name='withdraw_application'),
+    path('my-applications/',             views.my_applications,     name='my_applications'),
+
 
     path('company/register/',    views.company_register,    name='company_register'),
     path('candidate/dashboard/', views.candidate_dashboard, name='candidate_dashboard'),
@@ -26,6 +34,7 @@ urlpatterns = [
     path('candidate/profile/project/save/',                views.save_project,     name='save_project'),
     path('candidate/profile/project/<int:proj_id>/delete/', views.delete_project,  name='delete_project'),
     path('candidate/profile/fresher/',                     views.mark_fresher,     name='mark_fresher'),
+    path('candidate/profile/photo/', views.update_profile_photo, name='update_profile_photo'),
 
     path('trainee/dashboard/',   views.trainee_dashboard,   name='trainee_dashboard'),
     path('company/dashboard/',   views.company_dashboard,   name='company_dashboard'),

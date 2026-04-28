@@ -40,6 +40,7 @@ class Skill(models.Model):
 
 class CandidateProfile(models.Model):
     user           = models.OneToOneField(User, on_delete=models.CASCADE, related_name='candidate_profile')
+    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
     full_name      = models.CharField(max_length=255)
     phone_number   = models.CharField(max_length=20, blank=True, null=True)
     resume         = models.FileField(upload_to='resumes/', blank=True, null=True)
@@ -167,3 +168,134 @@ def create_user_profile(sender, instance, created, **kwargs):
                 user=instance, 
                 defaults={'full_name': instance.username} 
             )
+
+
+class JobCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True)
+    icon = models.CharField(max_length=50, blank=True, null=True, help_text="Font Awesome class e.g. fa-code")
+
+    class Meta:
+        verbose_name_plural = "Job Categories"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Job(models.Model):
+
+    class JobType(models.TextChoices):
+        FULL_TIME  = 'Full Time',  'Full Time'
+        PART_TIME  = 'Part Time',  'Part Time'
+        CONTRACT   = 'Contract',   'Contract'
+        INTERNSHIP = 'Internship', 'Internship'
+        FREELANCE  = 'Freelance',  'Freelance'
+        REMOTE     = 'Remote',     'Remote'
+
+    class WorkMode(models.TextChoices):
+        ONSITE = 'On-site', 'On-site'
+        REMOTE = 'Remote',  'Remote'
+        HYBRID = 'Hybrid',  'Hybrid'
+
+    # Core
+    company         = models.CharField(max_length=255, help_text="Enter company name manually")
+    category        = models.ForeignKey(JobCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='jobs')
+    title           = models.CharField(max_length=255)
+    slug            = models.SlugField(unique=True, blank=True)
+    description     = models.TextField()
+    responsibilities = models.TextField(blank=True, null=True, help_text="One per line")
+    requirements    = models.TextField(blank=True, null=True, help_text="One per line")
+    benefits        = models.TextField(blank=True, null=True, help_text="One per line")
+
+    # Classification
+    job_type        = models.CharField(max_length=20, choices=JobType.choices, default=JobType.FULL_TIME)
+    work_mode       = models.CharField(max_length=20, choices=WorkMode.choices, default=WorkMode.ONSITE)
+    experience      = models.CharField(max_length=100, help_text="Enter experience manually (e.g., 2-5 Years, Fresher)")
+
+    # Location & Salary
+    location        = models.CharField(max_length=200)
+    salary_min      = models.PositiveIntegerField(null=True, blank=True, help_text="Annual in LPA (e.g. 3)")
+    salary_max      = models.PositiveIntegerField(null=True, blank=True, help_text="Annual in LPA (e.g. 8)")
+    salary_hidden   = models.BooleanField(default=False, help_text="Show 'Not Disclosed' instead of salary")
+
+    # Skills
+    skills_required = models.CharField(max_length=255, help_text="Enter skills manually, separated by commas (e.g., Python, Django, React)")
+
+    # Meta
+    openings        = models.PositiveIntegerField(default=1)
+    is_active       = models.BooleanField(default=True)
+    is_featured     = models.BooleanField(default=False)
+    posted_at       = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+    deadline        = models.DateField(null=True, blank=True)
+
+    hr_name  = models.CharField(max_length=100, blank=True, null=True)
+    hr_email = models.EmailField(blank=True, null=True)
+    hr_phone = models.CharField(max_length=20, blank=True, null=True)
+
+    class Meta:
+        ordering = ['-is_featured', '-posted_at']
+
+    def __str__(self):
+        return f"{self.title} — {self.company}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            base = slugify(f"{self.title}-{self.company}")
+            slug = base
+            n = 1
+            while Job.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base}-{n}"
+                n += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def get_salary_display(self):
+        if self.salary_hidden:
+            return "Not Disclosed"
+        if self.salary_min and self.salary_max:
+            return f"₹{self.salary_min} – {self.salary_max} LPA"
+        if self.salary_min:
+            return f"₹{self.salary_min}+ LPA"
+        return "Not Disclosed"
+
+    def days_ago(self):
+        from django.utils import timezone
+        delta = timezone.now() - self.posted_at
+        if delta.days == 0:
+            return "Today"
+        if delta.days == 1:
+            return "1 day ago"
+        if delta.days < 30:
+            return f"{delta.days} days ago"
+        if delta.days < 60:
+            return "1 month ago"
+        return f"{delta.days // 30} months ago"
+
+
+class JobApplication(models.Model):
+
+    class Status(models.TextChoices):
+        APPLIED    = 'Applied',    'Applied'
+        REVIEWING  = 'Reviewing',  'Reviewing'
+        SHORTLISTED = 'Shortlisted', 'Shortlisted'
+        INTERVIEW  = 'Interview',  'Interview Scheduled'
+        OFFERED    = 'Offered',    'Offer Extended'
+        REJECTED   = 'Rejected',  'Rejected'
+        WITHDRAWN  = 'Withdrawn',  'Withdrawn'
+
+    job       = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
+    candidate = models.ForeignKey('CandidateProfile', on_delete=models.CASCADE, related_name='applications')
+    status    = models.CharField(max_length=20, choices=Status.choices, default=Status.APPLIED)
+    cover_letter = models.TextField(blank=True, null=True)
+    applied_at   = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('job', 'candidate')
+        ordering = ['-applied_at']
+
+    def __str__(self):
+        return f"{self.candidate.full_name} → {self.job.title}"

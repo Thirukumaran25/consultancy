@@ -39,7 +39,7 @@
 
             <div class="hidden md:flex items-center gap-8">
                 <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
-                <a href="#jobs" class="nav-link">Jobs</a>
+                <a href="{% url 'job_list' %}" class="nav-link">Jobs</a>
                 <a href="#services" class="nav-link">Services</a>
             </div>
 
@@ -74,7 +74,7 @@
 
         <div id="mobileMenu" class="hidden md:hidden bg-[#3730a3] border-t border-white/10 px-4 pt-2 pb-4 space-y-3 shadow-inner">
             <a href="{% url 'dashboard' %}" class="block nav-link">Home</a>
-            <a href="#jobs" class="block nav-link">Jobs</a>
+            <a href="{% url 'job_list' %}" class="block nav-link">Jobs</a>
             <a href="#services" class="block nav-link">Services</a>
             <hr class="border-white/20">
             <a href="{% if request.user.role == 'candidate' %}{% url 'candidate_profile' %}{% else %}{% url 'dashboard' %}{% endif %}" class="flex items-center gap-2 nav-link">

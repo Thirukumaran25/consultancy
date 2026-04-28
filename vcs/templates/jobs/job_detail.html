@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+{% block title %}{{ job.title }} — {{ job.company }}{% endblock %}
+
+{% block content %}
+<div class="bg-[#eef2f7] min-h-screen py-6 px-4">
+    <div class="max-w-[1100px] mx-auto mb-4">
+        <a href="{% url 'job_list' %}" class="text-[#4b6cf5] font-bold text-[13px] hover:underline no-underline">
+            ← Back to Jobs
+        </a>
+    </div>
+
+    <div class="max-w-[1100px] mx-auto flex flex-col lg:flex-row gap-6">
+
+        <!-- ── MAIN ── -->
+        <div class="flex-1 min-w-0 space-y-5">
+
+            <!-- Job Header Card -->
+            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
+                <div class="flex items-start gap-5 flex-wrap">
+
+                    <!-- Company Initial Logo -->
+                    <div class="w-[72px] h-[72px] rounded-[12px] border border-gray-100 bg-[#eef3ff] flex items-center justify-center shrink-0">
+                        <span class="text-[28px] font-extrabold text-[#3d35c4]">
+                            {{ job.company|slice:":1"|upper }}
+                        </span>
+                    </div>
+
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between flex-wrap gap-3">
+                            <div>
+                                <h1 class="text-[22px] font-extrabold text-[#1a2b4a] mb-1">{{ job.title }}</h1>
+                                <p class="text-[15px] text-[#4a5568] font-semibold">{{ job.company }}</p>
+                            </div>
+                            {% if job.is_featured %}
+                            <span class="bg-[#fff7e6] text-[#b45309] text-[12px] font-bold px-3 py-1.5 rounded-full border border-[#fcd34d]">
+                                <i class="fa-solid fa-star text-[11px]"></i> Featured
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Meta Tags -->
+                        <div class="flex flex-wrap gap-3 mt-3">
+                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                                <i class="fa-solid fa-location-dot text-[#3d35c4]"></i> {{ job.location }}
+                            </span>
+                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                                <i class="fa-solid fa-briefcase text-[#3d35c4]"></i> {{ job.experience }}
+                            </span>
+                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                                <i class="fa-solid fa-indian-rupee-sign text-[#3d35c4]"></i> {{ job.get_salary_display }}
+                            </span>
+                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                                <i class="fa-solid fa-laptop-house text-[#3d35c4]"></i> {{ job.work_mode }}
+                            </span>
+                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                                <i class="fa-solid fa-users text-[#3d35c4]"></i>
+                                {{ job.openings }} opening{{ job.openings|pluralize }}
+                            </span>
+                        </div>
+
+                        <!-- Badges -->
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <span class="bg-[#ede9ff] text-[#4338ca] text-[12px] font-bold px-3 py-1 rounded-full">
+                                {{ job.job_type }}
+                            </span>
+                            {% if job.category %}
+                            <span class="bg-[#e6fff0] text-[#057a2e] text-[12px] font-bold px-3 py-1 rounded-full">
+                                {{ job.category.name }}
+                            </span>
+                            {% endif %}
+                            <span class="bg-[#f1f5fb] text-[#4a5568] text-[12px] font-bold px-3 py-1 rounded-full">
+                                Posted {{ job.days_ago }}
+                            </span>
+                            {% if job.deadline %}
+                            <span class="bg-[#fff0f0] text-[#e05c5c] text-[12px] font-bold px-3 py-1 rounded-full">
+                                Deadline: {{ job.deadline|date:"d M Y" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Apply / Applied -->
+                <div class="mt-5 pt-4 border-t border-[#f0f4f8] flex items-center gap-3 flex-wrap">
+                    {% if already_applied %}
+                        <div class="flex items-center gap-2 text-[#057a2e] font-bold text-[14px]">
+                            <i class="fa-solid fa-circle-check text-[18px]"></i>
+                            Applied — Status:
+                            <span class="ml-1 px-3 py-1 rounded-full text-[12px]
+                                {% if application.status == 'Shortlisted' %}bg-[#e6fff0] text-[#057a2e]
+                                {% elif application.status == 'Rejected' %}bg-[#fff0f0] text-[#e05c5c]
+                                {% elif application.status == 'Interview' %}bg-[#ede9ff] text-[#4338ca]
+                                {% else %}bg-[#f1f5fb] text-[#4a5568]{% endif %}">
+                                {{ application.status }}
+                            </span>
+                        </div>
+                        {% if application.status == 'Applied' %}
+                        <form method="POST" action="{% url 'withdraw_application' job.slug %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="text-[#e05c5c] bg-[#fff0f0] border border-[#ffd0d0] font-bold text-[13px] px-4 py-2 rounded-[8px] hover:bg-[#ffe0e0] transition"
+                                onclick="return confirm('Withdraw your application?')">
+                                Withdraw
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% elif request.user.is_authenticated and request.user.role == 'candidate' %}
+                        <button onclick="document.getElementById('apply-modal').classList.remove('hidden')"
+                            class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition">
+                            <i class="fa-solid fa-paper-plane mr-2"></i> Apply Now
+                        </button>
+                    {% elif not request.user.is_authenticated %}
+                        <a href="{% url 'login' %}"
+                           class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition no-underline">
+                            Login to Apply
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Job Description -->
+            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Job Description</h2>
+                <div class="text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">
+                    {{ job.description }}
+                </div>
+            </div>
+
+            <!-- Responsibilities -->
+            {% if job.responsibilities %}
+            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Key Responsibilities</h2>
+                <div class="text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.responsibilities }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Requirements -->
+            {% if job.requirements %}
+            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Requirements</h2>
+                <div class="text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.requirements }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Benefits -->
+            {% if benefits %}
+            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Benefits & Perks</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {% for item in benefits %}
+                    <div class="flex items-center gap-2.5 text-[14px] text-[#4a5568] bg-[#f8fbff] border border-[#e4eaf2] rounded-[8px] px-3 py-2">
+                        <i class="fa-solid fa-gift text-[#3d35c4] text-[12px]"></i> {{ item }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Skills -->
+            {% if skills_list %}
+            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Required Skills</h2>
+                <div class="flex flex-wrap gap-2.5">
+                    {% for skill in skills_list %}
+                    <span class="bg-[#ede9ff] text-[#4338ca] text-[13px] font-bold px-4 py-1.5 rounded-full border border-[#c4b5fd]">
+                        {{ skill }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- HR Contact Card — add after company card in sidebar -->
+            {% if job.hr_name or job.hr_email or job.hr_phone %}
+            <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
+                <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">
+                    <i class="fa-solid fa-headset text-[#3d35c4] mr-2"></i> HR Contact
+                </h3>
+                <div class="space-y-3">
+                    {% if job.hr_name %}
+                    <div class="flex items-center gap-3">
+                        <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-user text-[#3d35c4] text-[12px]"></i>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-[#aab8c8] font-semibold uppercase tracking-wide">HR Name</p>
+                            <p class="text-[13px] text-[#1a2b4a] font-bold">{{ job.hr_name }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if job.hr_phone %}
+                    <div class="flex items-center gap-3">
+                        <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-phone text-[#3d35c4] text-[12px]"></i>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-[#aab8c8] font-semibold uppercase tracking-wide">Phone</p>
+                            <a href="tel:{{ job.hr_phone }}"
+                            class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline">
+                                {{ job.hr_phone }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if job.hr_email %}
+                    <div class="flex items-center gap-3">
+                        <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-envelope text-[#3d35c4] text-[12px]"></i>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-[#aab8c8] font-semibold uppercase tracking-wide">Email</p>
+                            <a href="mailto:{{ job.hr_email }}"
+                            class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline break-all">
+                                {{ job.hr_email }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if job.hr_email %}
+                    <a href="mailto:{{ job.hr_email }}?subject=Application for {{ job.title }}"
+                    class="mt-2 w-full flex items-center justify-center gap-2 bg-[#eef3ff] text-[#3d35c4]
+                            font-bold text-[13px] py-2.5 rounded-[8px] hover:bg-[#dfe8ff] transition no-underline">
+                        <i class="fa-solid fa-paper-plane text-[12px]"></i> Email HR
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- ── SIDEBAR ── -->
+        <div class="lg:w-[300px] shrink-0 space-y-5">
+
+            <!-- Company Card -->
+            <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
+                <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">About Company</h3>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-[48px] h-[48px] rounded-[10px] bg-[#eef3ff] flex items-center justify-center shrink-0">
+                        <span class="text-[20px] font-extrabold text-[#3d35c4]">
+                            {{ job.company|slice:":1"|upper }}
+                        </span>
+                    </div>
+                    <div>
+                        <p class="text-[14px] font-bold text-[#1a2b4a]">{{ job.company }}</p>
+                        <p class="text-[12px] text-[#7a8fa6]">{{ job.location }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Overview -->
+            <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
+                <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">Job Overview</h3>
+                <div class="space-y-3">
+                    {% include "jobs/_overview_row.html" with icon="fa-calendar" label="Posted" value=job.days_ago %}
+                    {% include "jobs/_overview_row.html" with icon="fa-briefcase" label="Job Type" value=job.job_type %}
+                    {% include "jobs/_overview_row.html" with icon="fa-laptop-house" label="Work Mode" value=job.work_mode %}
+                    {% include "jobs/_overview_row.html" with icon="fa-chart-line" label="Experience" value=job.experience %}
+                    {% include "jobs/_overview_row.html" with icon="fa-users" label="Openings" value=job.openings %}
+                    {% if job.deadline %}
+                    {% include "jobs/_overview_row.html" with icon="fa-clock" label="Deadline" value=job.deadline|date:"d M Y" %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Similar Jobs -->
+            {% if similar %}
+            <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
+                <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">Similar Jobs</h3>
+                <div class="space-y-4">
+                    {% for sj in similar %}
+                    <a href="{% url 'job_detail' sj.slug %}"
+                       class="block hover:bg-[#f8fbff] rounded-[10px] p-2 -mx-2 transition no-underline">
+                        <p class="text-[13.5px] font-bold text-[#1a2b4a]">{{ sj.title }}</p>
+                        <p class="text-[12px] text-[#7a8fa6] mt-0.5">{{ sj.company }}</p>
+                        <p class="text-[12px] text-[#aab8c8] mt-0.5">
+                            <i class="fa-solid fa-location-dot mr-1"></i>{{ sj.location }} •
+                            {{ sj.get_salary_display }}
+                        </p>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<!-- ── Apply Modal ── -->
+<div id="apply-modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-[16px] w-full max-w-[500px] p-7 shadow-xl">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-[18px] font-bold text-[#1a2b4a]">Apply for {{ job.title }}</h3>
+            <button onclick="document.getElementById('apply-modal').classList.add('hidden')"
+                    class="text-[#aab8c8] hover:text-[#4a5568] text-[20px]">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form method="POST" action="{% url 'apply_job' job.slug %}">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-2">
+                    Cover Letter <span class="text-[#aab8c8] font-normal">(optional)</span>
+                </label>
+                <textarea name="cover_letter" rows="5"
+                          placeholder="Tell the employer why you are a great fit..."
+                          class="w-full p-3 border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo'] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5] resize-none"></textarea>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button"
+                        onclick="document.getElementById('apply-modal').classList.add('hidden')"
+                        class="bg-[#f1f5fb] text-[#4a5568] font-bold text-[14px] px-5 py-2.5 rounded-[10px]">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="bg-[#3d35c4] text-white font-bold text-[14px] px-6 py-2.5 rounded-[10px] hover:bg-[#2d27a8] transition">
+                    <i class="fa-solid fa-paper-plane mr-2"></i> Submit Application
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}My Applications{% endblock %}
+
+{% block content %}
+<div class="max-w-[900px] mx-auto px-4 py-8">
+    <h1 class="text-[22px] font-extrabold text-[#1a2b4a] mb-6">My Applications</h1>
+
+    <div class="space-y-4">
+        {% for app in applications %}
+        <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100 flex items-start gap-4 flex-wrap">
+
+            <!-- Company Initial -->
+            <div class="w-[48px] h-[48px] rounded-[10px] bg-[#eef3ff] flex items-center justify-center shrink-0">
+                <span class="text-[18px] font-extrabold text-[#3d35c4]">
+                    {{ app.job.company|slice:":1"|upper }}
+                </span>
+            </div>
+
+            <div class="flex-1">
+                <a href="{% url 'job_detail' app.job.slug %}"
+                   class="text-[15px] font-bold text-[#1a2b4a] hover:text-[#3d35c4] no-underline">
+                    {{ app.job.title }}
+                </a>
+                <p class="text-[13px] text-[#7a8fa6] mt-0.5">
+                    {{ app.job.company }} • {{ app.job.location }}
+                </p>
+                <p class="text-[12px] text-[#aab8c8] mt-1">
+                    Applied {{ app.applied_at|date:"d M Y" }}
+                </p>
+            </div>
+
+            <span class="px-3 py-1.5 rounded-full text-[12px] font-bold self-start
+                {% if app.status == 'Shortlisted' or app.status == 'Offered' %}bg-[#e6fff0] text-[#057a2e]
+                {% elif app.status == 'Rejected' or app.status == 'Withdrawn' %}bg-[#fff0f0] text-[#e05c5c]
+                {% elif app.status == 'Interview' %}bg-[#ede9ff] text-[#4338ca]
+                {% else %}bg-[#f1f5fb] text-[#4a5568]{% endif %}">
+                {{ app.status }}
+            </span>
+        </div>
+        {% empty %}
+        <div class="bg-white rounded-[14px] p-12 text-center shadow-sm border border-gray-100">
+            <i class="fa-solid fa-file-lines text-[48px] text-[#d8e4f0] mb-4"></i>
+            <p class="text-[16px] font-bold text-[#1a2b4a] mb-2">No applications yet</p>
+            <a href="{% url 'job_list' %}"
+               class="text-[#4b6cf5] font-bold text-[13px] hover:underline no-underline">
+                Browse Jobs
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
