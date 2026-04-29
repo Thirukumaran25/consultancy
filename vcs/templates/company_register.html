@@ -96,6 +96,17 @@
         <h1 class="text-[24px] font-extrabold text-[#1a2b4a] mb-1">Register Your Company</h1>
         <p class="text-[13px] text-[#7a8fa6] mb-6">Submit your details for admin verification and approval.</p>
 
+        {% if errors %}
+            <div class="p-3 px-4 rounded-lg mb-4 text-[13px] border bg-[#fff0f0] text-[#c0392b] border-[#ffd0d0]">
+                <strong><i class="fa-solid fa-triangle-exclamation"></i> Registration Failed:</strong>
+                <ul class="list-disc pl-5 mt-1.5 mb-0">
+                {% for field, error in errors.items %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
         {% if messages %}
             {% for message in messages %}
                 <div class="p-2.5 px-[14px] rounded-lg mb-4 text-[13px] text-center border {% if message.tags == 'error' %}bg-[#fff0f0] text-[#c0392b] border-[#ffd0d0]{% else %}bg-[#e6fff0] text-[#057a2e] border-[#b2f2bb]{% endif %}">
@@ -121,14 +132,14 @@
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Company Name</label>
                     <div class="relative">
                         <i class="fa-solid fa-building absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="text" name="company_name" placeholder="Acme Pvt Ltd" id="id_company_name" maxlength="200" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="text" name="company_name" value="{{ form_data.company_name|default:'' }}" placeholder="Acme Pvt Ltd" id="id_company_name" maxlength="200" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                 </div>
                 <div>
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-at absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="text" name="username" placeholder="no spaces allowed" id="id_username" maxlength="150" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="text" name="username" value="{{ form_data.username|default:'' }}" placeholder="no spaces allowed" id="id_username" maxlength="150" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                     <div class="field-alert" id="username-alert">
                         <i class="fa-solid fa-circle-exclamation"></i>
@@ -142,7 +153,7 @@
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Company Email</label>
                     <div class="relative">
                         <i class="fa-solid fa-envelope absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="email" name="company_email" placeholder="hr@yourcompany.com" id="id_company_email" maxlength="254" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="email" name="email" value="{{ form_data.email|default:'' }}" placeholder="hr@yourcompany.com" id="id_company_email" maxlength="254" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                     <div class="field-alert" id="email-alert">
                         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -153,7 +164,7 @@
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Location / Address</label>
                     <div class="relative">
                         <i class="fa-solid fa-location-dot absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="text" name="location" placeholder="Chennai, Tamil Nadu" id="id_location" maxlength="300" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="text" name="location" value="{{ form_data.location|default:'' }}" placeholder="Chennai, Tamil Nadu" id="id_location" maxlength="300" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                 </div>
             </div>
@@ -163,7 +174,7 @@
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="password" name="password" placeholder="••••••••" id="id_password" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="password" name="password1" placeholder="••••••••" id="id_password" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                         <i class="fa-solid fa-eye absolute right-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] cursor-pointer hover:text-[#4b6cf5] eye-icon"></i>
                     </div>
                 </div>
@@ -171,7 +182,7 @@
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Confirm Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="password" name="confirm_password" placeholder="••••••••" id="id_confirm_password" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="password" name="password2" placeholder="••••••••" id="id_confirm_password" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                         <i class="fa-solid fa-eye absolute right-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] cursor-pointer hover:text-[#4b6cf5] eye-icon"></i>
                     </div>
                     <div class="field-alert" id="confirm-alert">
@@ -237,14 +248,14 @@
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">LinkedIn Profile <span class="text-[10.5px] font-semibold text-[#9ab0c8] ml-1"></span></label>
                     <div class="relative">
                         <i class="fa-brands fa-linkedin absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="url" name="linkedin_url" placeholder="https://linkedin.com/company/yourcompany" id="id_linkedin_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="url" name="linkedin_url" value="{{ form_data.linkedin_url|default:'' }}" placeholder="https://linkedin.com/company/yourcompany" id="id_linkedin_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                 </div>
                 <div>
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Company Website <span class="text-[10.5px] font-semibold text-[#9ab0c8] ml-1"></span></label>
                     <div class="relative">
                         <i class="fa-solid fa-globe absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="url" name="website_url" placeholder="https://yourcompany.com" id="id_website_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="url" name="website_url" value="{{ form_data.website_url|default:'' }}" placeholder="https://yourcompany.com" id="id_website_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                 </div>
             </div>
@@ -254,14 +265,14 @@
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Instagram <span class="text-[10.5px] font-semibold text-[#9ab0c8] ml-1">(optional)</span></label>
                     <div class="relative">
                         <i class="fa-brands fa-instagram absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="url" name="instagram_url" placeholder="https://instagram.com/yourcompany" id="id_instagram_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="url" name="instagram_url" value="{{ form_data.instagram_url|default:'' }}" placeholder="https://instagram.com/yourcompany" id="id_instagram_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                 </div>
                 <div>
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Facebook <span class="text-[10.5px] font-semibold text-[#9ab0c8] ml-1">(optional)</span></label>
                     <div class="relative">
                         <i class="fa-brands fa-facebook absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="url" name="facebook_url" placeholder="https://facebook.com/yourcompany" id="id_facebook_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="url" name="facebook_url" value="{{ form_data.facebook_url|default:'' }}" placeholder="https://facebook.com/yourcompany" id="id_facebook_url" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                 </div>
             </div>
@@ -421,7 +432,6 @@ photoInput.addEventListener('change', function () {
         reader.onload = e => {
             const img = document.createElement('img');
             img.src = e.target.result;
-            // Tailwind classes for the preview thumbnails
             img.className = 'w-[68px] h-[68px] rounded-lg object-cover border-2 border-[#86efac] shadow-[0_2px_6px_rgba(0,0,0,0.08)]';
             img.alt = file.name;
             photoPreviews.appendChild(img);

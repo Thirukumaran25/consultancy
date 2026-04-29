@@ -183,7 +183,7 @@
                             <i class="fa-solid fa-user text-[#3d35c4] text-[12px]"></i>
                         </div>
                         <div>
-                            <p class="text-[11px] text-[#aab8c8] font-semibold uppercase tracking-wide">HR Name</p>
+                            <p class="text-[11px] text-black font-semibold uppercase tracking-wide">HR Name</p>
                             <p class="text-[13px] text-[#1a2b4a] font-bold">{{ job.hr_name }}</p>
                         </div>
                     </div>
@@ -195,7 +195,7 @@
                             <i class="fa-solid fa-phone text-[#3d35c4] text-[12px]"></i>
                         </div>
                         <div>
-                            <p class="text-[11px] text-[#aab8c8] font-semibold uppercase tracking-wide">Phone</p>
+                            <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Phone</p>
                             <a href="tel:{{ job.hr_phone }}"
                             class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline">
                                 {{ job.hr_phone }}
@@ -210,21 +210,13 @@
                             <i class="fa-solid fa-envelope text-[#3d35c4] text-[12px]"></i>
                         </div>
                         <div>
-                            <p class="text-[11px] text-[#aab8c8] font-semibold uppercase tracking-wide">Email</p>
+                            <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Email</p>
                             <a href="mailto:{{ job.hr_email }}"
                             class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline break-all">
                                 {{ job.hr_email }}
                             </a>
                         </div>
                     </div>
-                    {% endif %}
-
-                    {% if job.hr_email %}
-                    <a href="mailto:{{ job.hr_email }}?subject=Application for {{ job.title }}"
-                    class="mt-2 w-full flex items-center justify-center gap-2 bg-[#eef3ff] text-[#3d35c4]
-                            font-bold text-[13px] py-2.5 rounded-[8px] hover:bg-[#dfe8ff] transition no-underline">
-                        <i class="fa-solid fa-paper-plane text-[12px]"></i> Email HR
-                    </a>
                     {% endif %}
                 </div>
             </div>
@@ -234,23 +226,6 @@
 
         <!-- ── SIDEBAR ── -->
         <div class="lg:w-[300px] shrink-0 space-y-5">
-
-            <!-- Company Card -->
-            <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
-                <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">About Company</h3>
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-[48px] h-[48px] rounded-[10px] bg-[#eef3ff] flex items-center justify-center shrink-0">
-                        <span class="text-[20px] font-extrabold text-[#3d35c4]">
-                            {{ job.company|slice:":1"|upper }}
-                        </span>
-                    </div>
-                    <div>
-                        <p class="text-[14px] font-bold text-[#1a2b4a]">{{ job.company }}</p>
-                        <p class="text-[12px] text-[#7a8fa6]">{{ job.location }}</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Job Overview -->
             <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
                 <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">Job Overview</h3>
@@ -292,36 +267,61 @@
 
 <!-- ── Apply Modal ── -->
 <div id="apply-modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-[16px] w-full max-w-[500px] p-7 shadow-xl">
-        <div class="flex justify-between items-center mb-5">
-            <h3 class="text-[18px] font-bold text-[#1a2b4a]">Apply for {{ job.title }}</h3>
+    <div class="bg-white rounded-[16px] w-full max-w-[550px] shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
+        <div class="p-6 border-b border-[#e4eaf2] flex justify-between items-center bg-white z-10 shrink-0">
+            <h3 class="text-[18px] font-extrabold text-[#1a2b4a]">Apply for {{ job.title }}</h3>
             <button onclick="document.getElementById('apply-modal').classList.add('hidden')"
-                    class="text-[#aab8c8] hover:text-[#4a5568] text-[20px]">
+                    class="text-[#aab8c8] hover:text-[#e74c3c] text-[20px] transition-colors">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        <form method="POST" action="{% url 'apply_job' job.slug %}">
-            {% csrf_token %}
-            <div class="mb-4">
-                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-2">
-                    Cover Letter <span class="text-[#aab8c8] font-normal">(optional)</span>
-                </label>
-                <textarea name="cover_letter" rows="5"
-                          placeholder="Tell the employer why you are a great fit..."
-                          class="w-full p-3 border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo'] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5] resize-none"></textarea>
-            </div>
-            <div class="flex gap-3 justify-end">
-                <button type="button"
-                        onclick="document.getElementById('apply-modal').classList.add('hidden')"
-                        class="bg-[#f1f5fb] text-[#4a5568] font-bold text-[14px] px-5 py-2.5 rounded-[10px]">
-                    Cancel
-                </button>
-                <button type="submit"
-                    class="bg-[#3d35c4] text-white font-bold text-[14px] px-6 py-2.5 rounded-[10px] hover:bg-[#2d27a8] transition">
-                    <i class="fa-solid fa-paper-plane mr-2"></i> Submit Application
-                </button>
-            </div>
-        </form>
+        
+        <div class="overflow-y-auto p-6">
+            <form method="POST" action="{% url 'apply_job' job.slug %}" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Full Name <span class="text-[#e74c3c]">*</span></label>
+                        <input type="text" name="full_name" value="{{ request.user.candidate_profile.full_name }}" required class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Email Address <span class="text-[#e74c3c]">*</span></label>
+                        <input type="email" name="email" value="{{ request.user.email }}" required class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Phone Number <span class="text-[#e74c3c]">*</span></label>
+                        <input type="tel" name="phone" value="{{ request.user.candidate_profile.phone_number|default:'' }}" required placeholder="+91 00000 00000" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Resume / CV <span class="text-[#e74c3c]">*</span></label>
+                    {% if request.user.candidate_profile.resume %}
+                        <div class="flex items-center gap-2 mb-2 text-[12px] text-[#057a2e] font-bold bg-[#e6fff0] p-2 rounded-[6px] border border-[#b2f2bb]">
+                            <i class="fa-solid fa-circle-check"></i> We have your resume on file. Upload a new one below to replace it.
+                        </div>
+                    {% endif %}
+                    <input type="file" name="resume" accept=".pdf,.doc,.docx" {% if not request.user.candidate_profile.resume %}required{% endif %} class="w-full py-2 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[12px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none cursor-pointer file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:bg-[#eef3ff] file:text-[#4b6cf5] hover:file:bg-[#dfe8ff] transition-colors">
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">
+                        Cover Letter <span class="text-[#aab8c8] font-normal">(optional)</span>
+                    </label>
+                    <textarea name="cover_letter" rows="4" placeholder="Tell the employer why you are a great fit..." class="w-full p-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] font-['Exo'] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5] resize-none"></textarea>
+                </div>
+                
+                <div class="pt-4 border-t border-[#f0f4f8] flex gap-3 justify-end mt-2">
+                    <button type="button" onclick="document.getElementById('apply-modal').classList.add('hidden')" class="bg-[#f1f5fb] text-[#4a5568] font-bold text-[13px] px-6 py-2.5 rounded-[8px] hover:bg-[#e4eaf2] transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-[#3d35c4] text-white font-bold text-[13px] px-6 py-2.5 rounded-[8px] hover:bg-[#2d27a8] transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Submit Application
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

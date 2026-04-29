@@ -124,50 +124,76 @@
         </aside>
 
         <div class="flex-1 min-w-0">
-
             <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-                <p class="text-[14px] text-[#4a5568] font-semibold">
-                    <span class="text-[#1a2b4a] font-extrabold">{{ total }}</span> jobs found
-                    {% if filters.q %}for "<span class="text-[#3d35c4]">{{ filters.q }}</span>"{% endif %}
-                </p>
+                <div>
+                    <p class="text-[14px] text-[#4a5568] font-semibold">
+                        <span class="text-[#1a2b4a] font-extrabold">{{ total }}</span> jobs found
+                        {% if filters.q %}for "<span class="text-[#3d35c4]">{{ filters.q }}</span>"{% endif %}
+                    </p>
+                    {% if is_recommended_view %}
+                    <p class="text-[12px] text-[#4238ca] font-semibold mt-0.5">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>
+                        Sorted by best match for your profile
+                    </p>
+                    {% endif %}
+                </div>
                 <form method="GET" action="{% url 'job_list' %}">
                     {% for k,v in request.GET.items %}
                         {% if k != 'sort' and v %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endif %}
                     {% endfor %}
                     <select name="sort" onchange="this.form.submit()"
-                        class="border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] font-semibold text-[#4a5568] py-2 px-3 outline-none font-['Exo'] bg-white">
-                        <option value="recent"   {% if filters.sort == 'recent' %}selected{% endif %}>Most Recent</option>
-                        <option value="featured" {% if filters.sort == 'featured' %}selected{% endif %}>Featured First</option>
-                        <option value="salary"   {% if filters.sort == 'salary' %}selected{% endif %}>Highest Salary</option>
+                        class="border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] font-semibold
+                            text-[#4a5568] py-2 px-3 outline-none font-['Exo'] bg-white">
+                        <option value=""        {% if not filters.sort %}selected{% endif %}>Best Match</option>
+                        <option value="recent"  {% if filters.sort == 'recent' %}selected{% endif %}>Most Recent</option>
+                        <option value="featured"{% if filters.sort == 'featured' %}selected{% endif %}>Featured First</option>
+                        <option value="salary"  {% if filters.sort == 'salary' %}selected{% endif %}>Highest Salary</option>
                     </select>
                 </form>
             </div>
 
+            <!-- Job cards -->
             <div class="space-y-4">
                 {% for job in page_obj %}
-                <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#c5d4f0] transition-all relative">
+
+                {% with match=job.match_score %}
+
+                <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100
+                            hover:shadow-md hover:border-[#c5d4f0] transition-all relative">
 
                     {% if job.is_featured %}
-                    <span class="absolute top-4 right-4 bg-[#fff7e6] text-[#b45309] text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#fcd34d]">
+                    <span class="absolute top-4 right-4 bg-[#fff7e6] text-[#b45309] text-[11px] font-bold
+                                px-2.5 py-1 rounded-full border border-[#fcd34d]">
                         <i class="fa-solid fa-star text-[10px]"></i> Featured
                     </span>
                     {% endif %}
 
                     <div class="flex items-start gap-4">
-                        <div class="w-[52px] h-[52px] rounded-[10px] border border-gray-100 bg-[#f8fbff] flex items-center justify-center shrink-0 overflow-hidden">
-                            <span class="text-[20px] font-extrabold text-[#3d35c4]">
-                                {{ job.company|slice:":1"|upper }}
-                            </span>
+                        <div class="w-[52px] h-[52px] rounded-[10px] border border-gray-100 bg-[#eef3ff]
+                                    flex items-center justify-center shrink-0 text-[20px] font-extrabold text-[#4238ca]">
+                            {{ job.company|slice:":1"|upper }}
                         </div>
 
                         <div class="flex-1 min-w-0">
-                            <a href="{% url 'job_detail' job.slug %}"
-                               class="text-[16px] font-bold text-[#1a2b4a] hover:text-[#3d35c4] transition no-underline">
-                                {{ job.title }}
-                            </a>
-                            <p class="text-[13.5px] text-[#4a5568] font-semibold mt-0.5">
-                                {{ job.company }}
-                            </p>
+                            <div class="flex items-start justify-between gap-2 flex-wrap">
+                                <div>
+                                    <a href="{% url 'job_detail' job.slug %}"
+                                    class="text-[16px] font-bold text-[#1a2b4a] hover:text-[#3d35c4] transition no-underline">
+                                        {{ job.title }}
+                                    </a>
+                                    <p class="text-[13.5px] text-[#4a5568] font-semibold mt-0.5">{{ job.company }}</p>
+                                </div>
+
+                                <!-- Match score badge -->
+                                {% if match and match > 0 %}
+                                <span class="text-[12px] font-bold px-2.5 py-1 rounded-full shrink-0
+                                    {% if match >= 60 %}bg-[#e6fff0] text-[#057a2e]
+                                    {% elif match >= 30 %}bg-[#fff7e6] text-[#b45309]
+                                    {% else %}bg-[#f1f5fb] text-[#4a5568]{% endif %}">
+                                    {{ match }}% match
+                                </span>
+                                {% endif %}
+                            </div>
 
                             <div class="flex flex-wrap gap-2 mt-2.5">
                                 <span class="flex items-center gap-1.5 text-[12px] text-[#7a8fa6] font-semibold">
@@ -179,8 +205,7 @@
                                 </span>
                                 <span class="text-[#d8e4f0]">•</span>
                                 <span class="flex items-center gap-1.5 text-[12px] text-[#7a8fa6] font-semibold">
-                                    <i class="fa-solid fa-indian-rupee-sign text-[#aab8c8]"></i>
-                                    {{ job.get_salary_display }}
+                                    <i class="fa-solid fa-indian-rupee-sign text-[#aab8c8]"></i> {{ job.get_salary_display }}
                                 </span>
                                 <span class="text-[#d8e4f0]">•</span>
                                 <span class="flex items-center gap-1.5 text-[12px] text-[#7a8fa6] font-semibold">
@@ -189,21 +214,19 @@
                             </div>
 
                             {% if job.skills_required %}
-                            <div class="flex flex-wrap gap-1.5 mt-3 skill-container" data-skills="{{ job.skills_required }}">
-                                </div>
+                            <div class="flex flex-wrap gap-1.5 mt-3 skill-container"
+                                data-skills="{{ job.skills_required }}"></div>
                             {% endif %}
-
                         </div>
                     </div>
 
                     <div class="flex items-center justify-between mt-4 pt-3 border-t border-[#f0f4f8]">
                         <div class="flex items-center gap-3">
-                            <span class="inline-flex items-center gap-1.5 bg-[#f1f5fb] text-[#4a5568] text-[11.5px] font-bold px-2.5 py-1 rounded-full">
+                            <span class="inline-flex items-center gap-1.5 bg-[#f1f5fb] text-[#4a5568]
+                                        text-[11.5px] font-bold px-2.5 py-1 rounded-full">
                                 {{ job.job_type }}
                             </span>
-                            <span class="text-[12px] text-[#aab8c8] font-semibold">
-                                {{ job.days_ago }}
-                            </span>
+                            <span class="text-[12px] text-[#aab8c8] font-semibold">{{ job.days_ago }}</span>
                             <span class="text-[12px] text-[#aab8c8]">
                                 {{ job.openings }} opening{{ job.openings|pluralize }}
                             </span>
@@ -215,19 +238,23 @@
                             </span>
                             {% else %}
                             <a href="{% url 'job_detail' job.slug %}"
-                               class="bg-[#3d35c4] text-white text-[13px] font-bold px-5 py-2 rounded-[8px] hover:bg-[#2d27a8] transition no-underline">
+                            class="bg-[#3d35c4] text-white text-[13px] font-bold px-5 py-2
+                                    rounded-[8px] hover:bg-[#2d27a8] transition no-underline">
                                 Apply Now
                             </a>
                             {% endif %}
                         </div>
                     </div>
                 </div>
+
+                {% endwith %}
                 {% empty %}
                 <div class="bg-white rounded-[14px] p-12 text-center shadow-sm border border-gray-100">
-                    <i class="fa-solid fa-briefcase text-[48px] text-[#d8e4f0] mb-4"></i>
+                    <i class="fa-solid fa-briefcase text-[48px] text-[#d8e4f0] mb-4 block"></i>
                     <p class="text-[16px] font-bold text-[#1a2b4a] mb-2">No jobs found</p>
                     <p class="text-[13px] text-[#7a8fa6]">Try adjusting your filters or search terms.</p>
-                    <a href="{% url 'job_list' %}" class="inline-block mt-4 text-[#4b6cf5] font-bold text-[13px] hover:underline">
+                    <a href="{% url 'job_list' %}"
+                    class="inline-block mt-4 text-[#4b6cf5] font-bold text-[13px] hover:underline">
                         Clear all filters
                     </a>
                 </div>

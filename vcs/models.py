@@ -39,23 +39,47 @@ class Skill(models.Model):
         return self.name
 
 class CandidateProfile(models.Model):
-    user           = models.OneToOneField(User, on_delete=models.CASCADE, related_name='candidate_profile')
-    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
-    full_name      = models.CharField(max_length=255)
-    phone_number   = models.CharField(max_length=20, blank=True, null=True)
-    resume         = models.FileField(upload_to='resumes/', blank=True, null=True)
-    accepted_terms = models.BooleanField(default=False)
-    created_at     = models.DateTimeField(auto_now_add=True)
+    # Define Subscription Choices
+    class SubscriptionPlan(models.TextChoices):
+        FREE = 'Free', 'Free'
+        PRO  = 'Pro',  'Pro'
+
+    GENDER_CHOICES = (
+        ('Male', 'Male'), 
+        ('Female', 'Female'), 
+        ('Other', 'Other')
+    )
+    
+    MARITAL_CHOICES = (
+        ('Single', 'Single'), 
+        ('Married', 'Married'), 
+        ('Other', 'Other')
+    )
+
+    user            = models.OneToOneField(User, on_delete=models.CASCADE, related_name='candidate_profile')
+    profile_photo   = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    full_name       = models.CharField(max_length=255)
+    phone_number    = models.CharField(max_length=20, blank=True, null=True)
+    resume          = models.FileField(upload_to='resumes/', blank=True, null=True)
+    accepted_terms  = models.BooleanField(default=False)
+    created_at      = models.DateTimeField(auto_now_add=True)
     resume_headline = models.CharField(max_length=255, blank=True, null=True)
     profile_summary = models.TextField(blank=True, null=True)
-    GENDER_CHOICES = (('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other'))
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
-    MARITAL_CHOICES = (('Single', 'Single'), ('Married', 'Married'), ('Other', 'Other'))
-    marital_status = models.CharField(max_length=20, choices=MARITAL_CHOICES, blank=True, null=True)
-    date_of_birth = models.DateField(blank=True, null=True)
+    
+    gender          = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
+    marital_status  = models.CharField(max_length=20, choices=MARITAL_CHOICES, blank=True, null=True)
+    date_of_birth   = models.DateField(blank=True, null=True)
     languages_known = models.CharField(max_length=255, blank=True, null=True, help_text="Comma separated, e.g. English, Tamil")
-    skills = models.ManyToManyField(Skill, blank=True, related_name='candidates')
-    is_fresher = models.BooleanField(default=False)
+    skills          = models.ManyToManyField('Skill', blank=True, related_name='candidates')
+    is_fresher      = models.BooleanField(default=False)
+
+    # ── THE NEW SUBSCRIPTION FIELD ──
+    subscription_type = models.CharField(
+        max_length=10, 
+        choices=SubscriptionPlan.choices, 
+        default=SubscriptionPlan.FREE,
+        help_text="Candidate's current subscription plan"
+    )
 
     def __str__(self):
         return f"{self.full_name} ({self.user.username})"
@@ -67,7 +91,7 @@ class Employment(models.Model):
     company_name = models.CharField(max_length=150)
     is_current = models.BooleanField(default=False)
     start_date = models.DateField()
-    end_date = models.DateField(blank=True, null=True) # Null if is_current is True
+    end_date = models.DateField(blank=True, null=True) 
     location = models.CharField(max_length=150, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     
@@ -125,6 +149,11 @@ class TraineeProfile(models.Model):
 
 
 class CompanyProfile(models.Model):
+    class ApprovalStatus(models.TextChoices):
+        PENDING  = 'Pending',  'Pending'
+        APPROVED = 'Approved', 'Approved'
+        REJECTED = 'Rejected', 'Rejected'
+
     user                  = models.OneToOneField(User, on_delete=models.CASCADE, related_name='company_profile')
     company_name          = models.CharField(max_length=255)
     email                 = models.EmailField(unique=True)
@@ -135,12 +164,14 @@ class CompanyProfile(models.Model):
     website_url           = models.URLField(blank=True, null=True)
     instagram_url         = models.URLField(blank=True, null=True)
     facebook_url          = models.URLField(blank=True, null=True)
-    is_approved           = models.BooleanField(default=False)
     accepted_terms        = models.BooleanField(default=False)
     created_at            = models.DateTimeField(auto_now_add=True)
 
+    status           = models.CharField(max_length=20, choices=ApprovalStatus.choices, default=ApprovalStatus.PENDING)
+    rejection_reason = models.TextField(blank=True, null=True, help_text="Provide a reason if rejecting the company")
+
     def __str__(self):
-        return f"{self.company_name} ({'Approved' if self.is_approved else 'Pending'})"
+        return f"{self.company_name} ({self.status})"
 
 
 class CompanyPhoto(models.Model):
@@ -184,7 +215,6 @@ class JobCategory(models.Model):
 
 
 class Job(models.Model):
-
     class JobType(models.TextChoices):
         FULL_TIME  = 'Full Time',  'Full Time'
         PART_TIME  = 'Part Time',  'Part Time'
@@ -198,8 +228,8 @@ class Job(models.Model):
         REMOTE = 'Remote',  'Remote'
         HYBRID = 'Hybrid',  'Hybrid'
 
-    # Core
     company         = models.CharField(max_length=255, help_text="Enter company name manually")
+    company_profile = models.ForeignKey('CompanyProfile', on_delete=models.CASCADE, related_name='posted_jobs', null=True, blank=True)
     category        = models.ForeignKey(JobCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='jobs')
     title           = models.CharField(max_length=255)
     slug            = models.SlugField(unique=True, blank=True)
@@ -207,22 +237,14 @@ class Job(models.Model):
     responsibilities = models.TextField(blank=True, null=True, help_text="One per line")
     requirements    = models.TextField(blank=True, null=True, help_text="One per line")
     benefits        = models.TextField(blank=True, null=True, help_text="One per line")
-
-    # Classification
     job_type        = models.CharField(max_length=20, choices=JobType.choices, default=JobType.FULL_TIME)
     work_mode       = models.CharField(max_length=20, choices=WorkMode.choices, default=WorkMode.ONSITE)
     experience      = models.CharField(max_length=100, help_text="Enter experience manually (e.g., 2-5 Years, Fresher)")
-
-    # Location & Salary
     location        = models.CharField(max_length=200)
     salary_min      = models.PositiveIntegerField(null=True, blank=True, help_text="Annual in LPA (e.g. 3)")
     salary_max      = models.PositiveIntegerField(null=True, blank=True, help_text="Annual in LPA (e.g. 8)")
     salary_hidden   = models.BooleanField(default=False, help_text="Show 'Not Disclosed' instead of salary")
-
-    # Skills
     skills_required = models.CharField(max_length=255, help_text="Enter skills manually, separated by commas (e.g., Python, Django, React)")
-
-    # Meta
     openings        = models.PositiveIntegerField(default=1)
     is_active       = models.BooleanField(default=True)
     is_featured     = models.BooleanField(default=False)
@@ -276,7 +298,6 @@ class Job(models.Model):
 
 
 class JobApplication(models.Model):
-
     class Status(models.TextChoices):
         APPLIED    = 'Applied',    'Applied'
         REVIEWING  = 'Reviewing',  'Reviewing'

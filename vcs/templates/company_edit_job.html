@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Job: {{ job.title }} - {{ ui_settings.site_name|default:"VCS" }}</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap');
+    </style>
+</head>
+<body class="font-['Exo',sans-serif] antialiased bg-[#eef2f7] min-h-screen flex flex-col">
+
+    <nav class="bg-[#4238ca] text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-[1400px] mx-auto px-4 md:px-8 flex justify-between items-center h-[70px]">
+            <a href="{% url 'company_dashboard' %}" class="flex items-center gap-3 no-underline">
+                <span class="text-[20px] font-bold tracking-wide">
+                    {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}
+                </span>
+            </a>
+            <div class="flex items-center gap-6">
+                <a href="{% url 'company_dashboard' %}" class="bg-[#3730a3] hover:bg-[#312b9c] text-white font-bold py-2 px-4 rounded-[8px] flex items-center gap-2 transition-colors shadow-sm">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1">
+        <div class="max-w-[900px] mx-auto px-5 py-8 md:py-10">
+            
+            <div class="bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col">
+                <div class="p-6 border-b border-[#e4eaf2] bg-[#f8fbff] flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-[#ede9ff] text-[#3d35c4] flex items-center justify-center text-[18px]"><i class="fa-solid fa-pen"></i></div>
+                    <div>
+                        <h2 class="text-[18px] font-extrabold text-[#1a2b4a]">Edit Job Posting</h2>
+                        <p class="text-[13px] text-[#7a8fa6] font-semibold mt-0.5">{{ job.title }}</p>
+                    </div>
+                </div>
+                
+                <div class="p-6 md:p-8">
+                    <form method="POST" action="{% url 'company_edit_job' job.id %}" class="space-y-8">
+                        {% csrf_token %}
+                        
+                        <div>
+                            <h4 class="text-[14px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-4 border-b border-[#eef2ff] pb-1.5"><i class="fa-solid fa-circle-info mr-1"></i> Basic Information</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="md:col-span-2">
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Job Title <span class="text-[#e74c3c]">*</span></label>
+                                    <input type="text" name="title" value="{{ job.title }}" required class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Category <span class="text-[#e74c3c]">*</span></label>
+                                    <select name="category" required class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none cursor-pointer">
+                                        <option value="">-- Select Category --</option>
+                                        {% for cat in categories %}
+                                        <option value="{{ cat.id }}" {% if job.category and job.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Location <span class="text-[#e74c3c]">*</span></label>
+                                    <input type="text" name="location" value="{{ job.location }}" required class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-[14px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-4 border-b border-[#eef2ff] pb-1.5"><i class="fa-solid fa-list-ul mr-1"></i> Job Classification</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Job Type</label>
+                                    <select name="job_type" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none cursor-pointer">
+                                        {% for val, label in job_types %}
+                                        <option value="{{ val }}" {% if job.job_type == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Work Mode</label>
+                                    <select name="work_mode" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none cursor-pointer">
+                                        {% for val, label in work_modes %}
+                                        <option value="{{ val }}" {% if job.work_mode == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Experience <span class="text-[#e74c3c]">*</span></label>
+                                    <input type="text" name="experience" value="{{ job.experience }}" required class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">No. of Openings <span class="text-[#e74c3c]">*</span></label>
+                                    <input type="number" name="openings" value="{{ job.openings }}" required min="1" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Application Deadline <span class="text-[#aab8c8] font-normal">(optional)</span></label>
+                                    <input type="date" name="deadline" value="{{ job.deadline|date:'Y-m-d' }}" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-[14px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-4 border-b border-[#eef2ff] pb-1.5"><i class="fa-solid fa-indian-rupee-sign mr-1"></i> Salary & Skills</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Salary Range (LPA) <span class="text-[#aab8c8] font-normal">(optional)</span></label>
+                                    <div class="flex gap-3">
+                                        <input type="number" name="salary_min" value="{{ job.salary_min|default_if_none:'' }}" placeholder="Min" class="w-1/2 py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                        <input type="number" name="salary_max" value="{{ job.salary_max|default_if_none:'' }}" placeholder="Max" class="w-1/2 py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                    </div>
+                                    <div class="mt-3 flex items-center gap-2">
+                                        <input type="checkbox" name="salary_hidden" id="salary_hidden" {% if job.salary_hidden %}checked{% endif %} class="accent-[#3d35c4] cursor-pointer w-4 h-4">
+                                        <label for="salary_hidden" class="text-[13px] text-[#7a8fa6] font-semibold cursor-pointer">Hide salary from applicants</label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Skills Required <span class="text-[#e74c3c]">*</span></label>
+                                    <input type="text" name="skills_required" value="{{ job.skills_required }}" required class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                    <p class="text-[12px] text-[#7a8fa6] mt-1.5">Separate multiple skills with commas.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-[14px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-4 border-b border-[#eef2ff] pb-1.5"><i class="fa-solid fa-align-left mr-1"></i> Detailed Descriptions</h4>
+                            <div class="space-y-5">
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Main Job Description <span class="text-[#e74c3c]">*</span></label>
+                                    <textarea name="description" required rows="4" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none resize-none">{{ job.description }}</textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Key Responsibilities <span class="text-[#aab8c8] font-normal">(optional)</span></label>
+                                    <textarea name="responsibilities" rows="4" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none resize-none">{{ job.responsibilities|default_if_none:'' }}</textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Requirements / Qualifications <span class="text-[#aab8c8] font-normal">(optional)</span></label>
+                                    <textarea name="requirements" rows="4" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none resize-none">{{ job.requirements|default_if_none:'' }}</textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Benefits & Perks <span class="text-[#aab8c8] font-normal">(optional)</span></label>
+                                    <textarea name="benefits" rows="3" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none resize-none">{{ job.benefits|default_if_none:'' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-[14px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-4 border-b border-[#eef2ff] pb-1.5"><i class="fa-solid fa-address-book mr-1"></i> HR / Recruiter Details</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Contact Person</label>
+                                    <input type="text" name="hr_name" value="{{ job.hr_name|default_if_none:'' }}" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Contact Email</label>
+                                    <input type="email" name="hr_email" value="{{ job.hr_email|default_if_none:'' }}" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#1a2b4a] mb-1.5">Contact Phone</label>
+                                    <input type="tel" name="hr_phone" value="{{ job.hr_phone|default_if_none:'' }}" class="w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13.5px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-[#e4eaf2] flex justify-end gap-3">
+                            <a href="{% url 'company_dashboard' %}" class="bg-[#f1f5fb] hover:bg-[#e4eaf2] text-[#4a5568] font-bold py-3 px-8 rounded-[8px] text-[14px] transition-colors inline-block no-underline">Cancel</a>
+                            <button type="submit" class="bg-[#3d35c4] hover:bg-[#2d27a8] text-white font-bold py-3 px-10 rounded-[8px] text-[14px] transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-floppy-disk"></i> Update Job
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

@@ -1,6 +1,8 @@
 # vcs/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.utils.safestring import mark_safe
+from django.utils.html import escape
 from .models import *
 
 class CustomUserAdmin(UserAdmin):
@@ -11,13 +13,47 @@ class CustomUserAdmin(UserAdmin):
     )
 
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(CandidateProfile)
-admin.site.register(CompanyProfile)
+class EducationInline(admin.TabularInline):
+    model = Education
+    extra = 0 
+
+class EmploymentInline(admin.TabularInline):
+    model = Employment
+    extra = 0
+
+class ProjectInline(admin.TabularInline):
+    model = Project
+    extra = 0
+
+
+@admin.register(CandidateProfile)
+class CandidateProfileAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'user', 'subscription_type', 'is_fresher', 'created_at')
+    search_fields = ('full_name', 'user__username', 'user__email', 'phone_number')
+    list_filter = ('subscription_type', 'is_fresher', 'gender')
+    inlines = [EducationInline, EmploymentInline, ProjectInline]
+
+    exclude = ('skills',)
+    readonly_fields = ('candidate_skills',)
+
+    def candidate_skills(self, obj):
+        skills = obj.skills.all()
+        if skills:
+            return mark_safe("<br>".join([escape(skill.name) for skill in skills]))
+        return "No skills added."
+    
+    candidate_skills.short_description = "Skills"
+
+
+@admin.register(CompanyProfile)
+class CompanyProfileAdmin(admin.ModelAdmin):
+    list_display = ('company_name', 'user', 'status', 'created_at')
+    list_editable = ('status',) 
+    list_filter = ('status', 'created_at')
+    search_fields = ('company_name', 'email', 'user__username')
+
 admin.site.register(UISettings)
-admin.site.register(Skill)
-admin.site.register(Employment)
-admin.site.register(Education)
-admin.site.register(Project)
+admin.site.register(TraineeProfile)
 
 
 @admin.register(JobCategory)
@@ -55,7 +91,7 @@ class JobAdmin(admin.ModelAdmin):
                 ('Salary', {
                     'fields': ('salary_hidden', 'salary_min', 'salary_max')
                 }),
-                ('HR Contact', {                              # ← new section
+                ('HR Contact', {                          
                     'fields': ('hr_name', 'hr_email', 'hr_phone')
                 }),
                 ('Visibility', {

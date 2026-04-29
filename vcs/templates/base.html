@@ -41,6 +41,10 @@
                 <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
                 <a href="{% url 'job_list' %}" class="nav-link">Jobs</a>
                 <a href="#services" class="nav-link">Services</a>
+        
+                {% if request.user.is_authenticated and request.user.role == 'candidate' %}
+                    <a href="{% url 'my_applications' %}" class="nav-link">My Applications</a>
+                {% endif %}
             </div>
 
             <div class="hidden md:flex items-center gap-6">
@@ -76,6 +80,11 @@
             <a href="{% url 'dashboard' %}" class="block nav-link">Home</a>
             <a href="{% url 'job_list' %}" class="block nav-link">Jobs</a>
             <a href="#services" class="block nav-link">Services</a>
+
+            {% if request.user.is_authenticated and request.user.role == 'candidate' %}
+                <a href="{% url 'my_applications' %}" class="block nav-link">My Applications</a>
+            {% endif %}
+            
             <hr class="border-white/20">
             <a href="{% if request.user.role == 'candidate' %}{% url 'candidate_profile' %}{% else %}{% url 'dashboard' %}{% endif %}" class="flex items-center gap-2 nav-link">
                 <i class="fa-solid fa-circle-user"></i> 

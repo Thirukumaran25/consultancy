@@ -8,6 +8,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard_router, name='dashboard'),
     path('candidate/register/',  views.candidate_register,  name='candidate_register'),
     path('send-otp/', views.send_registration_otp, name='send_registration_otp'),
+    path('candidate/upgrade/', views.upgrade_subscription, name='upgrade_subscription'),
 
 
     path('jobs/',                        views.job_list,            name='job_list'),
@@ -18,6 +19,14 @@ urlpatterns = [
 
 
     path('company/register/',    views.company_register,    name='company_register'),
+    path('api/check-status/', views.check_company_status, name='check_company_status'),
+    path('company/dashboard/', views.company_dashboard, name='company_dashboard'),
+    path('company/post-job/', views.company_post_job, name='company_post_job'),
+    path('company/job/<int:job_id>/edit/', views.company_edit_job, name='company_edit_job'),
+    path('company/job/<int:job_id>/delete/', views.company_delete_job, name='company_delete_job'),
+    path('company/update-application/<int:app_id>/', views.update_application_status, name='update_application_status'),
+
+
     path('candidate/dashboard/', views.candidate_dashboard, name='candidate_dashboard'),
     path('candidate/profile/', views.candidate_profile, name='candidate_profile'),
     path('candidate/profile/',              views.candidate_profile,   name='candidate_profile'),
@@ -37,6 +46,5 @@ urlpatterns = [
     path('candidate/profile/photo/', views.update_profile_photo, name='update_profile_photo'),
 
     path('trainee/dashboard/',   views.trainee_dashboard,   name='trainee_dashboard'),
-    path('company/dashboard/',   views.company_dashboard,   name='company_dashboard'),
     path('check-availability/',  views.check_availability,  name='check_availability'),
 ]

@@ -186,11 +186,113 @@
 
             <div class="text-center mt-[20px] text-[13px] text-[#7a8fa6]">
                 New company? <a href="{% url 'company_register' %}" class="font-bold no-underline hover:underline text-[#2d27a8]">Register Here</a>
+                | <button type="button" onclick="openStatusModal()" class="font-bold no-underline hover:underline text-[#2d27a8] cursor-pointer bg-transparent border-none p-0">
+                    Check application status
+                </button>
             </div>
         </div>
 
     </div>
 </div>
+
+<div id="status-modal-backdrop" onclick="closeStatusModal()" class="hidden fixed inset-0 bg-black/40 z-40 transition-opacity"></div>
+<div id="status-modal" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-[400px] bg-white rounded-[16px] p-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] font-['Exo',sans-serif]">
+    
+    <div class="flex justify-between items-center mb-2">
+        <h3 class="text-[18px] font-extrabold text-[#1a2b4a]">Application Status</h3>
+        <button onclick="closeStatusModal()" class="text-[#aab8c8] hover:text-[#e74c3c] transition text-[16px]">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <p class="text-[13px] text-[#7a8fa6] mb-5">Enter your registered credentials to check your company's approval status.</p>
+    
+    <div id="status-result" class="hidden p-3 rounded-lg text-[13px] border mb-4 font-semibold leading-relaxed"></div>
+
+    <form id="status-form">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Username</label>
+            <div class="relative">
+                <i class="fa-solid fa-at absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8]"></i>
+                <input type="text" id="status-username" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5]">
+            </div>
+        </div>
+        <div class="mb-4">
+            <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Password</label>
+            <div class="relative">
+                <i class="fa-solid fa-lock absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8]"></i>
+                <input type="password" id="status-password" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5]">
+            </div>
+        </div>
+        
+        <button type="submit" id="btn-check-status" class="w-full p-[12px] bg-[#3d35c4] text-white border-none rounded-[10px] text-[14px] font-bold cursor-pointer transition-all duration-200 hover:bg-[#2d27a8] flex items-center justify-center gap-2">
+            <i class="fa-solid fa-magnifying-glass"></i> Check Status
+        </button>
+    </form>
+</div>
+
+<script>
+    const modalBackdrop = document.getElementById('status-modal-backdrop');
+    const modal = document.getElementById('status-modal');
+    const resultBox = document.getElementById('status-result');
+    const statusForm = document.getElementById('status-form');
+    const btnCheck = document.getElementById('btn-check-status');
+
+    function openStatusModal() {
+        modalBackdrop.classList.remove('hidden');
+        modal.classList.remove('hidden');
+        resultBox.classList.add('hidden');
+        statusForm.reset();
+    }
+
+    function closeStatusModal() {
+        modalBackdrop.classList.add('hidden');
+        modal.classList.add('hidden');
+    }
+
+    statusForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const usernameVal = document.getElementById('status-username').value;
+        const passwordVal = document.getElementById('status-password').value;
+        const csrfToken = document.querySelector('#status-form [name=csrfmiddlewaretoken]').value;
+        
+        btnCheck.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+        btnCheck.disabled = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('username', usernameVal);
+            formData.append('password', passwordVal);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+
+            const response = await fetch("{% url 'check_company_status' %}", {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            resultBox.classList.remove('hidden', 'text-[#c0392b]', 'bg-[#fff0f0]', 'border-[#ffd0d0]', 'text-[#057a2e]', 'bg-[#e6fff0]', 'border-[#b2f2bb]', 'text-[#b45309]', 'bg-[#fff7e6]', 'border-[#fcd34d]');
+            
+            if (data.success) {
+                resultBox.classList.add(...data.color_class.split(' '));
+                resultBox.innerHTML = `<strong>Status: ${data.status}</strong><br>${data.message}`;
+            } else {
+                resultBox.classList.add('text-[#c0392b]', 'bg-[#fff0f0]', 'border-[#ffd0d0]');
+                resultBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.message}`;
+            }
+        } catch (error) {
+            resultBox.classList.remove('hidden');
+            resultBox.classList.add('text-[#c0392b]', 'bg-[#fff0f0]', 'border-[#ffd0d0]');
+            resultBox.innerHTML = "A network error occurred. Please try again.";
+        }
+        
+        btnCheck.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Check Status';
+        btnCheck.disabled = false;
+    });
+</script>
+
 
 <script>
 function switchTab(type) {
