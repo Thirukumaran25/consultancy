@@ -6,7 +6,6 @@
     <title>{% block title %}{{ ui_settings.site_name|default:"Vetri Consultancy Services" }}{% endblock %}</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
@@ -15,7 +14,14 @@
     
     <style type="text/tailwindcss">
         @layer components {
-            .nav-link { @apply text-white font-semibold text-[15px] hover:text-gray-200 transition-colors duration-200 cursor-pointer; }
+            /* ── NEW DESKTOP DESIGN: Floating Pills ── */
+            .nav-link { @apply text-white/90 font-bold text-[14.5px] hover:text-white hover:bg-white/10 px-5 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center; }
+            .nav-link.active { @apply bg-white text-[#4238ca] shadow-sm pointer-events-none; } 
+
+            /* ── NEW MOBILE DESIGN: Rounded Cards ── */
+            .mobile-link { @apply flex items-center gap-3 text-white/90 font-bold text-[15px] px-5 py-3 rounded-[12px] hover:bg-white/10 hover:text-white transition-all; }
+            .mobile-link.active { @apply bg-white text-[#4238ca] shadow-sm pointer-events-none; }
+
             .footer-link { @apply text-white/90 text-[13px] hover:text-white hover:underline transition-colors duration-200 block mb-2; }
             .social-icon { @apply text-[20px] text-white hover:text-gray-200 transition-colors duration-200; }
         }
@@ -25,8 +31,11 @@
 </head>
 <body class="font-['Exo',sans-serif] antialiased bg-[#eef2f7] min-h-screen flex flex-col">
 
-    <nav class="bg-[#4238ca] text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-[1400px] mx-auto px-4 md:px-8 flex justify-between items-center h-[70px]">
+    <!-- Store the current URL name to make checking active states bulletproof -->
+    {% with url_name=request.resolver_match.url_name %}
+
+    <nav class="bg-[#4238ca] text-white shadow-md sticky top-0 z-50 py-2">
+        <div class="max-w-[1400px] mx-auto px-4 md:px-8 flex justify-between items-center h-[60px]">
             
             <a href="{% url 'dashboard' %}" class="flex items-center gap-3 no-underline">
                 <div class="w-[45px] h-[45px] bg-white rounded-full p-1 flex items-center justify-center shadow-sm">
@@ -37,38 +46,60 @@
                 </span>
             </a>
 
-            <div class="hidden md:flex items-center gap-8">
-                <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
-                <a href="{% url 'job_list' %}" class="nav-link">Jobs</a>
-                <a href="#services" class="nav-link">Services</a>
+            <!-- Desktop Nav -->
+            <div class="hidden md:flex items-center gap-2">
+                <a href="{% url 'dashboard' %}" class="nav-link {% if 'dashboard' in url_name or url_name == 'home' %}active{% endif %}">                    Home
+                </a>
+                
+                <!-- Automatically stays active on job_list, job_detail, apply_job, etc. -->
+                <a href="{% url 'job_list' %}" class="nav-link {% if 'job' in url_name %}active{% endif %}">
+                    Jobs
+                </a>
+                
+                <!-- Stays active on services, feed_list, feed_detail -->
+                <a href="{% url 'services' %}" class="nav-link {% if 'service' in url_name or 'feed' in url_name %}active{% endif %}">
+                    Services
+                </a>
         
-                {% if request.user.is_authenticated and request.user.role == 'candidate' %}
-                    <a href="{% url 'my_applications' %}" class="nav-link">My Applications</a>
+                {% if request.user.is_authenticated and request.user.role in 'candidate,trainee' %} 
+                    <a href="{% url 'my_applications' %}" class="nav-link {% if url_name == 'my_applications' %}active{% endif %}">
+                        My Applications
+                    </a>
                 {% endif %}
             </div>
 
-            <div class="hidden md:flex items-center gap-6">
-                <a href="{% if request.user.role == 'candidate' %}{% url 'candidate_profile' %}{% else %}{% url 'dashboard' %}{% endif %}" class="flex items-center gap-2 text-white font-semibold hover:text-gray-200 transition-colors">
-                    <i class="fa-solid fa-circle-user text-[24px]"></i>
-                    <span class="text-[15px]">
-                        {% if request.user.is_authenticated %}
-                            {% if request.user.role == 'candidate' %}
-                                {{ request.user.candidate_profile.full_name }}
-                            {% elif request.user.role == 'company' %}
-                                {{ request.user.company_profile.company_name }}
-                            {% elif request.user.role == 'trainee' %}
-                                {{ request.user.trainee_profile.full_name }}
-                            {% else %}
-                                {{ request.user.username }}
-                            {% endif %}
-                        {% else %}
-                            My Profile
-                        {% endif %}
-                    </span>
+            <!-- Profile Badge -->
+            <div class="hidden md:flex items-center gap-4">
+                
+                {% if request.user.is_authenticated %}
+                    {% if request.user.role == 'candidate' %}
+                        <a href="{% url 'candidate_profile' %}" class="nav-link gap-2 {% if 'profile' in url_name %}active{% endif %}">
+                            <i class="fa-solid fa-circle-user text-[18px]"></i> {{ request.user.candidate_profile.full_name }}
+                        </a>
+                    {% elif request.user.role == 'company' %}
+                        <a href="{% url 'dashboard' %}" class="nav-link gap-2">
+                            <i class="fa-solid fa-building text-[18px]"></i> {{ request.user.company_profile.company_name }}
+                        </a>
+                    {% elif request.user.role == 'trainee' %}
+                        <a href="{% url 'trainee_profile' %}" class="nav-link gap-2 {% if 'profile' in url_name %}active{% endif %}">
+                            <i class="fa-solid fa-circle-user text-[18px]"></i> {{ request.user.trainee_profile.full_name }}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'dashboard' %}" class="nav-link gap-2">
+                            <i class="fa-solid fa-user text-[18px]"></i> {{ request.user.username }}
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link gap-2">
+                        <i class="fa-solid fa-circle-user text-[18px]"></i> Login
+                    </a>
+                {% endif %}
+                
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="w-[40px] h-[40px] bg-white/10 hover:bg-[#f44336] text-white rounded-full flex items-center justify-center transition-colors shadow-sm self-center" title="Logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
                 </a>
-                <a href="{% url 'logout' %}" class="bg-[#f44336] hover:bg-[#d32f2f] text-white font-bold py-2 px-4 rounded-[8px] flex items-center gap-2 transition-colors shadow-sm">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-                </a>
+                {% endif %}
             </div>
 
             <button id="mobileMenuBtn" class="md:hidden text-white text-[24px] focus:outline-none">
@@ -76,37 +107,42 @@
             </button>
         </div>
 
-        <div id="mobileMenu" class="hidden md:hidden bg-[#3730a3] border-t border-white/10 px-4 pt-2 pb-4 space-y-3 shadow-inner">
-            <a href="{% url 'dashboard' %}" class="block nav-link">Home</a>
-            <a href="{% url 'job_list' %}" class="block nav-link">Jobs</a>
-            <a href="#services" class="block nav-link">Services</a>
+        <!-- Mobile Nav -->
+        <div id="mobileMenu" class="hidden md:hidden bg-[#3730a3] border-t border-white/10 px-4 pt-4 pb-6 space-y-2 shadow-inner">
+            <a href="{% url 'dashboard' %}" class="mobile-link {% if 'dashboard' in url_name or url_name == 'home' %}active{% endif %}">                
+                <i class="fa-solid fa-house w-[20px]"></i> Home
+            </a>
+            <a href="{% url 'job_list' %}" class="mobile-link {% if 'job' in url_name %}active{% endif %}">
+                <i class="fa-solid fa-briefcase w-[20px]"></i> Jobs
+            </a>
+            <a href="{% url 'services' %}" class="mobile-link {% if 'service' in url_name or 'feed' in url_name %}active{% endif %}">
+                <i class="fa-solid fa-layer-group w-[20px]"></i> Services
+            </a>
 
-            {% if request.user.is_authenticated and request.user.role == 'candidate' %}
-                <a href="{% url 'my_applications' %}" class="block nav-link">My Applications</a>
+            {% if request.user.is_authenticated and request.user.role in 'candidate,trainee' %}
+                <a href="{% url 'my_applications' %}" class="mobile-link {% if url_name == 'my_applications' %}active{% endif %}">
+                    <i class="fa-solid fa-file-lines w-[20px]"></i> My Applications
+                </a>
             {% endif %}
             
-            <hr class="border-white/20">
-            <a href="{% if request.user.role == 'candidate' %}{% url 'candidate_profile' %}{% else %}{% url 'dashboard' %}{% endif %}" class="flex items-center gap-2 nav-link">
-                <i class="fa-solid fa-circle-user"></i> 
-                {% if request.user.is_authenticated %}
-                    {% if request.user.role == 'candidate' %}
-                        {{ request.user.candidate_profile.full_name }}
-                    {% elif request.user.role == 'company' %}
-                        {{ request.user.company_profile.company_name }}
-                    {% elif request.user.role == 'trainee' %}
-                        {{ request.user.trainee_profile.full_name }}
-                    {% else %}
-                        {{ request.user.username }}
-                    {% endif %}
-                {% else %}
-                    My Profile
-                {% endif %}
-            </a>
-            <a href="{% url 'logout' %}" class="inline-flex items-center gap-2 bg-[#f44336] text-white py-2 px-4 rounded-[8px] font-bold mt-2">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-            </a>
+            <hr class="border-white/20 my-4">
+            
+            {% if request.user.is_authenticated %}
+                <a href="{% if request.user.role == 'candidate' %}{% url 'candidate_profile' %}{% elif request.user.role == 'trainee' %}{% url 'trainee_profile' %}{% else %}{% url 'dashboard' %}{% endif %}" 
+                   class="mobile-link {% if 'profile' in url_name %}active{% endif %}">
+                    <i class="fa-solid fa-circle-user w-[20px]"></i> My Profile
+                </a>
+                <a href="{% url 'logout' %}" class="mobile-link text-[#ffcfcf] hover:bg-[#f44336] mt-2">
+                    <i class="fa-solid fa-arrow-right-from-bracket w-[20px]"></i> Logout
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="mobile-link">
+                    <i class="fa-solid fa-right-to-bracket w-[20px]"></i> Login
+                </a>
+            {% endif %}
         </div>
     </nav>
+    {% endwith %}
 
     <main class="flex-1">
         {% block content %}
@@ -133,9 +169,9 @@
                 <div>
                     <h3 class="text-[16px] font-bold mb-4">Quick Links</h3>
                     <a href="{% url 'dashboard' %}" class="footer-link">Home</a>
-                    <a href="#jobs" class="footer-link">Jobs</a>
-                    <a href="#profile" class="footer-link">Profile</a>
-                    <a href="#services" class="footer-link">Services</a>
+                    <a href="{% url 'job_list' %}" class="footer-link">Jobs</a>
+                    <a href="{% if request.user.role == 'candidate' %}{% url 'candidate_profile' %}{% elif request.user.role == 'trainee' %}{% url 'trainee_profile' %}{% else %}{% url 'dashboard' %}{% endif %}" class="footer-link">Profile</a>
+                    <a href="{% url 'services' %}" class="footer-link">Services</a>
                 </div>
 
                 <div>

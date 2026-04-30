@@ -11,6 +11,7 @@ from .models import *
 from .otp_utils import generate_otp, send_otp_email
 from django.shortcuts import get_object_or_404
 from .recommender import get_recommendations, get_skill_gap
+from django.urls import reverse
 
 
 
@@ -42,14 +43,84 @@ def check_availability(request):
 
 
 
+import json
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+# Make sure to import your new model alongside ProFeature!
+from .models import ProFeature, SubscriptionPlan 
+
 @login_required(login_url='login')
 def upgrade_subscription(request):
-    if request.method == 'POST' and getattr(request.user, 'role', '') == 'candidate':
-        profile = request.user.candidate_profile
-        profile.subscription_type = 'Pro'  # Updates to Pro
+    # 1. Your existing role check
+    if getattr(request.user, 'role', '') != 'candidate':
+        return redirect('dashboard')
+        
+    profile = request.user.candidate_profile
+    
+    # 2. Your existing POST handler (When they click "Continue")
+    if request.method == 'POST':
+        # (Optional) You can grab the selected plan ID here if you want 
+        # to calculate an expiration date in the future!
+        # selected_plan_id = request.POST.get('plan_id')
+        
+        profile.subscription_type = 'Pro'
         profile.save()
         messages.success(request, "🎉 Successfully upgraded to PRO!")
-    return redirect('candidate_profile')
+        return redirect('candidate_profile')
+    
+    # 3. Your existing features query
+    features = ProFeature.objects.filter(is_active=True).order_by('order')
+    
+    # 4. The NEW Dynamic Plans Logic
+    db_plans = SubscriptionPlan.objects.filter(is_active=True).order_by('months')
+    processed_plans = []
+    
+    for p in db_plans:
+        base = float(p.base_price)
+        
+        # Calculate Discounts & GST
+        disc1_amount = round(base * (p.disc1_pct / 100))
+        after_disc1 = base - disc1_amount
+        
+        disc2_amount = round(after_disc1 * (p.disc2_pct / 100))
+        after_disc2 = after_disc1 - disc2_amount
+        
+        gst_amount = round(after_disc2 * (p.gst_pct / 100))
+        final_payable = after_disc2 + gst_amount
+        
+        # Badge logic
+        badge_text = f"{p.disc2_pct}% off" if p.disc2_pct else ""
+        if p.disc1_pct > 0 and p.disc2_pct > 0:
+            badge_text = f"{p.disc1_pct}% + {p.disc2_pct}% off"
+        elif p.disc1_pct > 0:
+            badge_text = f"{p.disc1_pct}% off"
+
+        processed_plans.append({
+            'id': p.id,
+            'months': p.months,
+            'base_price': int(base),
+            'display_price': int(after_disc2),
+            'disc1_pct': p.disc1_pct,
+            'disc1_code': p.disc1_code,
+            'disc1_amount': int(disc1_amount),
+            'disc2_pct': p.disc2_pct,
+            'disc2_code': p.disc2_code,
+            'disc2_amount': int(disc2_amount),
+            'gst_amount': int(gst_amount),
+            'final_payable': int(final_payable),
+            'badge_text': badge_text,
+            'is_popular': p.is_popular,
+            'daily_text': p.daily_text,
+        })
+        
+    # 5. Render your existing template, passing ALL the data
+    return render(request, 'upgrade_plan.html', {
+        'profile': profile,
+        'features': features,
+        'plans': processed_plans,
+        'plans_json': json.dumps(processed_plans)
+    })
 
 
 # ── LOGIN ──────────────────────────────────────────────────────────────────
@@ -249,6 +320,7 @@ def dashboard_router(request):
 # ── DASHBOARDS ─────────────────────────────────────────────────────────────
 @login_required(login_url='login')
 def candidate_dashboard(request):
+    active_offer = SubscriptionOffer.objects.filter(is_active=True).first()
     if request.user.role != User.Role.CANDIDATE:
         return redirect('login')
 
@@ -257,8 +329,7 @@ def candidate_dashboard(request):
         defaults={'full_name': request.user.username}
     )
 
-    # ── Application stats ───────────────────────────────────────────────
-    all_apps     = JobApplication.objects.filter(candidate=profile)
+    all_apps = JobApplication.objects.filter(candidate=profile)
     stats = {
         'total':       all_apps.count(),
         'shortlisted': all_apps.filter(status='Shortlisted').count(),
@@ -268,16 +339,29 @@ def candidate_dashboard(request):
         'offered':     all_apps.filter(status='Offered').count(),
     }
 
-    # ── Recent applications ─────────────────────────────────────────────
     recent_apps = all_apps.select_related('job').order_by('-applied_at')[:5]
-
-    # ── ML Recommendations ──────────────────────────────────────────────
     recommended = get_recommendations(profile, limit=6)
-
-    # Add skill gap to each recommendation
     recommendations_with_gap = []
+    
+    candidate_skills_norm = set(
+        s.lower().replace(" ", "").strip() 
+        for s in profile.skills.values_list('name', flat=True)
+    )
+
     for job, score in recommended:
-        matching, missing = get_skill_gap(profile, job)
+        job_skills_raw = [s.strip() for s in (job.skills_required or '').split(',') if s.strip()]
+        
+        matching = []
+        missing = []
+        
+        for skill in job_skills_raw:
+            skill_norm = skill.lower().replace(" ", "")
+            
+            if skill_norm in candidate_skills_norm:
+                matching.append(skill) 
+            else:
+                missing.append(skill)
+        
         match_pct = int(score * 100)
         recommendations_with_gap.append({
             'job':      job,
@@ -287,7 +371,6 @@ def candidate_dashboard(request):
             'missing':  missing[:3],
         })
 
-    # ── Profile completeness ────────────────────────────────────────────
     checks = [
         bool(profile.resume_headline),
         bool(profile.profile_summary),
@@ -306,6 +389,7 @@ def candidate_dashboard(request):
         'recommended':   recommendations_with_gap,
         'profile_pct':   profile_pct,
         'ui_settings':   get_ui(),
+        'active_offer':  active_offer,
     })
 
 
@@ -390,7 +474,6 @@ def add_skill(request):
     if request.method == 'POST':
         raw = request.POST.get('skill_name', '').strip()
         if raw:
-            # Split by comma, add each skill separately
             skill_names = [s.strip() for s in raw.split(',') if s.strip()]
             for name in skill_names:
                 skill, _ = Skill.objects.get_or_create(
@@ -517,15 +600,28 @@ def delete_project(request, proj_id):
 @login_required(login_url='login')
 def mark_fresher(request):
     if request.method == 'POST':
-        profile = request.user.candidate_profile
-        if request.POST.get('unmark'):
+        user = request.user
+        if getattr(user, 'role', '') == 'candidate':
+            profile = user.candidate_profile
+            redirect_url_name = 'candidate_profile'
+        elif getattr(user, 'role', '') == 'trainee':
+            profile = user.trainee_profile
+            redirect_url_name = 'trainee_profile'
+        else:
+            return redirect('dashboard')
+
+        if request.POST.get('unmark') == '1':
             profile.is_fresher = False
-            messages.success(request, "Fresher status removed.")
+            messages.success(request, "Removed fresher status.")
         else:
             profile.is_fresher = True
-            messages.success(request, "Marked as Fresher.")
+            messages.success(request, "Marked as fresher. Recruiters will now see you are open to entry-level roles.")
+            
         profile.save()
-    return redirect('candidate_profile')
+        url = reverse(redirect_url_name) + '#employment'
+        return redirect(url)
+        
+    return redirect('dashboard')
 
 
 # ── COMPANY REGISTER ───────────────────────────────────────────────────────
@@ -658,19 +754,121 @@ def check_company_status(request):
             return JsonResponse({'success': False, 'message': 'Invalid username or password.'})
     return JsonResponse({'success': False, 'message': 'Invalid request.'})
 
+@login_required(login_url='login')
+def trainee_profile(request):
+    if getattr(request.user, 'role', '') != 'trainee':
+        return redirect('dashboard')
+    
+    profile = request.user.trainee_profile
+    has_employment = profile.employments.exists() or profile.is_fresher
+    return render(request, 'trainee/trainee_profile.html', {
+        'profile': profile,
+        'has_employment': has_employment,
+        'ui_settings': get_ui() if 'get_ui' in globals() else None,
+    })
+
+
+@login_required(login_url='login')
+def update_trainee_profile(request):
+    """A unified view to handle all trainee profile updates."""
+    if request.method == 'POST' and getattr(request.user, 'role', '') == 'trainee':
+        profile = request.user.trainee_profile
+        action = request.POST.get('action')
+
+        if action == 'photo':
+            if 'profile_photo' in request.FILES:
+                profile.profile_photo = request.FILES['profile_photo']
+                
+        elif action == 'resume':
+            if 'resume' in request.FILES:
+                profile.resume = request.FILES['resume']
+                
+        elif action == 'headline':
+            profile.resume_headline = request.POST.get('resume_headline')
+            
+        elif action == 'summary':
+            profile.profile_summary = request.POST.get('profile_summary')
+            
+        elif action == 'personal':
+            profile.gender = request.POST.get('gender')
+            profile.marital_status = request.POST.get('marital_status')
+            profile.date_of_birth = request.POST.get('date_of_birth') or None
+            profile.phone_number = request.POST.get('phone_number')
+            profile.languages_known = request.POST.get('languages_known')
+            
+        elif action == 'add_skill':
+            skill_names = request.POST.get('skill_name', '').split(',')
+            for name in skill_names:
+                name = name.strip()
+                if name:
+                    skill_obj, _ = Skill.objects.get_or_create(name=name)
+                    profile.skills.add(skill_obj)
+                    
+        elif action == 'remove_skill':
+            skill_id = request.POST.get('skill_id')
+            if skill_id:
+                profile.skills.remove(skill_id)
+
+        profile.save()
+        messages.success(request, "Profile updated successfully!")
+    return redirect('trainee_profile')
 
 
 @login_required(login_url='login')
 def trainee_dashboard(request):
-    if request.user.role != User.Role.TRAINEE:
-        return redirect('login')
-    if not hasattr(request.user, 'trainee_profile'):
-        TraineeProfile.objects.create(
-            user=request.user,
-            full_name=request.user.username
-        )
-    return render(request, 'trainee_dashboard.html', {
-        'profile': request.user.trainee_profile
+    if getattr(request.user, 'role', '') != 'trainee':
+        return redirect('dashboard')
+        
+    profile = request.user.trainee_profile
+    apps = JobApplication.objects.filter(trainee=profile) 
+   
+    stats = {
+        'total': apps.count(),
+        'shortlisted': apps.filter(status='Shortlisted').count(),
+        'interview': apps.filter(status='Interview').count(),
+        'pending': apps.filter(status='Pending').count(),
+        'offered': apps.filter(status='Offered').count(),
+        'rejected': apps.filter(status__in=['Rejected', 'Withdrawn']).count(),
+    }
+    
+    recent_apps = apps.order_by('-applied_at')[:5]
+    recommended = []
+    raw_recs = get_recommendations(profile, limit=4) 
+    
+    if raw_recs:
+        if hasattr(profile.skills, 'values_list'):
+            user_skills_normalized = set(s.lower().replace(" ", "") for s in profile.skills.values_list('name', flat=True))
+        else:
+            # For comma-separated strings
+            user_skills_normalized = set(s.lower().replace(" ", "") for s in (profile.skills or "").split(',') if s.strip())
+
+        for job, score in raw_recs:
+            raw_job_skills = [s.strip() for s in (job.skills_required or '').split(',') if s.strip()]
+            
+            matching = []
+            missing = []
+            
+            for skill in raw_job_skills:
+                # Normalize the job skill for the check (lowercase + no spaces)
+                normalized_job_skill = skill.lower().replace(" ", "")
+                
+                if normalized_job_skill in user_skills_normalized:
+                    matching.append(skill) # Keeps original "REST API" for display
+                else:
+                    missing.append(skill)
+            
+            recommended.append({
+                'job': job,
+                'match': round(score * 100),
+                'matching': matching[:3],
+                'missing': missing[:3]
+            })
+
+    return render(request, 'trainee/trainee_dashboard.html', {
+        'profile': profile,
+        'stats': stats,
+        'recent_apps': recent_apps,
+        'recommended': recommended,
     })
 
 
@@ -680,12 +878,9 @@ def company_dashboard(request):
         return redirect('login')
     
     profile = request.user.company_profile
-    
-    # Fetch jobs and applications belonging to this specific company
     my_jobs = Job.objects.filter(company_profile=profile).order_by('-posted_at')
     applications = JobApplication.objects.filter(job__company_profile=profile).select_related('job', 'candidate', 'candidate__user').order_by('-applied_at')
-    
-    # Calculate Stats
+
     stats = {
         'jobs_count': my_jobs.count(),
         'applicants_count': applications.count(),
@@ -716,14 +911,12 @@ def company_post_job(request):
         category = JobCategory.objects.filter(id=cat_id).first() if cat_id else None
         
         Job.objects.create(
-            # Core
             company_profile=profile,
             company=profile.company_name,
             title=request.POST.get('title', ''),
             category=category,
             location=request.POST.get('location', ''),
-            
-            # Classification
+
             job_type=request.POST.get('job_type', 'Full Time'),
             work_mode=request.POST.get('work_mode', 'On-site'),
             experience=request.POST.get('experience', ''),
@@ -764,20 +957,16 @@ def company_delete_job(request, job_id):
 
 @login_required(login_url='login')
 def company_edit_job(request, job_id):
-    # Ensure only companies can access this
     if request.user.role != User.Role.COMPANY:
         return redirect('login')
         
-    # Get the job, ensuring it belongs to the logged-in company
     job = get_object_or_404(Job, id=job_id, company_profile=request.user.company_profile)
     
     if request.method == 'POST':
-        # 1. Update Category
         cat_id = request.POST.get('category')
         if cat_id:
             job.category = JobCategory.objects.filter(id=cat_id).first()
             
-        # 2. Update Core Text Fields
         job.title = request.POST.get('title', job.title)
         job.location = request.POST.get('location', job.location)
         job.job_type = request.POST.get('job_type', job.job_type)
@@ -785,34 +974,25 @@ def company_edit_job(request, job_id):
         job.experience = request.POST.get('experience', job.experience)
         job.skills_required = request.POST.get('skills_required', job.skills_required)
         
-        # 3. Update Numbers & Dates (handle empty inputs safely)
         openings = request.POST.get('openings')
         if openings:
             job.openings = int(openings)
             
         deadline = request.POST.get('deadline')
         job.deadline = deadline if deadline else None
-        
         salary_min = request.POST.get('salary_min')
         job.salary_min = int(salary_min) if salary_min else None
-        
         salary_max = request.POST.get('salary_max')
         job.salary_max = int(salary_max) if salary_max else None
-        
         job.salary_hidden = request.POST.get('salary_hidden') == 'on'
-        
-        # 4. Update Large Text Areas
         job.description = request.POST.get('description', job.description)
         job.responsibilities = request.POST.get('responsibilities', '')
         job.requirements = request.POST.get('requirements', '')
         job.benefits = request.POST.get('benefits', '')
-        
-        # 5. Update HR Fields
         job.hr_name = request.POST.get('hr_name', '')
         job.hr_email = request.POST.get('hr_email', '')
         job.hr_phone = request.POST.get('hr_phone', '')
 
-        # 6. Save to Database
         job.save()
         messages.success(request, "Job updated successfully.")
         return redirect('company_dashboard')
@@ -829,7 +1009,6 @@ def company_edit_job(request, job_id):
 def update_application_status(request, app_id):
     if request.method == 'POST' and request.user.role == User.Role.COMPANY:
         status = request.POST.get('status')
-        # Security: Ensure this company actually owns the job the application is for
         app = get_object_or_404(JobApplication, id=app_id, job__company_profile=request.user.company_profile)
         app.status = status
         app.save()
@@ -839,8 +1018,6 @@ def update_application_status(request, app_id):
 
 def job_list(request):
     jobs = Job.objects.filter(is_active=True).select_related('category')
-
-    # ── Filters ────────────────────────────────────────────────────────────
     q          = request.GET.get('q', '').strip()
     location   = request.GET.get('location', '').strip()
     job_type   = request.GET.get('job_type', '').strip()
@@ -876,17 +1053,22 @@ def job_list(request):
             lo, hi = salary_map[salary]
             jobs = jobs.filter(salary_min__gte=lo, salary_max__lte=hi)
 
-    # ── Applied job ids ────────────────────────────────────────────────────
+    # ── Applied job ids & Recommendations ──────────────────────────────────
     applied_ids   = []
     recommended_ids_ordered = []
     profile       = None
 
-    if request.user.is_authenticated and request.user.role == 'candidate':
-        if hasattr(request.user, 'candidate_profile'):
+    if request.user.is_authenticated:
+        # 1. Dynamically fetch the correct profile based on the user's role
+        if getattr(request.user, 'role', '') == 'candidate' and hasattr(request.user, 'candidate_profile'):
             profile = request.user.candidate_profile
+        elif getattr(request.user, 'role', '') == 'trainee' and hasattr(request.user, 'trainee_profile'):
+            profile = request.user.trainee_profile
+
+        if profile:
             applied_ids = list(
                 JobApplication.objects.filter(
-                    candidate=profile
+                    candidate__user=request.user
                 ).values_list('job_id', flat=True)
             )
 
@@ -964,15 +1146,23 @@ def job_detail(request, slug):
 
     already_applied = False
     application     = None
-    if request.user.is_authenticated and request.user.role == 'candidate':
-        if hasattr(request.user, 'candidate_profile'):
-            application = JobApplication.objects.filter(
-                job=job,
-                candidate=request.user.candidate_profile
-            ).first()
-            already_applied = application is not None
+    profile         = None 
+    
+    if request.user.is_authenticated:
+        role = getattr(request.user, 'role', '')
+        
+        if role == 'candidate':
+            application = JobApplication.objects.filter(job=job, candidate__user=request.user).first()
+            if hasattr(request.user, 'candidate_profile'):
+                profile = request.user.candidate_profile
+                
+        elif role == 'trainee':
+            application = JobApplication.objects.filter(job=job, trainee__user=request.user).first()
+            if hasattr(request.user, 'trainee_profile'):
+                profile = request.user.trainee_profile
+                
+        already_applied = application is not None
 
-    # Parse comma-separated skills string into list
     skills_list = [
         s.strip() for s in (job.skills_required or '').split(',') if s.strip()
     ]
@@ -982,23 +1172,31 @@ def job_detail(request, slug):
         'similar':         similar,
         'already_applied': already_applied,
         'application':     application,
+        'profile':         profile, 
         'skills_list':     skills_list,
         'responsibilities': [r.strip() for r in (job.responsibilities or '').split('\n') if r.strip()],
         'requirements':    [r.strip() for r in (job.requirements or '').split('\n') if r.strip()],
         'benefits':        [r.strip() for r in (job.benefits or '').split('\n') if r.strip()],
         'ui_settings':     get_ui(),
+        'today': timezone.now().date(),
     })
+
 
 @login_required(login_url='login')
 def apply_job(request, slug):
-    if request.user.role != 'candidate':
-        messages.error(request, "Only candidates can apply for jobs.")
+    if request.user.role not in ['candidate', 'trainee']:
+        messages.error(request, "Only candidates and trainees can apply for jobs.")
         return redirect('job_detail', slug=slug)
 
-    job     = Job.objects.get(slug=slug, is_active=True)
-    profile = request.user.candidate_profile
+    job = Job.objects.get(slug=slug, is_active=True)
+    
+    if job.deadline and job.deadline < timezone.now().date():
+        messages.error(request, "Sorry, applications for this job are now closed.")
+        return redirect('job_detail', slug=slug)
+   
+    profile = request.user.candidate_profile if request.user.role == 'candidate' else request.user.trainee_profile
 
-    if JobApplication.objects.filter(job=job, candidate=profile).exists():
+    if JobApplication.objects.filter(job=job, candidate__user=request.user).exists():
         messages.warning(request, "You have already applied for this job.")
         return redirect('job_detail', slug=slug)
 
@@ -1017,11 +1215,19 @@ def apply_job(request, slug):
             request.user.save()
 
         cover_letter = request.POST.get('cover_letter', '').strip()
-        JobApplication.objects.create(
-            job          = job,
-            candidate    = profile,
-            cover_letter = cover_letter or None,
-        )
+        
+        if request.user.role == 'candidate':
+            JobApplication.objects.create(
+                job=job,
+                candidate=profile,  
+                cover_letter=cover_letter or None,
+            )
+        elif request.user.role == 'trainee':
+            JobApplication.objects.create(
+                job=job,
+                trainee=profile,    
+                cover_letter=cover_letter or None,
+            )
         messages.success(request, f"Successfully applied for {job.title}!")
         
     return redirect('job_detail', slug=slug)
@@ -1040,13 +1246,100 @@ def withdraw_application(request, slug):
 
 @login_required(login_url='login')
 def my_applications(request):
-    if request.user.role != 'candidate':
-        return redirect('login')
-    applications = JobApplication.objects.filter(
-        candidate=request.user.candidate_profile
-    ).select_related('job').order_by('-applied_at')
+    role = getattr(request.user, 'role', '')
+    if role not in ['candidate', 'trainee']:
+        return redirect('dashboard')
+
+    if role == 'candidate':
+        applications = JobApplication.objects.filter(
+            candidate__user=request.user
+        ).select_related('job').order_by('-applied_at')
+    elif role == 'trainee':
+        applications = JobApplication.objects.filter(
+            trainee__user=request.user
+        ).select_related('job').order_by('-applied_at')
+    else:
+        applications = []
 
     return render(request, 'jobs/my_applications.html', {
         'applications': applications,
+        'ui_settings':  get_ui() if 'get_ui' in globals() else None,
+    })
+
+
+
+def is_premium_user(user):
+    """Check if user can access premium content."""
+    if not user.is_authenticated:
+        return False
+    if user.role == User.Role.TRAINEE:
+        return True
+    if user.role == User.Role.CANDIDATE:
+        if hasattr(user, 'candidate_profile'):
+            return user.candidate_profile.subscription_type == 'Pro'
+    return False
+
+
+# ── SERVICES HUB ──────────────────────────────────────────────────────────
+@login_required(login_url='login')
+def services(request):
+    premium = is_premium_user(request.user)
+    recent_feeds = Feed.objects.filter(is_published=True).order_by('-published_at')[:10]
+    active_offer = SubscriptionOffer.objects.filter(is_active=True).first()
+    
+    return render(request, 'services/services.html', {
+        'is_premium':   premium,
+        'recent_feeds': recent_feeds,
         'ui_settings':  get_ui(),
+        'active_offer': active_offer,
+    })
+
+
+# ── FEEDS ─────────────────────────────────────────────────────────────────
+@login_required(login_url='login')
+def feed_list(request):
+    if not is_premium_user(request.user):
+        return redirect('services')
+
+    feeds = Feed.objects.filter(is_published=True)
+    feed_type = request.GET.get('type', '').strip()
+    q         = request.GET.get('q', '').strip()
+
+    if feed_type:
+        feeds = feeds.filter(feed_type=feed_type)
+    if q:
+        feeds = feeds.filter(
+            Q(title__icontains=q) | Q(tags__icontains=q) | Q(excerpt__icontains=q)
+        )
+
+    from django.core.paginator import Paginator
+    page_obj = Paginator(feeds, 9).get_page(request.GET.get('page', 1))
+
+    return render(request, 'services/feed_list.html', {
+        'page_obj':    page_obj,
+        'feed_types':  Feed.FeedType.choices,
+        'active_type': feed_type,
+        'q':           q,
+        'ui_settings': get_ui(),
+    })
+
+
+@login_required(login_url='login')
+def feed_detail(request, slug):
+    if not is_premium_user(request.user):
+        return redirect('services')
+
+    feed = Feed.objects.get(slug=slug, is_published=True)
+    feed.views += 1
+    feed.save(update_fields=['views'])
+
+    related = Feed.objects.filter(
+        is_published=True, feed_type=feed.feed_type
+    ).exclude(id=feed.id)[:3]
+
+    return render(request, 'services/feed_detail.html', {
+        'feed':        feed,
+        'related':     related,
+        'tags':        feed.get_tags_list(),
+        'ui_settings': get_ui(),
     })

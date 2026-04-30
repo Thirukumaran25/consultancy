@@ -3,6 +3,48 @@
 
 {% block content %}
 <div class="max-w-[1400px] mx-auto px-5 md:px-8 py-8">
+
+    {% if not is_premium and active_offer %}
+<!-- ── DYNAMIC PRO OFFER BANNER ── -->
+<div class="relative w-full rounded-[24px] overflow-hidden flex flex-col md:flex-row items-center justify-between p-6 mb-10 shadow-sm"
+     style="background: linear-gradient(to right, {{ active_offer.bg_gradient_start }}, {{ active_offer.bg_gradient_end }});">
+
+    <!-- Left: Illustration -->
+    <div class="w-full md:w-1/4 flex justify-center md:justify-start mb-6 md:mb-0 relative z-10">
+        {% if active_offer.illustration %}
+            <img src="{{ active_offer.illustration.url }}" alt="Offer Illustration" class="max-h-[160px] md:max-h-[180px] object-contain drop-shadow-md">
+        {% else %}
+            <!-- Placeholder if no image is uploaded yet -->
+            <div class="h-[140px] w-[140px] bg-white/40 rounded-[20px] flex items-center justify-center text-yellow-800 text-[12px] font-bold text-center p-4 border border-yellow-500 border-dashed">
+                Upload image<br>in Admin
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Center: Text Content -->
+    <div class="w-full md:w-2/4 flex flex-col items-center text-center mb-6 md:mb-0 relative z-10">
+        <span class="text-[13px] md:text-[15px] font-bold tracking-[0.2em] text-black uppercase mb-3">
+            {{ active_offer.subtitle }}
+        </span>
+        <h2 class="text-[36px] md:text-[46px] font-black text-black leading-tight tracking-tight">
+            {{ active_offer.main_title }}
+        </h2>
+    </div>
+
+    <!-- Right: Action Button -->
+    <div class="w-full md:w-1/4 flex flex-col items-center justify-center relative z-10">
+        <a href="{% url 'upgrade_subscription' %}"
+           class="bg-gradient-to-r from-[#171717] to-[#b45309] text-white font-bold text-[18px] md:text-[20px] px-8 py-3.5 rounded-full hover:shadow-[0_8px_20px_rgba(180,83,9,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3 mb-3 no-underline">
+            <i class="fa-solid fa-crown text-[#fde68a]"></i> {{ active_offer.button_text }}
+        </a>
+        <p class="text-[16px] font-extrabold text-black">
+            {{ active_offer.bottom_text }}
+        </p>
+    </div>
+    <div class="absolute bottom-0 left-1/4 w-[200px] h-[200px] bg-[radial-gradient(#d97706_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-10 rounded-full blur-sm z-0"></div>
+</div>
+{% endif %}
+
     <!-- ── STAT CARDS ── -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         {% with cards=stats %}
@@ -95,19 +137,7 @@
                                         {{ rec.job.title }}
                                     </a>
                                     <p class="text-[13px] text-[#7a8fa6] mt-0.5">{{ rec.job.company }}</p>
-                                </div>
-
-                                <!-- Match score badge -->
-                                {% if rec.match > 0 %}
-                                <div class="shrink-0">
-                                    <span class="text-[12px] font-bold px-2.5 py-1 rounded-full
-                                        {% if rec.match >= 60 %}bg-[#e6fff0] text-[#057a2e]
-                                        {% elif rec.match >= 30 %}bg-[#fff7e6] text-[#b45309]
-                                        {% else %}bg-[#f1f5fb] text-[#4a5568]{% endif %}">
-                                        {{ rec.match }}% match
-                                    </span>
-                                </div>
-                                {% endif %}
+                                </div>  
                             </div>
 
                             <!-- Meta -->

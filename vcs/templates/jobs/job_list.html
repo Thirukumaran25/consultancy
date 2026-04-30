@@ -127,7 +127,6 @@
             <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <div>
                     <p class="text-[14px] text-[#4a5568] font-semibold">
-                        <span class="text-[#1a2b4a] font-extrabold">{{ total }}</span> jobs found
                         {% if filters.q %}for "<span class="text-[#3d35c4]">{{ filters.q }}</span>"{% endif %}
                     </p>
                     {% if is_recommended_view %}
@@ -183,16 +182,6 @@
                                     </a>
                                     <p class="text-[13.5px] text-[#4a5568] font-semibold mt-0.5">{{ job.company }}</p>
                                 </div>
-
-                                <!-- Match score badge -->
-                                {% if match and match > 0 %}
-                                <span class="text-[12px] font-bold px-2.5 py-1 rounded-full shrink-0
-                                    {% if match >= 60 %}bg-[#e6fff0] text-[#057a2e]
-                                    {% elif match >= 30 %}bg-[#fff7e6] text-[#b45309]
-                                    {% else %}bg-[#f1f5fb] text-[#4a5568]{% endif %}">
-                                    {{ match }}% match
-                                </span>
-                                {% endif %}
                             </div>
 
                             <div class="flex flex-wrap gap-2 mt-2.5">

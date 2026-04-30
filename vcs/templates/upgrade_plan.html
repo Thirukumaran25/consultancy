@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block title %}Upgrade to Pro — {{ ui_settings.site_name|default:"VCS" }}{% endblock %}
+
+{% block content %}
+<!-- Safely pass Django data to JavaScript -->
+<script type="application/json" id="plans-data">{{ plans_json|safe }}</script>
+
+<!-- Decorative Top Background -->
+<div class="absolute top-[70px] left-0 w-full h-[250px] bg-gradient-to-b from-[#fff7e6] to-[#eef2f7] -z-10"></div>
+
+<div class="max-w-[1050px] mx-auto px-4 py-12 min-h-screen">
+
+    <!-- Header Section -->
+    <div class="flex items-center gap-4 mb-10">
+        <div class="w-[55px] h-[55px] bg-gradient-to-br from-[#1a2b4a] to-[#a16207] rounded-[14px] flex items-center justify-center shadow-md text-white text-[26px]">
+            <i class="fa-solid fa-crown"></i>
+        </div>
+        <div>
+            <h1 class="text-[30px] font-black text-[#1a2b4a] leading-tight">Elevate your career with Pro</h1>
+            <p class="text-[15px] text-[#4a5568]">Compare plans and choose what's best for your job search.</p>
+        </div>
+    </div>
+
+    <!-- ── STATE 1: ALREADY A PRO MEMBER ── -->
+    {% if profile.subscription_type == 'Pro' %}
+        <div class="bg-[#e6fff0] border border-[#b2f2bb] text-[#057a2e] px-8 py-5 rounded-[16px] text-[16px] font-bold flex items-center gap-3 shadow-sm mb-10">
+            <i class="fa-solid fa-circle-check text-[24px]"></i>
+            You are already a Pro member! Enjoy your premium benefits below.
+        </div>
+    
+    <!-- ── STATE 2: NEEDS TO UPGRADE (DYNAMIC PLANS SECTION) ── -->
+    {% else %}
+        <div class="flex flex-col lg:flex-row gap-8 mb-14" id="pricing-section">
+            
+            <!-- Left: Plan Cards -->
+            <div class="flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="plan-cards-container">
+                    {% for plan in plans %}
+                    <div onclick="selectPlan({{ plan.id }})" id="card-{{ plan.id }}"
+                         class="plan-card relative bg-white border-[1.5px] border-[#d8e4f0] rounded-[16px] cursor-pointer hover:shadow-md transition-all duration-200 overflow-hidden group flex flex-col">
+                        
+                        {% if plan.is_popular %}
+                        <div class="absolute top-0 right-4 bg-gradient-to-r from-[#1a2b4a] to-[#a16207] text-white text-[11px] font-bold px-3 py-1 rounded-b-[8px] shadow-sm">
+                            Popular
+                        </div>
+                        {% endif %}
+
+                        <div class="p-5 pb-4 flex-1">
+                            <h3 class="text-[18px] font-extrabold text-[#1a2b4a] mb-2">{{ plan.months }} month{% if plan.months > 1 %}s{% endif %}</h3>
+                            
+                            <div class="flex items-end justify-between flex-wrap gap-2">
+                                <div>
+                                    <span class="text-[18px] font-extrabold text-[#1a2b4a]">₹ {{ plan.display_price }}</span>
+                                    <span class="text-[14px] text-[#aab8c8] line-through ml-1 font-semibold">₹ {{ plan.base_price }}</span>
+                                </div>
+                                <span class="bg-[#22c55e] text-white text-[12px] font-bold px-2 py-1 rounded-[6px] whitespace-nowrap">
+                                    {{ plan.badge_text }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {% if plan.daily_text %}
+                        <div class="bg-[#f8fbff] text-center py-2.5 text-[13px] font-semibold text-[#4a5568] border-t border-[#e4eaf2] mt-auto">
+                            {{ plan.daily_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Right: Dynamic Price Details -->
+            <div class="lg:w-[350px] shrink-0">
+                <div class="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-[#e4eaf2] lg:sticky lg:top-[90px]">
+                    <h2 class="text-[18px] font-extrabold text-[#1a2b4a] mb-5">Price details</h2>
+                    
+                    <div class="space-y-3 text-[14px] font-semibold text-[#4a5568]" id="price-breakdown">
+                        <!-- Content injected by JavaScript -->
+                    </div>
+
+                    <div class="border-t border-[#e4eaf2] my-4 pt-4 flex justify-between items-center">
+                        <span class="text-[15px] font-extrabold text-[#1a2b4a]">Total payable</span>
+                        <span class="text-[22px] font-black text-[#1a2b4a]" id="total-payable">₹ 0</span>
+                    </div>
+
+                    <form method="POST" action="">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan_id" id="selected_plan_id" value="">
+                        <button type="submit" class="w-full bg-[#3d35c4] text-white font-bold text-[16px] py-3.5 rounded-[12px] hover:bg-[#2d27a8] hover:-translate-y-0.5 transition-all shadow-sm mb-3">
+                            Continue to Payment
+                        </button>
+                    </form>
+
+                    <p class="text-[12px] text-[#7a8fa6] text-center font-medium" id="renewal-text">
+                        Renews automatically every month until cancelled
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+
+    <!-- ── FEATURES COMPARISON CARD (Your existing UI) ── -->
+    <div class="bg-white rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-[#e4eaf2] overflow-hidden mb-10">
+        
+        <!-- Table Header -->
+        <div class="grid grid-cols-12 items-center px-6 md:px-10 py-6 border-b-2 border-[#f0f4f8]">
+            <div class="col-span-6 md:col-span-8">
+                <h2 class="text-[20px] font-extrabold text-[#1a2b4a]">What you will get</h2>
+            </div>
+            <div class="col-span-3 md:col-span-2 text-center">
+                <span class="text-[14px] font-semibold text-[#4a5568]">Current</span>
+            </div>
+            <div class="col-span-3 md:col-span-2 text-center">
+                <span class="text-[15px] font-extrabold text-[#b45309] flex items-center justify-center gap-1.5 whitespace-nowrap">
+                     Pro <i class="fa-solid fa-crown text-[#f59e0b]"></i>
+                </span>
+            </div>
+        </div>
+
+        <!-- Dynamic Features List -->
+        <div class="flex flex-col">
+            {% for feature in features %}
+                <div class="grid grid-cols-12 items-center px-6 md:px-10 py-5 border-b border-[#f0f4f8] last:border-0 hover:bg-[#f8fbff] transition-colors">
+                    <div class="col-span-6 md:col-span-8">
+                        <span class="text-[15px] font-medium text-[#1a2b4a]">{{ feature.name }}</span>
+                    </div>
+                    
+                    <div class="col-span-3 md:col-span-2 text-center">
+                        <i class="fa-solid fa-minus text-[#aab8c8] text-[14px]"></i>
+                    </div>
+                    
+                    <div class="col-span-3 md:col-span-2 text-center">
+                        <i class="fa-solid fa-check text-[#f59e0b] text-[18px] font-bold drop-shadow-sm"></i>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="p-8 text-center text-[#7a8fa6] text-[14px]">
+                    No features added yet. Please add them in the Django Admin panel!
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- ── JAVASCRIPT FOR DYNAMIC PRICING ── -->
+<script>
+    // Only run the script if the pricing section exists (e.g., user is not already Pro)
+    if (document.getElementById('plans-data')) {
+        const plansData = JSON.parse(document.getElementById('plans-data').textContent);
+        let selectedPlanId = null;
+
+        function selectPlan(id) {
+            selectedPlanId = id;
+            const plan = plansData.find(p => p.id === id);
+            
+            // ── UPDATE CARD STYLING ──
+            document.querySelectorAll('.plan-card').forEach(card => {
+                if (card.id === `card-${id}`) {
+                    card.classList.add('border-[#eab308]', 'shadow-md', 'ring-1', 'ring-[#eab308]', 'bg-[#fffbeb]');
+                    card.classList.remove('border-[#d8e4f0]', 'bg-white');
+                } else {
+                    card.classList.remove('border-[#eab308]', 'shadow-md', 'ring-1', 'ring-[#eab308]', 'bg-[#fffbeb]');
+                    card.classList.add('border-[#d8e4f0]', 'bg-white');
+                }
+            });
+
+            // ── UPDATE PRICE DETAILS HTML ──
+            let breakdownHTML = `
+                <div class="flex justify-between items-center">
+                    <span>Total</span>
+                    <span>₹ ${plan.base_price}</span>
+                </div>
+            `;
+
+            if (plan.disc1_amount > 0) {
+                breakdownHTML += `
+                    <div class="flex justify-between items-center">
+                        <span>Discount <span class="text-[#22c55e]">${plan.disc1_pct}% off</span> ${plan.disc1_code ? `<span class="text-[#22c55e]">(${plan.disc1_code})</span>` : ''}</span>
+                        <span class="text-[#1a2b4a]">- ₹ ${plan.disc1_amount}</span>
+                    </div>
+                `;
+            }
+
+            if (plan.disc2_amount > 0) {
+                breakdownHTML += `
+                    <div class="flex justify-between items-center">
+                        <span>Discount <span class="text-[#22c55e]">${plan.disc2_pct}% off</span> ${plan.disc2_code ? `<span class="text-[#22c55e]">(${plan.disc2_code})</span>` : ''}</span>
+                        <span class="text-[#1a2b4a]">- ₹ ${plan.disc2_amount}</span>
+                    </div>
+                `;
+            }
+
+            breakdownHTML += `
+                <div class="flex justify-between items-center">
+                    <span>Estimated GST</span>
+                    <span>₹ ${plan.gst_amount}</span>
+                </div>
+            `;
+
+            // Render into UI
+            document.getElementById('price-breakdown').innerHTML = breakdownHTML;
+            document.getElementById('total-payable').innerText = `₹ ${plan.final_payable}`;
+            
+            // Update hidden input and Renewal Text
+            document.getElementById('selected_plan_id').value = plan.id;
+            document.getElementById('renewal-text').innerText = `Renews automatically every ${plan.months === 1 ? 'month' : plan.months + ' months'} until cancelled`;
+        }
+
+        // Initialize by selecting the first available plan
+        if (plansData.length > 0) {
+            selectPlan(plansData[0].id);
+        }
+    }
+</script>
+{% endblock %}

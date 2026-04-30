@@ -106,8 +106,68 @@ class JobAdmin(admin.ModelAdmin):
 
 @admin.register(JobApplication)
 class JobApplicationAdmin(admin.ModelAdmin):
-    list_display  = ('candidate', 'job', 'status', 'applied_at')
+    list_display = ('job', 'candidate', 'trainee', 'status', 'applied_at')
     list_filter   = ('status', 'applied_at')
     search_fields = ('candidate__full_name', 'job__title')
     list_editable = ('status',)
     readonly_fields = ('applied_at', 'updated_at')
+
+
+@admin.register(Feed)
+class FeedAdmin(admin.ModelAdmin):
+    list_display   = ('title', 'feed_type', 'author_name', 'is_published',
+                      'is_featured', 'views', 'published_at')
+    list_filter    = ('feed_type', 'is_published', 'is_featured')
+    search_fields  = ('title', 'author_name', 'tags')
+    list_editable  = ('is_published', 'is_featured')
+    prepopulated_fields = {'slug': ('title',)}
+    readonly_fields     = ('published_at', 'updated_at', 'views')
+
+    fieldsets = (
+        ('Content', {
+            'fields': ('title', 'slug', 'feed_type', 'media_file',
+                       'excerpt', 'content', 'author_name', 'tags')
+        }),
+        ('Visibility', {
+            'fields': ('is_published', 'is_featured')
+        }),
+        ('Stats', {
+            'fields': ('views', 'published_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+@admin.register(SubscriptionOffer)
+class SubscriptionOfferAdmin(admin.ModelAdmin):
+    list_display = ('main_title', 'subtitle', 'is_active')
+    list_editable = ('is_active',)
+
+
+@admin.register(ProFeature)
+class ProFeatureAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_active', 'order')
+    list_editable = ('is_active', 'order')
+
+
+@admin.register(SubscriptionPlan)
+class SubscriptionPlanAdmin(admin.ModelAdmin):
+    list_display = ('months', 'base_price', 'disc1_pct', 'disc2_pct', 'is_popular', 'is_active', 'final_calculated_price')
+    list_filter = ('is_active', 'is_popular', 'months')
+    search_fields = ('disc1_code', 'disc2_code')
+    
+    fieldsets = (
+        ('Plan Duration & Price', {
+            'fields': ('months', 'base_price')
+        }),
+        ('First Discount (Duration Based)', {
+            'fields': ('disc1_pct', 'disc1_code'),
+            'description': "Example: 33% off for buying 3 months."
+        }),
+        ('Second Discount (Promo Based)', {
+            'fields': ('disc2_pct', 'disc2_code'),
+            'description': "Example: 30% off PROSALE promo."
+        }),
+        ('Taxes & Display', {
+            'fields': ('gst_pct', 'is_popular', 'daily_text', 'is_active')
+        }),
+    )

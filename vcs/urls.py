@@ -8,7 +8,12 @@ urlpatterns = [
     path('dashboard/', views.dashboard_router, name='dashboard'),
     path('candidate/register/',  views.candidate_register,  name='candidate_register'),
     path('send-otp/', views.send_registration_otp, name='send_registration_otp'),
-    path('candidate/upgrade/', views.upgrade_subscription, name='upgrade_subscription'),
+    path('upgrade/', views.upgrade_subscription, name='upgrade_subscription'),
+
+    # Add to urlpatterns
+    path('services/',                         views.services,          name='services'),
+    path('services/feeds/',                   views.feed_list,         name='feed_list'),
+    path('services/feeds/<slug:slug>/',       views.feed_detail,       name='feed_detail'),
 
 
     path('jobs/',                        views.job_list,            name='job_list'),
@@ -46,5 +51,7 @@ urlpatterns = [
     path('candidate/profile/photo/', views.update_profile_photo, name='update_profile_photo'),
 
     path('trainee/dashboard/',   views.trainee_dashboard,   name='trainee_dashboard'),
+    path('trainee/profile/', views.trainee_profile, name='trainee_profile'),
+    path('trainee/profile/update/', views.update_trainee_profile, name='update_trainee_profile'),
     path('check-availability/',  views.check_availability,  name='check_availability'),
 ]

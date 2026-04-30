@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% block title %}Services — {{ ui_settings.site_name|default:"VCS" }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Hides the scrollbar but keeps the area scrollable */
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    /* Restricts titles to 2 lines with an ellipsis */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;  
+        overflow: hidden;
+    }
+</style>
+
+<div class="max-w-[1200px] mx-auto px-4 py-10">
+
+    {% if not is_premium and active_offer %}
+<!-- ── DYNAMIC PRO OFFER BANNER ── -->
+<div class="relative w-full rounded-[24px] overflow-hidden flex flex-col md:flex-row items-center justify-between p-6 mb-10 shadow-sm"
+     style="background: linear-gradient(to right, {{ active_offer.bg_gradient_start }}, {{ active_offer.bg_gradient_end }});">
+
+    <!-- Left: Illustration -->
+    <div class="w-full md:w-1/4 flex justify-center md:justify-start mb-6 md:mb-0 relative z-10">
+        {% if active_offer.illustration %}
+            <img src="{{ active_offer.illustration.url }}" alt="Offer Illustration" class="max-h-[160px] md:max-h-[180px] object-contain drop-shadow-md">
+        {% else %}
+            <!-- Placeholder if no image is uploaded yet -->
+            <div class="h-[140px] w-[140px] bg-white/40 rounded-[20px] flex items-center justify-center text-yellow-800 text-[12px] font-bold text-center p-4 border border-yellow-500 border-dashed">
+                Upload image<br>in Admin
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Center: Text Content -->
+    <div class="w-full md:w-2/4 flex flex-col items-center text-center mb-6 md:mb-0 relative z-10">
+        <span class="text-[13px] md:text-[15px] font-bold tracking-[0.2em] text-black uppercase mb-3">
+            {{ active_offer.subtitle }}
+        </span>
+        <h2 class="text-[36px] md:text-[46px] font-black text-black leading-tight tracking-tight">
+            {{ active_offer.main_title }}
+        </h2>
+    </div>
+
+    <!-- Right: Action Button -->
+    <div class="w-full md:w-1/4 flex flex-col items-center justify-center relative z-10">
+        <a href="{% url 'upgrade_subscription' %}"
+           class="bg-gradient-to-r from-[#171717] to-[#b45309] text-white font-bold text-[18px] md:text-[20px] px-8 py-3.5 rounded-full hover:shadow-[0_8px_20px_rgba(180,83,9,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3 mb-3 no-underline">
+            <i class="fa-solid fa-crown text-[#fde68a]"></i> {{ active_offer.button_text }}
+        </a>
+        <p class="text-[16px] font-extrabold text-black">
+            {{ active_offer.bottom_text }}
+        </p>
+    </div>
+    
+    <!-- Optional background dot pattern effect (matches your image style) -->
+    <div class="absolute bottom-0 left-1/4 w-[200px] h-[200px] bg-[radial-gradient(#d97706_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-10 rounded-full blur-sm z-0"></div>
+</div>
+{% endif %}
+
+    {% if not is_premium %}
+    <!-- Upgrade Banner -->
+    <div class="bg-gradient-to-r from-[#4238ca] to-[#3b82f6] rounded-[20px] p-8 mb-10 text-center text-white">
+        <div class="w-[64px] h-[64px] bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-crown text-[28px] text-yellow-300"></i>
+        </div>
+        <h2 class="text-[22px] font-extrabold mb-2">Unlock Premium Services</h2>
+        <p class="text-white/80 text-[14px] mb-6 max-w-[500px] mx-auto">
+            Get access to Feeds, Interview Experiences, and Salary Insights.
+            Available for Pro subscribers and Trainees.
+        </p>
+        <div class="flex gap-3 justify-center flex-wrap">
+            <a href="#upgrade"
+               class="bg-yellow-400 text-[#1a2b4a] font-extrabold text-[14px] px-8 py-3
+                      rounded-[10px] hover:bg-yellow-300 transition no-underline">
+                <i class="fa-solid fa-crown mr-2"></i> Upgrade to Pro
+            </a>
+            <a href="{% url 'candidate_dashboard' %}"
+               class="bg-white/20 text-white font-bold text-[14px] px-6 py-3
+                      rounded-[10px] hover:bg-white/30 transition no-underline">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── MINIS / FEEDS SECTION ── -->
+    <div class="bg-white rounded-[16px] shadow-sm border border-gray-100 p-6 mb-10 relative">
+        <div class="flex justify-between items-end mb-5">
+            <div>
+                <h2 class="text-[22px] font-bold text-[#1a2b4a]">Stay informed with Minis</h2>
+                <p class="text-[14px] text-[#7a8fa6] mt-1">Catch up on bite-sized tech news</p>
+            </div>
+            {% if is_premium %}
+            <a href="{% url 'feed_list' %}" class="text-[#4b6cf5] font-bold text-[14px] hover:underline hidden sm:block">View all</a>
+            {% endif %}
+        </div>
+
+        <!-- Scrollable Container -->
+        <div class="relative group">
+            <div id="feed-container" class="flex overflow-x-auto gap-4 pb-2 snap-x hide-scrollbar scroll-smooth">
+                
+                {% for feed in recent_feeds %}
+                <a href="{% if is_premium %}{% url 'feed_detail' feed.slug %}{% else %}#{% endif %}" 
+                   class="block w-[240px] shrink-0 border border-[#e4eaf2] rounded-[12px] overflow-hidden snap-start hover:shadow-md transition no-underline group/card relative bg-white">
+                    
+                    <!-- Thumbnail -->
+                    <div class="h-[130px] bg-[#1a1a1a] border-b border-[#e4eaf2] relative overflow-hidden">
+                        {% if feed.media_file %}
+                            {% if feed.is_video %}
+                                <video autoplay loop muted playsinline class="w-full h-full object-cover opacity-90">
+                                    <source src="{{ feed.media_file.url }}" type="video/mp4">
+                                </video>
+                                <!-- Optional: Small play icon badge to indicate it's a video -->
+                                <div class="absolute top-2 right-2 bg-black/60 text-white text-[10px] w-6 h-6 rounded-full flex items-center justify-center backdrop-blur-sm">
+                                    <i class="fa-solid fa-play"></i>
+                                </div>
+                            {% else %}
+                                <img src="{{ feed.media_file.url }}" alt="{{ feed.title }}" class="w-full h-full object-cover">
+                            {% endif %}
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center bg-[#f8fbff] text-[#4238ca]">
+                                <i class="fa-solid fa-newspaper text-[32px]"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Lock overlay if not premium -->
+                        {% if not is_premium %}
+                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
+                                <i class="fa-solid fa-lock text-white text-[24px]"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-4 flex flex-col justify-between h-[115px]">
+                        <h3 class="text-[15px] font-bold text-[#1a2b4a] leading-tight line-clamp-2 group-hover/card:text-[#4b6cf5] transition-colors">
+                            {{ feed.title }}
+                        </h3>
+                        <div class="flex items-center gap-2 text-[12px] text-[#7a8fa6] font-semibold mt-2">
+                            <i class="fa-solid fa-building text-[#c5d4f0]"></i>
+                            <span class="truncate max-w-[100px] text-[#4a5568] uppercase tracking-wide text-[11px]">{{ feed.author_name|default:"VCS" }}</span>
+                            <span class="text-[#d8e4f0]">•</span>
+                            <span>{{ feed.published_at|date:"d M" }}</span>
+                        </div>
+                    </div>
+                </a>
+                {% empty %}
+                <p class="text-[14px] text-[#7a8fa6] py-4">No feeds available right now.</p>
+                {% endfor %}
+
+            </div>
+
+            <!-- Scroll Right Button -->
+            {% if recent_feeds|length > 4 %}
+            <button onclick="document.getElementById('feed-container').scrollBy(256, 0)" 
+                    class="absolute -right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 shadow-lg hidden md:flex">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            {% endif %}
+        </div>
+        
+        {% if is_premium %}
+        <div class="mt-4 sm:hidden text-center border-t border-[#f0f4f8] pt-4">
+            <a href="{% url 'feed_list' %}" class="text-[#4b6cf5] font-bold text-[14px] hover:underline">View all Minis →</a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if is_premium %}
+    <!-- Premium badge -->
+    <div class="text-center">
+        <span class="inline-flex items-center gap-2 bg-[#fff7e6] text-[#b45309] border border-[#fcd34d]
+                     font-bold text-[13px] px-5 py-2 rounded-full">
+            <i class="fa-solid fa-crown text-yellow-400"></i>
+            You have Premium Access
+        </span>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -10,34 +10,39 @@ def build_candidate_profile_text(profile):
     parts = []
 
     # Skills
-    skills = list(profile.skills.values_list('name', flat=True))
-    if skills:
-        parts.append(' '.join(skills) * 3)  # weight skills higher
+    if hasattr(profile, 'skills'):
+        skills = list(profile.skills.values_list('name', flat=True))
+        if skills:
+            parts.append(' '.join(skills) * 3) 
 
     # Headline
-    if profile.resume_headline:
+    if getattr(profile, 'resume_headline', None):
         parts.append(profile.resume_headline * 2)
 
     # Summary
-    if profile.profile_summary:
+    if getattr(profile, 'profile_summary', None):
         parts.append(profile.profile_summary)
 
-    # Employment history
-    for emp in profile.employments.all():
-        parts.append(emp.designation)
-        parts.append(emp.company_name)
-        if emp.description:
-            parts.append(emp.description)
+    # Employment history (Check if the profile has this relation first!)
+    if hasattr(profile, 'employments'):
+        for emp in profile.employments.all():
+            parts.append(emp.designation)
+            parts.append(emp.company_name)
+            if emp.description:
+                parts.append(emp.description)
 
     # Education
-    for edu in profile.educations.all():
-        parts.append(edu.education_level)
-        parts.append(edu.course)
+    if hasattr(profile, 'educations'):
+        for edu in profile.educations.all():
+            parts.append(edu.education_level)
+            parts.append(edu.course)
 
     # Projects
-    for proj in profile.projects.all():
-        parts.append(proj.title)
-        parts.append(proj.description)
+    if hasattr(profile, 'projects'):
+        for proj in profile.projects.all():
+            parts.append(proj.title)
+            if proj.description:
+                parts.append(proj.description)
 
     return ' '.join(parts).lower().strip()
 
@@ -71,11 +76,8 @@ def get_recommendations(profile, limit=6):
     Returns ranked list of (job, score) tuples.
     """
     # Get active jobs the candidate hasn't applied to
-    applied_ids = list(
-        JobApplication.objects.filter(
-            candidate=profile
-        ).values_list('job_id', flat=True)
-    )
+    # ── CHANGE IT TO THIS ──
+    applied_ids = JobApplication.objects.filter(candidate__user=profile.user).values_list('job_id', flat=True)
 
     jobs = list(
         Job.objects.filter(is_active=True)

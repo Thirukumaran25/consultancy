@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}News & Insights — {{ ui_settings.site_name|default:"VCS" }}{% endblock %}
+
+{% block content %}
+<div class="bg-[#eef2f7] min-h-screen py-8 px-4">
+    <div class="max-w-[1200px] mx-auto">
+
+        <!-- Header Section -->
+        <div class="mb-8 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <h1 class="text-[28px] font-extrabold text-[#1a2b4a] mb-2">Career Insights & News</h1>
+                <p class="text-[15px] text-[#7a8fa6]">Stay updated with the latest industry trends, tips, and announcements.</p>
+            </div>
+            
+            <!-- Optional: Simple Category Filter (if you want to filter by FeedType) -->
+            <form method="GET" action="{% url 'feed_list' %}" class="flex items-center gap-2">
+                <select name="type" onchange="this.form.submit()"
+                        class="border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] font-semibold text-[#4a5568] py-2.5 px-4 outline-none bg-white shadow-sm focus:border-[#4b6cf5] transition-colors cursor-pointer">
+                    <option value="">All Categories</option>
+                    <option value="article" {% if request.GET.type == 'article' %}selected{% endif %}>Articles</option>
+                    <option value="tip" {% if request.GET.type == 'tip' %}selected{% endif %}>Career Tips</option>
+                    <option value="news" {% if request.GET.type == 'news' %}selected{% endif %}>Industry News</option>
+                    <option value="announcement" {% if request.GET.type == 'announcement' %}selected{% endif %}>Announcements</option>
+                </select>
+            </form>
+        </div>
+
+        <!-- Feed Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for feed in page_obj %}
+            <article class="bg-white rounded-[16px] shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md hover:border-[#c5d4f0] transition-all duration-300">
+                
+                <!-- Media Container (Updated with Video/Image Logic) -->
+                <div class="h-[200px] w-full relative overflow-hidden bg-[#f1f5fb] group">
+                    <a href="{% url 'feed_detail' feed.slug %}" class="absolute inset-0 z-10"></a>
+                    
+                    {% if feed.media_file %}
+                        {% if feed.is_video %}
+                            <!-- Video Player -->
+                            <video autoplay loop muted playsinline class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <source src="{{ feed.media_file.url }}" type="video/mp4">
+                            </video>
+                            
+                            <!-- Floating Video Badge -->
+                            <div class="absolute top-3 right-3 bg-black/60 text-white text-[12px] w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm shadow-sm border border-white/20 z-20 pointer-events-none">
+                                <i class="fa-solid fa-play ml-0.5"></i>
+                            </div>
+                        {% else %}
+                            <!-- Standard Image -->
+                            <img src="{{ feed.media_file.url }}" alt="{{ feed.title }}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        {% endif %}
+                    {% else %}
+                        <!-- Fallback Placeholder -->
+                        <div class="w-full h-full flex items-center justify-center bg-[#f8fbff] text-[#4238ca] group-hover:scale-105 transition-transform duration-500">
+                            <i class="fa-solid fa-newspaper text-[40px] opacity-40"></i>
+                        </div>
+                    {% endif %}
+
+                    <!-- Feed Type Badge -->
+                    <div class="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md text-[#1a2b4a] text-[11px] font-extrabold px-3 py-1 rounded-full shadow-sm z-20 pointer-events-none uppercase tracking-wide">
+                        {{ feed.get_feed_type_display }}
+                    </div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="p-6 flex flex-col flex-1">
+                    <div class="flex items-center gap-3 text-[12px] font-semibold text-[#aab8c8] mb-3">
+                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-calendar"></i> {{ feed.published_at|date:"M d, Y" }}</span>
+                        <span class="text-[#d8e4f0]">•</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock"></i> {{ feed.read_time }}</span>
+                    </div>
+
+                    <a href="{% url 'feed_detail' feed.slug %}" class="text-[17px] font-extrabold text-[#1a2b4a] leading-snug hover:text-[#3d35c4] transition-colors mb-2 line-clamp-2">
+                        {{ feed.title }}
+                    </a>
+
+                    <p class="text-[14px] text-[#4a5568] leading-relaxed mb-4 line-clamp-3 flex-1">
+                        {{ feed.excerpt }}
+                    </p>
+
+                    <!-- Footer / Author area -->
+                    <div class="mt-auto pt-4 border-t border-[#f0f4f8] flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-[30px] h-[30px] rounded-full bg-[#eef3ff] text-[#3d35c4] flex items-center justify-center text-[12px] font-bold">
+                                {{ feed.author_name|slice:":1"|upper }}
+                            </div>
+                            <span class="text-[13px] font-bold text-[#1a2b4a]">{{ feed.author_name }}</span>
+                        </div>
+                        <span class="text-[12px] text-[#aab8c8] font-semibold flex items-center gap-1.5">
+                            <i class="fa-regular fa-eye"></i> {{ feed.views }}
+                        </span>
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+            <!-- Empty State -->
+            <div class="col-span-full bg-white rounded-[16px] p-12 text-center shadow-sm border border-gray-100">
+                <i class="fa-regular fa-folder-open text-[48px] text-[#d8e4f0] mb-4 block"></i>
+                <p class="text-[16px] font-bold text-[#1a2b4a] mb-2">No articles found</p>
+                <p class="text-[13px] text-[#7a8fa6]">Check back later for the latest insights and news!</p>
+                {% if request.GET.type %}
+                <a href="{% url 'feed_list' %}" class="inline-block mt-4 text-[#4b6cf5] font-bold text-[13px] hover:underline">
+                    Clear filters
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="flex justify-center items-center gap-2 mt-10">
+            {% if page_obj.has_previous %}
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'page' and v %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+               class="px-4 py-2 rounded-[8px] border border-[#d8e4f0] text-[13px] font-bold text-[#4a5568] bg-white hover:bg-[#f1f5fb] transition">
+                ← Prev
+            </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-4 py-2 rounded-[8px] bg-[#3d35c4] text-white text-[13px] font-bold shadow-sm">{{ num }}</span>
+                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                <a href="?{% for k,v in request.GET.items %}{% if k != 'page' and v %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ num }}"
+                   class="px-4 py-2 rounded-[8px] border border-[#d8e4f0] text-[13px] font-bold text-[#4a5568] bg-white hover:bg-[#f1f5fb] transition">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'page' and v %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+               class="px-4 py-2 rounded-[8px] border border-[#d8e4f0] text-[13px] font-bold text-[#4a5568] bg-white hover:bg-[#f1f5fb] transition">
+                Next →
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

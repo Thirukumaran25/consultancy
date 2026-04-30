@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}{{ feed.title }} — {{ ui_settings.site_name|default:"VCS" }}{% endblock %}
+
+{% block content %}
+<div class="max-w-[900px] mx-auto px-4 py-8">
+
+    <a href="{% url 'feed_list' %}"
+       class="text-[13px] text-[#4238ca] font-bold hover:underline no-underline mb-6 inline-block">
+        ← Back to Feeds
+    </a>
+
+    <div class="bg-white rounded-[16px] shadow-sm border border-gray-100 overflow-hidden mb-6">
+        {% if feed.media_file %}
+        <div class="w-full h-[300px] md:h-[400px] rounded-[24px] overflow-hidden mb-8 shadow-sm">
+            {% if feed.is_video %}
+                <video controls autoplay muted class="w-full h-full object-cover bg-black">
+                    <source src="{{ feed.media_file.url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            {% else %}
+                <img src="{{ feed.media_file.url }}" alt="{{ feed.title }}" class="w-full h-full object-cover">
+            {% endif %}
+        </div>
+        {% endif %}
+        <div class="p-8">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-[12px] font-bold px-3 py-1 rounded-full
+                    {% if feed.feed_type == 'article' %}bg-[#eef3ff] text-[#4238ca]
+                    {% elif feed.feed_type == 'tip' %}bg-[#e6fff0] text-[#057a2e]
+                    {% elif feed.feed_type == 'news' %}bg-[#fff7e6] text-[#b45309]
+                    {% else %}bg-[#f1f5fb] text-[#4a5568]{% endif %}">
+                    {{ feed.get_feed_type_display }}
+                </span>
+                <span class="text-[12px] text-[#aab8c8]">{{ feed.published_at|date:"d M Y" }}</span>
+                <span class="text-[12px] text-[#aab8c8]">{{ feed.read_time }}</span>
+                <span class="text-[12px] text-[#aab8c8]">
+                    <i class="fa-solid fa-eye mr-1"></i>{{ feed.views }}
+                </span>
+            </div>
+
+            <h1 class="text-[24px] font-extrabold text-[#1a2b4a] mb-3">{{ feed.title }}</h1>
+            <p class="text-[14px] text-[#7a8fa6] mb-6 border-l-4 border-[#4238ca] pl-4 italic">
+                {{ feed.excerpt }}
+            </p>
+
+            <div class="text-[14px] text-[#4a5568] leading-[1.9] whitespace-pre-line">
+                {{ feed.content }}
+            </div>
+
+            {% if tags %}
+            <div class="flex flex-wrap gap-2 mt-8 pt-6 border-t border-[#f0f4f8]">
+                {% for tag in tags %}
+                <span class="bg-[#f1f5fb] text-[#7a8fa6] text-[12px] font-semibold px-3 py-1 rounded-full">
+                    #{{ tag }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="flex items-center gap-3 mt-6 pt-6 border-t border-[#f0f4f8]">
+                <div class="w-[40px] h-[40px] rounded-full bg-[#eef3ff] flex items-center justify-center">
+                    <i class="fa-solid fa-user text-[#4238ca]"></i>
+                </div>
+                <div>
+                    <p class="text-[13px] font-bold text-[#1a2b4a]">{{ feed.author_name }}</p>
+                    <p class="text-[11.5px] text-[#aab8c8]">{{ feed.published_at|date:"d M Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if related %}
+    <h3 class="text-[15px] font-extrabold text-[#1a2b4a] mb-4">Related Articles</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {% for item in related %}
+        <a href="{% url 'feed_detail' item.slug %}"
+           class="bg-white rounded-[12px] p-4 shadow-sm border border-gray-100
+                  hover:shadow-md transition no-underline block">
+            <span class="text-[11px] font-bold text-[#4238ca] bg-[#eef3ff]
+                         px-2 py-0.5 rounded-full">{{ item.get_feed_type_display }}</span>
+            <p class="text-[13px] font-bold text-[#1a2b4a] mt-2 line-clamp-2">{{ item.title }}</p>
+            <p class="text-[12px] text-[#aab8c8] mt-1">{{ item.read_time }}</p>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

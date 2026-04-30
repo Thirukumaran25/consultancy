@@ -104,11 +104,18 @@
                             </button>
                         </form>
                         {% endif %}
-                    {% elif request.user.is_authenticated and request.user.role == 'candidate' %}
+
+                    {% elif job.deadline and job.deadline < today %}
+                        <button disabled class="bg-[#f1f5fb] text-[#aab8c8] border border-[#e4eaf2] font-bold text-[15px] px-8 py-3 rounded-[10px] cursor-not-allowed flex items-center gap-2">
+                            <i class="fa-solid fa-clock"></i> Applications Closed
+                        </button>
+                        
+                    {% elif request.user.is_authenticated and request.user.role in 'candidate,trainee' %}
                         <button onclick="document.getElementById('apply-modal').classList.remove('hidden')"
                             class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition">
                             <i class="fa-solid fa-paper-plane mr-2"></i> Apply Now
                         </button>
+                        
                     {% elif not request.user.is_authenticated %}
                         <a href="{% url 'login' %}"
                            class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition no-underline">
@@ -283,7 +290,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Full Name <span class="text-[#e74c3c]">*</span></label>
-                        <input type="text" name="full_name" value="{{ request.user.candidate_profile.full_name }}" required class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                        <!-- Updated to use dynamic profile -->
+                        <input type="text" name="full_name" value="{{ profile.full_name }}" required class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
                     </div>
                     <div>
                         <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Email Address <span class="text-[#e74c3c]">*</span></label>
@@ -291,18 +299,20 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Phone Number <span class="text-[#e74c3c]">*</span></label>
-                        <input type="tel" name="phone" value="{{ request.user.candidate_profile.phone_number|default:'' }}" required placeholder="+91 00000 00000" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                        <!-- Updated to use dynamic profile -->
+                        <input type="tel" name="phone" value="{{ profile.phone_number|default:'' }}" required placeholder="+91 00000 00000" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
                     </div>
                 </div>
 
                 <div class="pt-2">
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Resume / CV <span class="text-[#e74c3c]">*</span></label>
-                    {% if request.user.candidate_profile.resume %}
+                    <!-- Updated to use dynamic profile -->
+                    {% if profile.resume %}
                         <div class="flex items-center gap-2 mb-2 text-[12px] text-[#057a2e] font-bold bg-[#e6fff0] p-2 rounded-[6px] border border-[#b2f2bb]">
                             <i class="fa-solid fa-circle-check"></i> We have your resume on file. Upload a new one below to replace it.
                         </div>
                     {% endif %}
-                    <input type="file" name="resume" accept=".pdf,.doc,.docx" {% if not request.user.candidate_profile.resume %}required{% endif %} class="w-full py-2 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[12px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none cursor-pointer file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:bg-[#eef3ff] file:text-[#4b6cf5] hover:file:bg-[#dfe8ff] transition-colors">
+                    <input type="file" name="resume" accept=".pdf,.doc,.docx" {% if not profile.resume %}required{% endif %} class="w-full py-2 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[12px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none cursor-pointer file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:bg-[#eef3ff] file:text-[#4b6cf5] hover:file:bg-[#dfe8ff] transition-colors">
                 </div>
 
                 <div class="pt-2">

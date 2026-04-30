@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.core.validators import FileExtensionValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -86,7 +87,8 @@ class CandidateProfile(models.Model):
 
 
 class Employment(models.Model):
-    candidate = models.ForeignKey(CandidateProfile, on_delete=models.CASCADE, related_name='employments')
+    candidate = models.ForeignKey('CandidateProfile', on_delete=models.CASCADE, related_name='employments', null=True, blank=True)
+    trainee = models.ForeignKey('TraineeProfile', on_delete=models.CASCADE, related_name='employments', null=True, blank=True)
     designation = models.CharField(max_length=150)
     company_name = models.CharField(max_length=150)
     is_current = models.BooleanField(default=False)
@@ -103,7 +105,8 @@ class Employment(models.Model):
 
 
 class Education(models.Model):
-    candidate = models.ForeignKey(CandidateProfile, on_delete=models.CASCADE, related_name='educations')
+    candidate = models.ForeignKey('CandidateProfile', on_delete=models.CASCADE, related_name='educations', null=True, blank=True)
+    trainee = models.ForeignKey('TraineeProfile', on_delete=models.CASCADE, related_name='educations', null=True, blank=True)
     education_level = models.CharField(max_length=100, help_text="e.g. B.Tech / B.E.")
     course = models.CharField(max_length=100, help_text="e.g. Computer Science")
     university = models.CharField(max_length=200)
@@ -121,7 +124,8 @@ class Education(models.Model):
 
 
 class Project(models.Model):
-    candidate = models.ForeignKey(CandidateProfile, on_delete=models.CASCADE, related_name='projects')
+    candidate = models.ForeignKey('CandidateProfile', on_delete=models.CASCADE, related_name='projects', null=True, blank=True)
+    trainee = models.ForeignKey('TraineeProfile', on_delete=models.CASCADE, related_name='projects', null=True, blank=True)
     title = models.CharField(max_length=200)
     project_url = models.URLField(blank=True, null=True)
     start_date = models.DateField(blank=True, null=True)
@@ -137,12 +141,41 @@ class Project(models.Model):
     
 
 class TraineeProfile(models.Model):
-    user         = models.OneToOneField(User, on_delete=models.CASCADE, related_name='trainee_profile')
-    full_name    = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
-    batch_name   = models.CharField(max_length=100, blank=True, null=True)
-    is_active    = models.BooleanField(default=True)
-    joined_at    = models.DateTimeField(auto_now_add=True)
+    GENDER_CHOICES = (
+        ('Male', 'Male'), 
+        ('Female', 'Female'), 
+        ('Other', 'Other')
+    )
+    
+    MARITAL_CHOICES = (
+        ('Single', 'Single'), 
+        ('Married', 'Married'), 
+        ('Other', 'Other')
+    )
+
+    # Core Identifiers
+    user            = models.OneToOneField('User', on_delete=models.CASCADE, related_name='trainee_profile')
+    batch_name      = models.CharField(max_length=100, blank=True, null=True)
+    is_active       = models.BooleanField(default=True)
+    joined_at       = models.DateTimeField(auto_now_add=True)
+
+    # Basic Info
+    profile_photo   = models.ImageField(upload_to='trainee_photos/', blank=True, null=True)
+    full_name       = models.CharField(max_length=255)
+    phone_number    = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Professional Details
+    resume          = models.FileField(upload_to='trainee_resumes/', blank=True, null=True)
+    resume_headline = models.CharField(max_length=255, blank=True, null=True)
+    profile_summary = models.TextField(blank=True, null=True)
+    skills          = models.ManyToManyField('Skill', blank=True, related_name='trainees')
+    is_fresher      = models.BooleanField(default=True) # Defaulting to True since they are trainees
+    
+    # Personal Details
+    gender          = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
+    marital_status  = models.CharField(max_length=20, choices=MARITAL_CHOICES, blank=True, null=True)
+    date_of_birth   = models.DateField(blank=True, null=True)
+    languages_known = models.CharField(max_length=255, blank=True, null=True, help_text="Comma separated, e.g. English, Tamil")
 
     def __str__(self):
         return f"{self.full_name} — {self.batch_name or 'No Batch'}"
@@ -308,7 +341,8 @@ class JobApplication(models.Model):
         WITHDRAWN  = 'Withdrawn',  'Withdrawn'
 
     job       = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
-    candidate = models.ForeignKey('CandidateProfile', on_delete=models.CASCADE, related_name='applications')
+    candidate = models.ForeignKey('CandidateProfile', on_delete=models.CASCADE, related_name='applications', null=True, blank=True)    
+    trainee = models.ForeignKey('TraineeProfile', on_delete=models.CASCADE, related_name='applications', null=True, blank=True)
     status    = models.CharField(max_length=20, choices=Status.choices, default=Status.APPLIED)
     cover_letter = models.TextField(blank=True, null=True)
     applied_at   = models.DateTimeField(auto_now_add=True)
@@ -319,4 +353,187 @@ class JobApplication(models.Model):
         ordering = ['-applied_at']
 
     def __str__(self):
-        return f"{self.candidate.full_name} → {self.job.title}"
+        applicant_name = "Unknown Applicant"
+        
+        if self.candidate:
+            applicant_name = self.candidate.full_name
+        elif self.trainee:
+            applicant_name = self.trainee.full_name
+
+        return f"{applicant_name} → {self.job.title}"
+    
+
+
+class Feed(models.Model):
+    class FeedType(models.TextChoices):
+        ARTICLE      = 'article',     'Article'
+        TIP          = 'tip',         'Career Tip'
+        NEWS         = 'news',        'Industry News'
+        ANNOUNCEMENT = 'announcement', 'Announcement'
+
+    title       = models.CharField(max_length=255)
+    slug        = models.SlugField(unique=True, blank=True)
+    feed_type   = models.CharField(max_length=20, choices=FeedType.choices, default=FeedType.ARTICLE)
+    
+    # ── UPDATED: Now accepts images and videos ──
+    media_file  = models.FileField(
+        upload_to='feeds/media/', 
+        blank=True, 
+        null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mov'])],
+        help_text="Upload an image or a short video clip"
+    )
+    
+    excerpt     = models.TextField(max_length=300, help_text="Short summary shown on card")
+    content     = models.TextField(help_text="Full article content")
+    author_name = models.CharField(max_length=100, default="VCS Team")
+    tags        = models.CharField(max_length=255, blank=True, null=True,
+                                   help_text="Comma separated e.g. Python, Career, Jobs")
+    is_published = models.BooleanField(default=True)
+    is_featured  = models.BooleanField(default=False)
+    published_at = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+    views        = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-is_featured', '-published_at']
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            base = slugify(self.title)
+            slug, n = base, 1
+            while Feed.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base}-{n}"
+                n += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def get_tags_list(self):
+        return [t.strip() for t in (self.tags or '').split(',') if t.strip()]
+
+    def read_time(self):
+        words = len(self.content.split())
+        mins  = max(1, words // 200)
+        return f"{mins} min read"
+        
+
+    @property
+    def is_video(self):
+        if self.media_file:
+            extension = self.media_file.name.split('.')[-1].lower()
+            return extension in ['mp4', 'webm', 'mov']
+        return False
+
+
+
+class SubscriptionOffer(models.Model):
+    subtitle = models.CharField(max_length=100, default="ELEVATE YOUR CAREER")
+    main_title = models.CharField(max_length=100, default="25% Off on Pro")
+    button_text = models.CharField(max_length=50, default="Claim your offer")
+    bottom_text = models.CharField(max_length=100, default="Limited time only!")
+    
+    illustration = models.ImageField(upload_to='offers/', blank=True, null=True, help_text="Upload the isometric 3D character image here")
+    bg_gradient_start = models.CharField(max_length=20, default="#ffd97d", help_text="Hex color code (e.g., #ffd97d)")
+    bg_gradient_end = models.CharField(max_length=20, default="#fff4d1", help_text="Hex color code (e.g., #fff4d1)")
+    
+    is_active = models.BooleanField(default=False, help_text="Turn this on to display the banner to Free users")
+
+    def save(self, *args, **kwargs):
+        if self.is_active:
+            SubscriptionOffer.objects.exclude(pk=self.pk).update(is_active=False)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.main_title
+
+
+class ProFeature(models.Model):
+    name = models.CharField(max_length=200, help_text="e.g. Auto-Apply on Jobs")
+    is_active = models.BooleanField(default=True, help_text="Uncheck to hide this feature from the list")
+    order = models.PositiveIntegerField(default=0, help_text="Use numbers (1, 2, 3) to sort the list")
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return self.name
+    
+
+from django.db import models
+
+class SubscriptionPlan(models.Model):
+    # Core Plan Details
+    months = models.PositiveIntegerField(
+        help_text="Duration in months (e.g., 1, 3, 6)"
+    )
+    base_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        help_text="The original full price before any discounts"
+    )
+    
+    # First Discount (Usually duration-based, e.g., "Buy 3 months get 33% off")
+    disc1_pct = models.PositiveIntegerField(
+        default=0, 
+        help_text="First discount percentage (e.g., 33). Enter 0 if none."
+    )
+    disc1_code = models.CharField(
+        max_length=50, 
+        blank=True, 
+        help_text="Code name for 1st discount (e.g., 3MOFF)"
+    )
+    
+    # Second Discount (Usually a promo code, e.g., "PROSALE30")
+    disc2_pct = models.PositiveIntegerField(
+        default=0, 
+        help_text="Second discount percentage (e.g., 30). Enter 0 if none."
+    )
+    disc2_code = models.CharField(
+        max_length=50, 
+        blank=True, 
+        help_text="Code name for 2nd discount (e.g., PROSALE30)"
+    )
+    
+    # Taxes
+    gst_pct = models.PositiveIntegerField(
+        default=18, 
+        help_text="GST Percentage (default is 18%)"
+    )
+    
+    # UI/Display Adjustments
+    is_popular = models.BooleanField(
+        default=False, 
+        help_text="Highlight this plan with a 'Popular' badge?"
+    )
+    daily_text = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="Optional bottom text (e.g., 'just ₹ 20/day')"
+    )
+    
+    # Control Visibility
+    is_active = models.BooleanField(
+        default=True, 
+        help_text="Uncheck to hide this plan from users"
+    )
+
+    class Meta:
+        ordering = ['months']
+        verbose_name = "Subscription Plan"
+        verbose_name_plural = "Subscription Plans"
+
+    def __str__(self):
+        return f"{self.months}-Month Plan (₹{self.base_price})"
+
+    @property
+    def final_calculated_price(self):
+        """Helper to preview the final calculated price in the admin"""
+        base = float(self.base_price)
+        after_disc1 = base - (base * (self.disc1_pct / 100))
+        after_disc2 = after_disc1 - (after_disc1 * (self.disc2_pct / 100))
+        final = after_disc2 + (after_disc2 * (self.gst_pct / 100))
+        return round(final)
