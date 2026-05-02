@@ -40,7 +40,6 @@ class Skill(models.Model):
         return self.name
 
 class CandidateProfile(models.Model):
-    # Define Subscription Choices
     class SubscriptionPlan(models.TextChoices):
         FREE = 'Free', 'Free'
         PRO  = 'Pro',  'Pro'
@@ -73,14 +72,11 @@ class CandidateProfile(models.Model):
     languages_known = models.CharField(max_length=255, blank=True, null=True, help_text="Comma separated, e.g. English, Tamil")
     skills          = models.ManyToManyField('Skill', blank=True, related_name='candidates')
     is_fresher      = models.BooleanField(default=False)
-
-    # ── THE NEW SUBSCRIPTION FIELD ──
-    subscription_type = models.CharField(
-        max_length=10, 
-        choices=SubscriptionPlan.choices, 
+    subscription_type = models.CharField(max_length=10,choices=SubscriptionPlan.choices, 
         default=SubscriptionPlan.FREE,
         help_text="Candidate's current subscription plan"
     )
+    pro_expiry_date   = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.full_name} ({self.user.username})"
@@ -288,6 +284,10 @@ class Job(models.Model):
     hr_name  = models.CharField(max_length=100, blank=True, null=True)
     hr_email = models.EmailField(blank=True, null=True)
     hr_phone = models.CharField(max_length=20, blank=True, null=True)
+    is_masked_contact = models.BooleanField(
+        default=True, 
+        help_text="Check to partially mask HR contact details and require a button click to reveal."
+    )
 
     class Meta:
         ordering = ['-is_featured', '-posted_at']
@@ -463,12 +463,15 @@ class ProFeature(models.Model):
         return self.name
     
 
-from django.db import models
-
 class SubscriptionPlan(models.Model):
     # Core Plan Details
     months = models.PositiveIntegerField(
-        help_text="Duration in months (e.g., 1, 3, 6)"
+        default=0,
+        help_text="Duration in months (e.g., 1, 3). Enter 0 if this is a daily plan."
+    )
+    days = models.PositiveIntegerField(
+        default=0,
+        help_text="Duration in days (e.g., 28, 56). Enter 0 if this is a monthly plan."
     )
     base_price = models.DecimalField(
         max_digits=10, 
@@ -476,23 +479,23 @@ class SubscriptionPlan(models.Model):
         help_text="The original full price before any discounts"
     )
     
-    # First Discount (Usually duration-based, e.g., "Buy 3 months get 33% off")
-    disc1_pct = models.PositiveIntegerField(
+    # First Discount
+    discount1 = models.PositiveIntegerField(
         default=0, 
         help_text="First discount percentage (e.g., 33). Enter 0 if none."
     )
-    disc1_code = models.CharField(
+    discount1_code = models.CharField(
         max_length=50, 
         blank=True, 
         help_text="Code name for 1st discount (e.g., 3MOFF)"
     )
     
-    # Second Discount (Usually a promo code, e.g., "PROSALE30")
-    disc2_pct = models.PositiveIntegerField(
+    # Second Discount
+    discount2 = models.PositiveIntegerField(
         default=0, 
         help_text="Second discount percentage (e.g., 30). Enter 0 if none."
     )
-    disc2_code = models.CharField(
+    discount2_code = models.CharField(
         max_length=50, 
         blank=True, 
         help_text="Code name for 2nd discount (e.g., PROSALE30)"
@@ -522,18 +525,48 @@ class SubscriptionPlan(models.Model):
     )
 
     class Meta:
-        ordering = ['months']
+        ordering = ['months', 'days']
         verbose_name = "Subscription Plan"
         verbose_name_plural = "Subscription Plans"
 
     def __str__(self):
-        return f"{self.months}-Month Plan (₹{self.base_price})"
+        if self.days > 0 and self.months == 0:
+            return f"{self.days}-Day Plan (₹{self.base_price})"
+        elif self.months > 0:
+            return f"{self.months}-Month Plan (₹{self.base_price})"
+        return f"Custom Plan (₹{self.base_price})"
 
     @property
     def final_calculated_price(self):
         """Helper to preview the final calculated price in the admin"""
         base = float(self.base_price)
-        after_disc1 = base - (base * (self.disc1_pct / 100))
-        after_disc2 = after_disc1 - (after_disc1 * (self.disc2_pct / 100))
+        after_disc1 = base - (base * (self.discount1 / 100))
+        after_disc2 = after_disc1 - (after_disc1 * (self.discount2 / 100))
         final = after_disc2 + (after_disc2 * (self.gst_pct / 100))
         return round(final)
+    
+
+
+class PaymentOrder(models.Model):
+    class Status(models.TextChoices):
+        CREATED  = 'created',  'Created'
+        PAID     = 'paid',     'Paid'
+        FAILED   = 'failed',   'Failed'
+
+    candidate= models.ForeignKey(CandidateProfile, on_delete=models.CASCADE,related_name='payments')
+    plan= models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True, blank=True)
+    razorpay_order_id = models.CharField(max_length=100, unique=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_signature  = models.CharField(max_length=255, blank=True, null=True)
+    amount_paise      = models.PositiveIntegerField(help_text="Amount in paise")
+    status            = models.CharField(max_length=10, choices=Status.choices,
+                                         default=Status.CREATED)
+    created_at        = models.DateTimeField(auto_now_add=True)
+    paid_at           = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.candidate.full_name} — ₹{self.amount_paise//100} — {self.status}"
+
+    @property
+    def amount_rupees(self):
+        return self.amount_paise // 100

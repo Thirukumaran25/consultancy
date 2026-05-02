@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}
+    {% if success %}Payment Successful{% else %}Payment Failed{% endif %} — {{ ui_settings.site_name|default:"VCS" }}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-[75vh] flex items-center justify-center py-12 px-4 bg-[#eef2f7]">
+    <div class="max-w-[480px] w-full bg-white rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-[#e4eaf2] p-8 md:p-10 text-center relative overflow-hidden">
+
+        {% if success %}
+            <!-- ── SUCCESS STATE ── -->
+            <div class="w-[80px] h-[80px] bg-[#e6fff0] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#b2f2bb]">
+                <i class="fa-solid fa-check text-[36px] text-[#057a2e]"></i>
+            </div>
+
+            <h1 class="text-[26px] font-extrabold text-[#1a2b4a] mb-2">Payment Successful!</h1>
+            <p class="text-[15px] text-[#4a5568] mb-8">Welcome to Pro. Your premium benefits have been activated immediately.</p>
+
+            {% if payment_order %}
+            <div class="bg-[#f8fbff] border border-[#d8e4f0] rounded-[16px] p-5 mb-8 text-left space-y-3 text-[14px]">
+                <div class="flex justify-between items-center">
+                    <span class="text-[#7a8fa6] font-semibold">Order ID</span>
+                    <span class="font-mono text-[#1a2b4a] font-bold text-[13px]">{{ payment_order.razorpay_order_id }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[#7a8fa6] font-semibold">Plan</span>
+                    <span class="font-bold text-[#1a2b4a]">{{ payment_order.plan.months }} Month Pro</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[#7a8fa6] font-semibold">Date</span>
+                    <span class="font-bold text-[#1a2b4a]">{{ payment_order.paid_at|date:"d M Y, h:i A" }}</span>
+                </div>
+                <div class="border-t border-[#e4eaf2] pt-3 mt-1 flex justify-between items-center">
+                    <span class="text-[#7a8fa6] font-semibold">Amount Paid</span>
+                    <span class="font-extrabold text-[#057a2e] text-[18px]">₹{{ payment_order.amount_rupees }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Link back to Candidate Dashboard -->
+            <a href="{% url 'candidate_dashboard' %}" 
+               class="block w-full bg-[#3d35c4] hover:bg-[#2d27a8] text-white font-extrabold text-[16px] py-4 rounded-[12px] transition-colors shadow-md">
+                Go to My Dashboard
+            </a>
+
+        {% else %}
+            <!-- ── FAILED STATE ── -->
+            <div class="w-[80px] h-[80px] bg-[#fff0f0] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#ffcaca]">
+                <i class="fa-solid fa-xmark text-[36px] text-[#e05c5c]"></i>
+            </div>
+
+            <h1 class="text-[26px] font-extrabold text-[#1a2b4a] mb-2">Payment Failed</h1>
+            <p class="text-[15px] text-[#4a5568] mb-6 leading-relaxed">
+                We could not verify your payment. If money was deducted from your account, it will be refunded automatically by your bank within 3-5 business days.
+            </p>
+
+            {% if payment_order %}
+            <div class="bg-[#f8fbff] border border-[#d8e4f0] rounded-[12px] p-4 mb-8 text-[13px] text-[#7a8fa6]">
+                Attempted Order ID: <br>
+                <span class="font-mono font-bold text-[#1a2b4a]">{{ payment_order.razorpay_order_id }}</span>
+            </div>
+            {% endif %}
+
+            <div class="space-y-3">
+                <a href="{% url 'upgrade_subscription' %}" 
+                   class="block w-full bg-[#3d35c4] hover:bg-[#2d27a8] text-white font-extrabold text-[16px] py-4 rounded-[12px] transition-colors shadow-md">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Try Again
+                </a>
+                
+                <a href="{% url 'candidate_dashboard' %}" 
+                   class="block w-full bg-[#f1f5fb] hover:bg-[#e4eaf2] text-[#4a5568] font-bold text-[15px] py-3.5 rounded-[12px] transition-colors">
+                    Cancel & Return Home
+                </a>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

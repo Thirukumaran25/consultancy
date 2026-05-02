@@ -97,7 +97,7 @@
 </head>
 <body class="antialiased bg-[#eef2f7] min-h-screen flex items-center justify-center p-5">
 
-<div class="bg-white rounded-[20px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] flex w-full max-w-[960px] overflow-hidden flex-col md:flex-row">
+<div class="bg-white rounded-[20px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] flex w-full max-w-[960px] overflow-hidden flex-col md:flex-row relative">
 
     <!-- ── LEFT PANEL ── -->
     <div class="hidden md:flex flex-col flex-1 bg-gradient-to-br from-[#ddeeff] to-[#c8e4ff] p-[30px]">
@@ -206,7 +206,7 @@
                     <i class="fa-solid fa-phone field-icon"></i>
                     <input type="tel" name="phone_number" id="id_phone"
                            placeholder="+91 00000 00000" required
-                           value="{{ form_data.phone|default:'' }}"
+                           value="{{ form_data.phone_number|default:'' }}"
                            class="input-base {% if errors.phone_number %}error{% endif %}">
                 </div>
                 {% if errors.phone_number %}
@@ -223,6 +223,7 @@
                     <i class="fa-solid fa-lock field-icon"></i>
                     <input type="password" name="password1" id="id_password1"
                            placeholder="••••••••" autocomplete="new-password" required
+                           value="{{ form_data.password1|default:'' }}"
                            class="input-base pr-[38px] {% if errors.password1 %}error{% endif %}">
                     <i class="fa-solid fa-eye eye-icon" id="eye1"></i>
                 </div>
@@ -255,6 +256,7 @@
                     <i class="fa-solid fa-lock field-icon"></i>
                     <input type="password" name="password2" id="id_password2"
                            placeholder="••••••••" autocomplete="new-password" required
+                           value="{{ form_data.password2|default:'' }}"
                            class="input-base pr-[38px] {% if errors.password2 %}error{% endif %}">
                     <i class="fa-solid fa-eye eye-icon" id="eye2"></i>
                 </div>
@@ -274,6 +276,7 @@
             <!-- Terms -->
             <div class="flex items-center gap-2 mb-4 mt-2">
                 <input type="checkbox" id="terms" name="terms" required
+                       {% if form_data.terms %}checked{% endif %} 
                        class="w-4 h-4 cursor-pointer accent-[#3d35c4]">
                 <label for="terms" class="text-[12.5px] text-[#7a8fa6] font-medium cursor-pointer m-0">
                     I agree to the
@@ -298,51 +301,68 @@
                 <i class="fa-solid fa-user-plus"></i> Create Account
             </button>
 
-            <!-- Step 2: Email verification box -->
-            <div class="hidden mb-[16px] bg-[#fcfdff] border border-[#e4eaf2] p-[16px] rounded-[10px] mt-4 shadow-sm"
-                 id="verification-box">
-                <p class="text-[13px] font-bold text-[#1a2b4a] mb-1">
-                    <i class="fa-solid fa-envelope text-[#4b6cf5]"></i>
-                    Verify your email address
-                </p>
-                <p class="text-[12px] text-[#7a8fa6] mb-3" id="email-display-label"></p>
 
-                <button type="button" id="btn-send-otp"
-                    class="bg-[#f4f7fc] text-[#4b6cf5] font-bold text-[13px] py-2 px-5
-                           rounded-[8px] border border-[#d8e4f0] hover:bg-[#ebf0f8]
-                           hover:border-[#c5d4e6] transition-colors">
-                    <i class="fa-solid fa-paper-plane"></i> Send Verification Code
-                </button>
-
-                <div id="otp-status-msg" class="text-[12px] font-bold mt-3 hidden"></div>
-            </div>
-
-            <!-- Step 3: OTP input -->
-            <div class="hidden mt-3" id="otp-input-section">
-                <label class="block text-[12.5px] font-bold text-[#27ae60] mb-1.5">
-                    <i class="fa-solid fa-shield-check"></i> Enter 6-Digit Code
-                </label>
-                <input type="text" name="otp" id="id_otp"
-                       placeholder="1  2  3  4  5  6" maxlength="6" inputmode="numeric"
-                       class="w-full py-[11px] px-[14px] border-[1.5px] border-[#27ae60]
-                              rounded-[10px] font-['Exo',sans-serif] text-[16px] text-center
-                              tracking-[8px] font-bold text-[#1a2b4a] bg-[#f0fff4] outline-none
-                              focus:shadow-[0_0_0_3px_rgba(39,174,96,0.15)]">
-                {% if errors.otp %}
-                    <div class="field-alert show err mt-1">
-                        <i class="fa-solid fa-circle-exclamation"></i> {{ errors.otp }}
+            <!-- ── OTP VERIFICATION MODAL ── -->
+            <div id="otpModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#1a2b4a]/60 backdrop-blur-[2px] px-4">
+                <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-[420px] overflow-hidden transform transition-all animate-[fade-in-up_0.3s_ease-out]">
+                    
+                    <!-- Modal Header -->
+                    <div class="px-6 py-4 border-b border-[#f0f4f8] flex justify-between items-center bg-[#f8fbff]">
+                        <h3 class="font-extrabold text-[#1a2b4a] text-[16px] flex items-center gap-2">
+                            <i class="fa-solid fa-envelope-circle-check text-[#4b6cf5] text-lg"></i>
+                            Verify Email Address
+                        </h3>
+                        <button type="button" id="closeModalBtn" class="text-[#aab8c8] hover:text-[#e74c3c] transition-colors">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
                     </div>
-                {% endif %}
-            </div>
 
-            <!-- Step 4: Final submit -->
-            <button type="submit" id="submitBtn"
-                class="hidden w-full p-[13px] bg-[#27ae60] text-white border-none rounded-[10px]
-                       font-['Exo',sans-serif] text-[15px] font-bold cursor-pointer mt-4
-                       transition-all duration-200 hover:bg-[#219653] active:scale-[0.99]
-                       justify-center items-center gap-2">
-                <i class="fa-solid fa-circle-check"></i> Verify & Register
-            </button>
+                    <!-- Modal Body -->
+                    <div class="p-6">
+                        <p class="text-[13.5px] text-[#4a5568] mb-4 text-center" id="email-display-label">
+                            <!-- JS injects email here -->
+                        </p>
+
+                        <button type="button" id="btn-send-otp"
+                            class="w-full bg-[#f4f7fc] text-[#4b6cf5] font-bold text-[14px] py-3 px-5
+                                   rounded-[12px] border border-[#d8e4f0] hover:bg-[#ebf0f8]
+                                   hover:border-[#c5d4e6] transition-colors shadow-sm mb-2 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> Send Verification Code
+                        </button>
+
+                        <div id="otp-status-msg" class="text-[13px] font-bold text-center mt-3 mb-2 hidden"></div>
+
+                        <!-- OTP Input Box -->
+                        <div class="hidden mt-5" id="otp-input-section">
+                            <label class="block text-[13px] font-bold text-[#27ae60] mb-2 text-center">
+                                <i class="fa-solid fa-shield-check"></i> Enter 6-Digit Code
+                            </label>
+                            
+                            <input type="text" name="otp" id="id_otp"
+                                   placeholder="1  2  3  4  5  6" maxlength="6" inputmode="numeric"
+                                   class="w-full py-[14px] px-[14px] border-[2px] border-[#27ae60]
+                                          rounded-[14px] font-['Exo',sans-serif] text-[20px] text-center
+                                          tracking-[8px] font-black text-[#1a2b4a] bg-[#f0fff4] outline-none
+                                          focus:shadow-[0_0_0_4px_rgba(39,174,96,0.15)] transition-all">
+                            
+                            {% if errors.otp %}
+                                <div class="field-alert show err justify-center mt-3 py-2 text-[12.5px]" id="server-otp-error">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.otp }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Modal Submit Button -->
+                        <button type="submit" id="submitBtn"
+                            class="hidden w-full p-[14px] bg-[#27ae60] text-white border-none rounded-[12px]
+                                   font-['Exo',sans-serif] text-[16px] font-bold cursor-pointer mt-5
+                                   transition-all duration-200 hover:bg-[#219653] active:scale-[0.99]
+                                   justify-center items-center gap-2 shadow-md">
+                            <i class="fa-solid fa-circle-check"></i> Verify & Register
+                        </button>
+                    </div>
+                </div>
+            </div>
 
         </form>
 
@@ -483,15 +503,27 @@ function checkConfirm() {
 }
 pwd2.addEventListener('input', checkConfirm);
 
-/* ── Step 1: Trigger verification box ── */
-const triggerBtn      = document.getElementById('triggerVerifyBtn');
-const verificationBox = document.getElementById('verification-box');
+/* ── MODAL TOGGLES ── */
+const otpModal = document.getElementById('otpModal');
+
+document.getElementById('closeModalBtn').addEventListener('click', function() {
+    otpModal.classList.add('hidden');
+    otpModal.classList.remove('flex');
+});
+
+
+/* ── Step 1: Trigger Modal ── */
+const triggerBtn = document.getElementById('triggerVerifyBtn');
 const emailDisplayLabel = document.getElementById('email-display-label');
 
-triggerBtn.addEventListener('click', function () {
+triggerBtn.addEventListener('click', async function () {
     // HTML5 validity
     const form = document.getElementById('candidateForm');
     if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    // Immediate Visual Check: Block if inputs already show an error state
+    if (usernameInput.classList.contains('error')) { usernameInput.focus(); return; }
+    if (emailInput.classList.contains('error')) { emailInput.focus(); return; }
 
     // Custom checks
     if (/\s/.test(usernameInput.value)) { usernameInput.focus(); return; }
@@ -501,11 +533,42 @@ triggerBtn.addEventListener('click', function () {
 
     if (pwd1.value !== pwd2.value) { pwd2.focus(); return; }
 
-    // Show verification box
-    emailDisplayLabel.textContent = `A 6-digit code will be sent to: ${emailInput.value}`;
-    triggerBtn.classList.add('hidden');
-    verificationBox.classList.remove('hidden');
-    verificationBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // FINAL SECURITY CHECK: Verify availability before showing OTP box
+    this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+    this.disabled = true;
+
+    const isUserTaken = await checkAvailability('username', usernameInput.value.trim());
+    const isEmailTaken = await checkAvailability('email', emailInput.value.trim());
+
+    if (isUserTaken) {
+        usernameAlertMsg.textContent = 'Username already taken';
+        usernameAlert.className = 'field-alert show err';
+        usernameInput.classList.add('error'); usernameInput.classList.remove('success');
+        usernameInput.focus();
+        
+        this.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Account';
+        this.disabled = false;
+        return; 
+    }
+
+    if (isEmailTaken) {
+        emailAlertMsg.textContent = 'Email already registered';
+        emailAlert.className = 'field-alert show err';
+        emailInput.classList.add('error'); emailInput.classList.remove('success');
+        emailInput.focus();
+        
+        this.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Account';
+        this.disabled = false;
+        return; 
+    }
+
+    this.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Account';
+    this.disabled = false;
+
+    // Show Modal
+    emailDisplayLabel.innerHTML = `A 6-digit code will be sent to:<br><strong class="text-[#1a2b4a] text-[15px] mt-1 block">${emailInput.value}</strong>`;
+    otpModal.classList.remove('hidden');
+    otpModal.classList.add('flex');
 });
 
 /* ── Step 2: Send OTP ── */
@@ -513,7 +576,7 @@ document.getElementById('btn-send-otp').addEventListener('click', async function
     const email     = emailInput.value.trim();
     const statusMsg = document.getElementById('otp-status-msg');
 
-    this.innerHTML  = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    this.innerHTML  = '<i class="fa-solid fa-spinner fa-spin"></i> Sending Code...';
     this.disabled   = true;
 
     try {
@@ -528,7 +591,7 @@ document.getElementById('btn-send-otp').addEventListener('click', async function
         statusMsg.classList.remove('hidden');
 
         if (data.success) {
-            // Show OTP input + submit button
+            // Show OTP input + submit button inside Modal
             document.getElementById('otp-input-section').classList.remove('hidden');
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.classList.remove('hidden');
@@ -556,17 +619,117 @@ document.getElementById('id_otp').addEventListener('input', function () {
     this.value = this.value.replace(/\D/g, '').slice(0, 6);
 });
 
-/* ── Restore OTP section if backend returned OTP error ── */
-{% if errors.otp %}
-    document.getElementById('triggerVerifyBtn').classList.add('hidden');
-    verificationBox.classList.remove('hidden');
+/* ── Restore OTP Modal on Error (Fallback) ── */
+{% if form_data %}
+    // Automatically reopen the modal if a hard reload occurs
+    otpModal.classList.remove('hidden');
+    otpModal.classList.add('flex');
+    
+    // Ensure inputs are visible
     document.getElementById('otp-input-section').classList.remove('hidden');
     const sb = document.getElementById('submitBtn');
     sb.classList.remove('hidden');
     sb.classList.add('flex');
-    document.getElementById('email-display-label').textContent =
-        'Please request a new code if the previous one expired.';
+    
+    const displayLabel = document.getElementById('email-display-label');
+    {% if errors.otp %}
+        displayLabel.innerHTML = '<span style="color:#e74c3c; font-weight:800; font-size:14.5px;"><i class="fa-solid fa-circle-exclamation"></i> Incorrect Code</span><br><span style="color:#7a8fa6; margin-top:4px; display:block;">Please check your email and try again.</span>';
+        document.getElementById('btn-send-otp').innerHTML = '<i class="fa-solid fa-paper-plane"></i> Resend Code';
+    {% else %}
+        displayLabel.innerHTML = `Code sent to:<br><strong class="text-[#1a2b4a] text-[15px] mt-1 block">{{ form_data.email|default:"" }}</strong>`;
+    {% endif %}
 {% endif %}
+
+/* ── Step 4: Silent Form Submission (Prevents Reload on Wrong OTP) ── */
+const candidateForm = document.getElementById('candidateForm');
+
+candidateForm.addEventListener('submit', async function (e) {
+    e.preventDefault(); // Stop normal reload
+
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+    submitBtn.disabled = true;
+
+    // Clear previous AJAX errors
+    const existingError = document.getElementById('ajax-otp-error');
+    if (existingError) existingError.remove();
+    
+    const serverError = document.getElementById('server-otp-error');
+    if (serverError) serverError.remove();
+
+    const formData = new FormData(this);
+
+    try {
+        const response = await fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        // 1. Check if Django redirected us (Successful registration!)
+        if (response.redirected) {
+            window.location.href = response.url;
+            return; 
+        }
+
+        // 2. Parse the returned HTML
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        
+        // 3. Did Django return a completely different page? (Another success indicator)
+        if (!doc.getElementById('candidateForm')) {
+            document.open();
+            document.write(htmlText);
+            document.close();
+            return;
+        }
+
+        // 4. We are still on the registration form. Did the OTP fail?
+        const returnedOtpSection = doc.getElementById('otp-input-section');
+        const errorElement = returnedOtpSection ? returnedOtpSection.querySelector('.err') : null;
+
+        if (errorElement) {
+            // WE FOUND THE WRONG OTP ERROR! Inject it into our open modal.
+            const otpSection = document.getElementById('otp-input-section');
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'ajax-otp-error';
+            errorDiv.className = 'field-alert show err justify-center mt-3 py-2 text-[12.5px]';
+            errorDiv.innerHTML = errorElement.innerHTML;
+            
+            otpSection.appendChild(errorDiv);
+            
+            // Clear the input box
+            const otpInput = document.getElementById('id_otp');
+            otpInput.value = '';
+            otpInput.focus();
+
+            // Update modal text
+            const displayLabel = document.getElementById('email-display-label');
+            displayLabel.innerHTML = '<span style="color:#e74c3c; font-weight:800; font-size:14.5px;"><i class="fa-solid fa-circle-exclamation"></i> Incorrect Code</span><br><span style="color:#7a8fa6; margin-top:4px; display:block;">Please check your email and try again.</span>';
+            
+            document.getElementById('btn-send-otp').innerHTML = '<i class="fa-solid fa-paper-plane"></i> Resend Code';
+
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        } else {
+            // There's a DIFFERENT error. Safely load the returned HTML.
+            document.open();
+            document.write(htmlText);
+            document.close();
+        }
+
+    } catch (error) {
+        alert("Network error. Please try again.");
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+});
 </script>
 
 </body>

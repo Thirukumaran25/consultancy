@@ -45,60 +45,78 @@
 </div>
 {% endif %}
 
-    <!-- ── STAT CARDS ── -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-        {% with cards=stats %}
+    <!-- ── STAT CARDS (Compact Minimalist Design) ── -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+    {% with cards=stats %}
 
-        <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-transform">
-            <div class="w-[40px] h-[40px] rounded-[10px] bg-[#ede9ff] text-[#3d35c4] flex items-center justify-center text-[16px] mb-3">
-                <i class="fa-solid fa-paper-plane"></i>
-            </div>
-            <div class="text-[11px] text-[#7a8fa6] font-semibold mb-0.5">Total Applied</div>
-            <div class="text-[22px] font-extrabold text-[#1a2b4a]">{{ stats.total }}</div>
+    <!-- Total Applied -->
+    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#eef3ff] text-[#3d35c4] flex items-center justify-center text-[17px]">
+            <i class="fa-solid fa-file-export"></i>
         </div>
-
-        <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-transform">
-            <div class="w-[40px] h-[40px] rounded-[10px] bg-[#e6fff0] text-[#057a2e] flex items-center justify-center text-[16px] mb-3">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <div class="text-[11px] text-[#7a8fa6] font-semibold mb-0.5">Shortlisted</div>
-            <div class="text-[22px] font-extrabold text-[#1a2b4a]">{{ stats.shortlisted }}</div>
+        <div>
+            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.total }}</p>
+            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Total Applied</h3>
         </div>
-
-        <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-transform">
-            <div class="w-[40px] h-[40px] rounded-[10px] bg-[#ede9ff] text-[#4338ca] flex items-center justify-center text-[16px] mb-3">
-                <i class="fa-solid fa-calendar-check"></i>
-            </div>
-            <div class="text-[11px] text-[#7a8fa6] font-semibold mb-0.5">Interview</div>
-            <div class="text-[22px] font-extrabold text-[#1a2b4a]">{{ stats.interview }}</div>
-        </div>
-
-        <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-transform">
-            <div class="w-[40px] h-[40px] rounded-[10px] bg-[#fff7e6] text-[#b45309] flex items-center justify-center text-[16px] mb-3">
-                <i class="fa-solid fa-clock"></i>
-            </div>
-            <div class="text-[11px] text-[#7a8fa6] font-semibold mb-0.5">Pending</div>
-            <div class="text-[22px] font-extrabold text-[#1a2b4a]">{{ stats.pending }}</div>
-        </div>
-
-        <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-transform">
-            <div class="w-[40px] h-[40px] rounded-[10px] bg-[#e6fff0] text-[#057a2e] flex items-center justify-center text-[16px] mb-3">
-                <i class="fa-solid fa-handshake"></i>
-            </div>
-            <div class="text-[11px] text-[#7a8fa6] font-semibold mb-0.5">Offered</div>
-            <div class="text-[22px] font-extrabold text-[#1a2b4a]">{{ stats.offered }}</div>
-        </div>
-
-        <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100 hover:-translate-y-0.5 transition-transform">
-            <div class="w-[40px] h-[40px] rounded-[10px] bg-[#fee2e2] text-[#b91c1c] flex items-center justify-center text-[16px] mb-3">
-                <i class="fa-solid fa-xmark"></i>
-            </div>
-            <div class="text-[11px] text-[#7a8fa6] font-semibold mb-0.5">Rejected</div>
-            <div class="text-[22px] font-extrabold text-[#1a2b4a]">{{ stats.rejected }}</div>
-        </div>
-
-        {% endwith %}
     </div>
+
+    <!-- Shortlisted -->
+    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#e6fff0] text-[#057a2e] flex items-center justify-center text-[17px]">
+            <i class="fa-solid fa-clipboard-check"></i>
+        </div>
+        <div>
+            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.shortlisted }}</p>
+            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Shortlisted</h3>
+        </div>
+    </div>
+
+    <!-- Interview -->
+    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#ede9ff] text-[#4338ca] flex items-center justify-center text-[17px]">
+            <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <div>
+            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.interview }}</p>
+            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Interview</h3>
+        </div>
+    </div>
+
+    <!-- Pending -->
+    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#fff7e6] text-[#b45309] flex items-center justify-center text-[17px]">
+            <i class="fa-solid fa-hourglass-half"></i>
+        </div>
+        <div>
+            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.pending }}</p>
+            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Pending</h3>
+        </div>
+    </div>
+
+    <!-- Offered -->
+    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#f0fdfa] text-[#0f766e] flex items-center justify-center text-[17px]">
+            <i class="fa-solid fa-file-contract"></i>
+        </div>
+        <div>
+            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.offered }}</p>
+            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Offered</h3>
+        </div>
+    </div>
+
+    <!-- Rejected -->
+    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#fff1f2] text-[#e11d48] flex items-center justify-center text-[17px]">
+            <i class="fa-solid fa-box-archive"></i>
+        </div>
+        <div>
+            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.rejected }}</p>
+            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Rejected</h3>
+        </div>
+    </div>
+
+    {% endwith %}
+</div>
 
     <div class="flex flex-col lg:flex-row gap-6">
 

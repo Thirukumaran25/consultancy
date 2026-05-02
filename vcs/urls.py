@@ -9,6 +9,8 @@ urlpatterns = [
     path('candidate/register/',  views.candidate_register,  name='candidate_register'),
     path('send-otp/', views.send_registration_otp, name='send_registration_otp'),
     path('upgrade/', views.upgrade_subscription, name='upgrade_subscription'),
+    path('payment/success/',   views.payment_success,      name='payment_success'),
+    path('payment/failed/',    views.payment_failed,       name='payment_failed'),
 
     # Add to urlpatterns
     path('services/',                         views.services,          name='services'),

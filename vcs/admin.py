@@ -151,23 +151,42 @@ class ProFeatureAdmin(admin.ModelAdmin):
 
 @admin.register(SubscriptionPlan)
 class SubscriptionPlanAdmin(admin.ModelAdmin):
-    list_display = ('months', 'base_price', 'disc1_pct', 'disc2_pct', 'is_popular', 'is_active', 'final_calculated_price')
-    list_filter = ('is_active', 'is_popular', 'months')
-    search_fields = ('disc1_code', 'disc2_code')
+    list_display = (
+        'months', 'days', 'base_price', 'discount1', 
+        'discount2', 'is_popular', 'is_active', 'final_calculated_price'
+    )
+    list_filter = ('is_active', 'is_popular', 'months', 'days')
+    search_fields = ('discount1_code', 'discount2_code')
     
     fieldsets = (
         ('Plan Duration & Price', {
-            'fields': ('months', 'base_price')
+            'fields': ('months', 'days', 'base_price'),
+            'description': "Set either Months or Days. For a 28-day plan, set Months to 0 and Days to 28."
         }),
         ('First Discount (Duration Based)', {
-            'fields': ('disc1_pct', 'disc1_code'),
+            'fields': ('discount1', 'discount1_code'),
             'description': "Example: 33% off for buying 3 months."
         }),
         ('Second Discount (Promo Based)', {
-            'fields': ('disc2_pct', 'disc2_code'),
+            'fields': ('discount2', 'discount2_code'),
             'description': "Example: 30% off PROSALE promo."
         }),
         ('Taxes & Display', {
             'fields': ('gst_pct', 'is_popular', 'daily_text', 'is_active')
         }),
     )
+
+
+
+@admin.register(PaymentOrder)
+class PaymentOrderAdmin(admin.ModelAdmin):
+    list_display  = ('candidate', 'plan', 'amount_rupees_display', 'status',
+                      'razorpay_order_id', 'created_at', 'paid_at')
+    list_filter   = ('status', 'created_at')
+    search_fields = ('candidate__full_name', 'razorpay_order_id', 'razorpay_payment_id')
+    readonly_fields = ('razorpay_order_id', 'razorpay_payment_id',
+                       'razorpay_signature', 'created_at', 'paid_at')
+
+    def amount_rupees_display(self, obj):
+        return f"₹{obj.amount_rupees}"
+    amount_rupees_display.short_description = 'Amount'

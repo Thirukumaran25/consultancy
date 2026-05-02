@@ -12,7 +12,20 @@ from .otp_utils import generate_otp, send_otp_email
 from django.shortcuts import get_object_or_404
 from .recommender import get_recommendations, get_skill_gap
 from django.urls import reverse
+import razorpay
+import hmac
+import hashlib
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.core.mail import send_mail
 
+
+
+def get_razorpay_client():
+    return razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
 
 
 # ── HELPERS ────────────────────────────────────────────────────────────────
@@ -42,84 +55,228 @@ def check_availability(request):
     return JsonResponse({'is_taken': taken})
 
 
-
-import json
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-# Make sure to import your new model alongside ProFeature!
-from .models import ProFeature, SubscriptionPlan 
-
 @login_required(login_url='login')
 def upgrade_subscription(request):
-    # 1. Your existing role check
     if getattr(request.user, 'role', '') != 'candidate':
         return redirect('dashboard')
-        
-    profile = request.user.candidate_profile
-    
-    # 2. Your existing POST handler (When they click "Continue")
-    if request.method == 'POST':
-        # (Optional) You can grab the selected plan ID here if you want 
-        # to calculate an expiration date in the future!
-        # selected_plan_id = request.POST.get('plan_id')
-        
-        profile.subscription_type = 'Pro'
-        profile.save()
-        messages.success(request, "🎉 Successfully upgraded to PRO!")
-        return redirect('candidate_profile')
-    
-    # 3. Your existing features query
+
+    profile  = request.user.candidate_profile
     features = ProFeature.objects.filter(is_active=True).order_by('order')
-    
-    # 4. The NEW Dynamic Plans Logic
-    db_plans = SubscriptionPlan.objects.filter(is_active=True).order_by('months')
+    db_plans = SubscriptionPlan.objects.filter(is_active=True).order_by('months', 'days')
+
+    def calculate_plan(p):
+        """Strict Integer Calculation to prevent 1-rupee rounding mismatches."""
+        base = int(round(float(p.base_price)))
+
+        # Update variable names to match new model fields
+        discount1_amount = int(round(base * (p.discount1 / 100.0)))
+        after_disc1  = base - discount1_amount
+
+        discount2_amount = int(round(after_disc1 * (p.discount2 / 100.0)))
+        display_price = after_disc1 - discount2_amount
+
+        gst_amount = int(round(display_price * (p.gst_pct / 100.0)))
+        final_payable = display_price + gst_amount
+
+        return {
+            'base_price':       base,
+            'discount1_amount': discount1_amount,
+            'after_disc1':      after_disc1,
+            'discount2_amount': discount2_amount,
+            'display_price':    display_price,
+            'gst_amount':       gst_amount,
+            'final_payable':    final_payable,
+        }
+
     processed_plans = []
-    
     for p in db_plans:
-        base = float(p.base_price)
-        
-        # Calculate Discounts & GST
-        disc1_amount = round(base * (p.disc1_pct / 100))
-        after_disc1 = base - disc1_amount
-        
-        disc2_amount = round(after_disc1 * (p.disc2_pct / 100))
-        after_disc2 = after_disc1 - disc2_amount
-        
-        gst_amount = round(after_disc2 * (p.gst_pct / 100))
-        final_payable = after_disc2 + gst_amount
-        
-        # Badge logic
-        badge_text = f"{p.disc2_pct}% off" if p.disc2_pct else ""
-        if p.disc1_pct > 0 and p.disc2_pct > 0:
-            badge_text = f"{p.disc1_pct}% + {p.disc2_pct}% off"
-        elif p.disc1_pct > 0:
-            badge_text = f"{p.disc1_pct}% off"
+        calc = calculate_plan(p)
+
+        badge_text = ""
+        if p.discount1 > 0 and p.discount2 > 0:
+            badge_text = f"{p.discount1}% + {p.discount2}% off"
+        elif p.discount1 > 0:
+            badge_text = f"{p.discount1}% off"
+        elif p.discount2 > 0:
+            badge_text = f"{p.discount2}% off"
 
         processed_plans.append({
-            'id': p.id,
-            'months': p.months,
-            'base_price': int(base),
-            'display_price': int(after_disc2),
-            'disc1_pct': p.disc1_pct,
-            'disc1_code': p.disc1_code,
-            'disc1_amount': int(disc1_amount),
-            'disc2_pct': p.disc2_pct,
-            'disc2_code': p.disc2_code,
-            'disc2_amount': int(disc2_amount),
-            'gst_amount': int(gst_amount),
-            'final_payable': int(final_payable),
-            'badge_text': badge_text,
-            'is_popular': p.is_popular,
-            'daily_text': p.daily_text,
+            'id':               p.id,
+            'months':           p.months,
+            'days':             p.days,
+            'base_price':       calc['base_price'],
+            'display_price':    calc['display_price'],
+            'discount1':        p.discount1,
+            'discount1_code':   p.discount1_code,
+            'discount1_amount': calc['discount1_amount'],
+            'discount2':        p.discount2,
+            'discount2_code':   p.discount2_code,
+            'discount2_amount': calc['discount2_amount'],
+            'gst_amount':       calc['gst_amount'],
+            'final_payable':    calc['final_payable'],
+            'badge_text':       badge_text,
+            'is_popular':       p.is_popular,
+            'daily_text':       p.daily_text,
         })
-        
-    # 5. Render your existing template, passing ALL the data
+
+    if request.method == 'POST':
+        plan_id = request.POST.get('plan_id')
+        if not plan_id:
+            messages.error(request, "Please select a plan.")
+            return redirect('upgrade_subscription')
+
+        plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
+
+        calc         = calculate_plan(plan)
+        final_rupees = calc['final_payable']
+        amount_paise = final_rupees * 100
+
+        client = get_razorpay_client()
+        rz_order = client.order.create({
+            'amount':   amount_paise,
+            'currency': 'INR',
+            'receipt':  f"vcs_sub_{profile.id}_{plan.id}",
+            'notes': {
+                'candidate_id': profile.id,
+                'plan_id':      plan.id,
+                'plan_months':  plan.months,
+                'plan_days':    plan.days,
+            }
+        })
+
+        return render(request, 'upgrade_plan.html', {
+            'profile':            profile,
+            'features':           features,
+            'plans':              processed_plans,
+            'plans_json':         json.dumps(processed_plans),
+            'ui_settings':        get_ui() if 'get_ui' in globals() else None,
+            'show_payment_modal': True,
+            'amount_paise':       amount_paise, 
+            'plan':               plan,
+            'calc':               calc,
+            'final_rupees':       final_rupees,
+            'razorpay_key_id':    settings.RAZORPAY_KEY_ID,
+            'rz_order':           rz_order,
+        })
+
     return render(request, 'upgrade_plan.html', {
-        'profile': profile,
-        'features': features,
-        'plans': processed_plans,
-        'plans_json': json.dumps(processed_plans)
+        'profile':     profile,
+        'features':    features,
+        'plans':       processed_plans,
+        'plans_json':  json.dumps(processed_plans),
+        'ui_settings': get_ui() if 'get_ui' in globals() else None,
+    })
+
+
+# ── PAYMENT SUCCESS CALLBACK ───────────────────────────────────────────────
+@csrf_exempt
+def payment_success(request):
+    if request.method != 'POST':
+        return redirect('upgrade_subscription')
+
+    razorpay_order_id   = request.POST.get('razorpay_order_id')
+    razorpay_payment_id = request.POST.get('razorpay_payment_id')
+    razorpay_signature  = request.POST.get('razorpay_signature')
+
+    # 1. Verify Razorpay Signature
+    key_secret = settings.RAZORPAY_KEY_SECRET.encode()
+    msg        = f"{razorpay_order_id}|{razorpay_payment_id}".encode()
+    generated  = hmac.new(key_secret, msg, hashlib.sha256).hexdigest()
+
+    if generated == razorpay_signature:
+        # 2. Fetch Order Details from Razorpay Notes
+        client = get_razorpay_client()
+        try:
+            rz_order_details = client.order.fetch(razorpay_order_id)
+            notes = rz_order_details.get('notes', {})
+            candidate_id = notes.get('candidate_id')
+            plan_id      = notes.get('plan_id')
+            amount_paise = rz_order_details.get('amount')
+            
+            profile = get_object_or_404(CandidateProfile, id=candidate_id)
+            plan    = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+        except Exception as e:
+            return render(request, 'payment_result.html', {
+                'success':     False,
+                'error_msg':   "Could not verify order data with payment gateway.",
+                'ui_settings': get_ui(),
+            })
+
+        # 3. Create the PaymentOrder record (Finalizes the audit trail)
+        payment_order, created = PaymentOrder.objects.get_or_create(
+            razorpay_order_id=razorpay_order_id,
+            defaults={
+                'candidate': profile,
+                'plan': plan,
+                'amount_paise': amount_paise,
+                'razorpay_payment_id': razorpay_payment_id,
+                'razorpay_signature': razorpay_signature,
+                'status': PaymentOrder.Status.PAID,
+                'paid_at': timezone.now()
+            }
+        )
+
+        # 4. Handle Plan Expiry Logic (Requirement 1 & Daily Plan support)
+        # Check if it's a day-based plan or a month-based plan
+        if plan.days > 0:
+            days_to_add = plan.days
+        else:
+            days_to_add = 30 * plan.months
+
+        # Requirement 2: Expiry Stacking
+        # If user is already Pro, add time to their existing expiry date
+        current_expiry = profile.pro_expiry_date
+        if profile.subscription_type == 'Pro' and current_expiry and current_expiry > timezone.now():
+            new_expiry = current_expiry + timedelta(days=days_to_add)
+        else:
+            new_expiry = timezone.now() + timedelta(days=days_to_add)
+
+        # 5. Update Profile
+        profile.subscription_type = 'Pro'
+        profile.pro_expiry_date   = new_expiry
+        profile.save()
+
+        # 6. Send Success Email
+        subject = "Welcome to Pro! Your Subscription is Active"
+        message = f"""Hi {profile.full_name},
+
+Thank you for upgrading! Your payment of ₹{amount_paise / 100} was successful.
+
+Plan: {plan}
+Expiry Date: {new_expiry.strftime('%B %d, %Y')}
+
+Your premium features are now unlocked.
+
+Best regards,
+The {get_ui().site_name if get_ui() else 'VCS'} Team
+"""
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [profile.user.email],
+            fail_silently=True,
+        )
+
+        return render(request, 'payment_result.html', {
+            'success':        True,
+            'payment_order':  payment_order,
+            'ui_settings':    get_ui(),
+        })
+    else:
+        # Invalid signature
+        return render(request, 'payment_result.html', {
+            'success':     False,
+            'error_msg':   "Payment verification failed.",
+            'ui_settings': get_ui(),
+        })
+
+# ── PAYMENT FAILED CALLBACK ────────────────────────────────────────────────
+def payment_failed(request):
+    return render(request, 'payment_result.html', {
+        'success':     False,
+        'ui_settings': get_ui(),
     })
 
 
@@ -397,11 +554,25 @@ def candidate_dashboard(request):
 def candidate_profile(request):
     if request.user.role != User.Role.CANDIDATE:
         return redirect('login')
+    
     profile, _ = CandidateProfile.objects.get_or_create(
         user=request.user,
         defaults={'full_name': request.user.username}
     )
-    return render(request, 'candidate_profile.html', {'profile': profile})
+
+    days_left = None
+    if profile.subscription_type == 'Pro' and profile.pro_expiry_date:
+        now = timezone.now()
+        if profile.pro_expiry_date > now:
+            delta = profile.pro_expiry_date - now
+            days_left = delta.days
+        else:
+            days_left = 0
+
+    return render(request, 'candidate_profile.html', {
+        'profile': profile,
+        'days_left': days_left
+    })
 
 
 @login_required(login_url='login')
@@ -1140,6 +1311,36 @@ def job_list(request):
 def job_detail(request, slug):
     job = Job.objects.select_related('category').get(slug=slug, is_active=True)
 
+    # ── 1. HANDLE SILENT AJAX REQUEST TO SEND EMAIL ──
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Check if this is the "Send HR Email" action and the user is actually logged in
+        if request.POST.get('action') == 'send_hr_email' and request.user.is_authenticated:
+            subject = f"HR Contact Details: {job.title} at {job.company}"
+            
+            # Construct the email body
+            msg = f"Hello {request.user.first_name or request.user.username},\n\n"
+            msg += f"Here are the HR contact details you requested for the {job.title} role:\n\n"
+            msg += f"Company: {job.company}\n"
+            if job.hr_name:  msg += f"HR Name: {job.hr_name}\n"
+            if job.hr_phone: msg += f"Phone: {job.hr_phone}\n"
+            if job.hr_email: msg += f"Email: {job.hr_email}\n\n"
+            msg += "Best of luck with your job application!\n\nThe Team"
+            
+            try:
+                send_mail(
+                    subject,
+                    msg,
+                    settings.DEFAULT_FROM_EMAIL,  # Make sure this is set in settings.py
+                    [request.user.email],
+                    fail_silently=True,
+                )
+                return JsonResponse({'success': True})
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+                
+        return JsonResponse({'success': False, 'error': 'Unauthorized'})
+
+    # ── 2. STANDARD GET REQUEST LOGIC (Your existing code) ──
     similar = Job.objects.filter(
         is_active=True, category=job.category
     ).exclude(id=job.id)[:4]
@@ -1177,7 +1378,7 @@ def job_detail(request, slug):
         'responsibilities': [r.strip() for r in (job.responsibilities or '').split('\n') if r.strip()],
         'requirements':    [r.strip() for r in (job.requirements or '').split('\n') if r.strip()],
         'benefits':        [r.strip() for r in (job.benefits or '').split('\n') if r.strip()],
-        'ui_settings':     get_ui(),
+        'ui_settings':     get_ui() if 'get_ui' in globals() else None,
         'today': timezone.now().date(),
     })
 

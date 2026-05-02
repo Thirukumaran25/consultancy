@@ -113,11 +113,6 @@
 
                     <h2 class="text-[18px] font-bold text-[#1a2b4a] text-center flex items-center justify-center gap-2">
                         {{ profile.full_name }}
-                        {% if profile.subscription_type == 'Pro' %}
-                            <span class="bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full tracking-wider uppercase shadow-sm">
-                                <i class="fa-solid fa-crown mr-0.5"></i> Pro
-                            </span>
-                        {% endif %}
                     </h2>
                     <p class="text-[13px] text-[#7a8fa6] text-center mb-4">
                         {{ profile.resume_headline|default:"Add your resume headline" }}
@@ -173,6 +168,45 @@
         </div>
 
         <div class="lg:w-2/3 space-y-5">
+            {% if profile.subscription_type == 'Pro' %}
+<div class="bg-white rounded-[20px] p-6 shadow-sm border border-[#e4eaf2] mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- Plan Name -->
+        <div class="p-4 rounded-[14px] bg-[#f8fbff] border border-[#e4eaf2]">
+            <p class="text-[11px] text-[#7a8fa6] font-bold uppercase tracking-wide mb-1">Plan</p>
+            <span class="bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full tracking-wider uppercase shadow-sm">
+                <i class="fa-solid fa-crown mr-0.5"></i> Pro
+            </span>
+        </div>
+
+        <!-- Duration in Days -->
+        <div class="p-4 rounded-[14px] bg-[#f8fbff] border border-[#e4eaf2]">
+            <p class="text-[11px] text-[#7a8fa6] font-bold uppercase tracking-wide mb-1">Days Remaining</p>
+            <p class="text-[16px] font-black text-[#1a2b4a]">
+                {% if days_left is not None %}
+                    <span class="text-[#10b981]">{{ days_left }} Days</span>
+                {% else %}
+                    0 Days
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Expiry Date -->
+        <div class="p-4 rounded-[14px] bg-[#f8fbff] border border-[#e4eaf2]">
+            <p class="text-[11px] text-[#7a8fa6] font-bold uppercase tracking-wide mb-1">Expiry Date</p>
+            <p class="text-[16px] font-black text-[#1a2b4a]">
+                {% if profile.pro_expiry_date %}
+                    {{ profile.pro_expiry_date|date:"d M, Y" }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endif %}
 
             <div id="resume" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between flex-wrap gap-4">
                 <div>

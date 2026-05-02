@@ -176,56 +176,157 @@
                 </div>
             </div>
             {% endif %}
-
-            <!-- HR Contact Card — add after company card in sidebar -->
+            <!-- ── HR CONTACT CARD ── -->
             {% if job.hr_name or job.hr_email or job.hr_phone %}
             <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
                 <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">
                     <i class="fa-solid fa-headset text-[#3d35c4] mr-2"></i> HR Contact
                 </h3>
-                <div class="space-y-3">
-                    {% if job.hr_name %}
-                    <div class="flex items-center gap-3">
-                        <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-user text-[#3d35c4] text-[12px]"></i>
-                        </div>
-                        <div>
-                            <p class="text-[11px] text-black font-semibold uppercase tracking-wide">HR Name</p>
-                            <p class="text-[13px] text-[#1a2b4a] font-bold">{{ job.hr_name }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
 
-                    {% if job.hr_phone %}
-                    <div class="flex items-center gap-3">
-                        <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-phone text-[#3d35c4] text-[12px]"></i>
+                <!-- IF MASKING IS ENABLED -->
+                {% if job.is_masked_contact %}
+                    
+                    <!-- MASKED VIEW -->
+                    <div id="hr-masked-view" class="space-y-3">
+                        {% if job.hr_name %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-[32px] h-[32px] bg-[#f8fbff] border border-[#e4eaf2] rounded-[8px] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-user text-[#aab8c8] text-[12px]"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-[#aab8c8] font-bold uppercase tracking-wide">HR Name</p>
+                                <p class="text-[13px] text-[#4a5568] font-bold">{{ job.hr_name|slice:":2" }}••••••••</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Phone</p>
-                            <a href="tel:{{ job.hr_phone }}"
-                            class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline">
-                                {{ job.hr_phone }}
-                            </a>
-                        </div>
-                    </div>
-                    {% endif %}
+                        {% endif %}
 
-                    {% if job.hr_email %}
-                    <div class="flex items-center gap-3">
-                        <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-envelope text-[#3d35c4] text-[12px]"></i>
+                        {% if job.hr_phone %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-[32px] h-[32px] bg-[#f8fbff] border border-[#e4eaf2] rounded-[8px] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-phone text-[#aab8c8] text-[12px]"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-[#aab8c8] font-bold uppercase tracking-wide">Phone</p>
+                                <p class="text-[13px] text-[#4a5568] font-bold">{{ job.hr_phone|slice:":3" }}•••••••</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Email</p>
-                            <a href="mailto:{{ job.hr_email }}"
-                            class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline break-all">
-                                {{ job.hr_email }}
-                            </a>
+                        {% endif %}
+
+                        {% if job.hr_email %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-[32px] h-[32px] bg-[#f8fbff] border border-[#e4eaf2] rounded-[8px] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-envelope text-[#aab8c8] text-[12px]"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-[#aab8c8] font-bold uppercase tracking-wide">Email</p>
+                                <p class="text-[13px] text-[#4a5568] font-bold">{{ job.hr_email|slice:":3" }}••••@••••.com</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Reveal Button -->
+                        <div class="mt-4 pt-3 border-t border-[#f0f4f8]">
+                            {% if request.user.is_authenticated %}
+                                <button id="btn-reveal-hr" class="w-full bg-[#f1f5fb] text-[#3d35c4] border border-[#d8e4f0] font-bold text-[13px] px-4 py-2.5 rounded-[8px] hover:bg-[#e4eaf2] hover:border-[#c5d4e6] transition-colors flex justify-center items-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-unlock-keyhole"></i> Get Details
+                                </button>
+                            {% else %}
+                                <a href="{% url 'login' %}?next={{ request.path }}" class="w-full bg-[#f1f5fb] text-[#3d35c4] border border-[#d8e4f0] font-bold text-[13px] px-4 py-2.5 rounded-[8px] hover:bg-[#e4eaf2] hover:border-[#c5d4e6] transition-colors flex justify-center items-center gap-2 shadow-sm text-center no-underline">
+                                    <i class="fa-solid fa-lock"></i> Login to View
+                                </a>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
-                </div>
+
+                    <!-- FULL VIEW (Hidden Initially - Revealed by JS) -->
+                    <div id="hr-full-view" class="space-y-3 hidden animate-[fade-in_0.3s_ease-out]">
+                        {% if job.hr_name %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-user text-[#3d35c4] text-[12px]"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">HR Name</p>
+                                <p class="text-[13px] text-[#1a2b4a] font-bold">{{ job.hr_name }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if job.hr_phone %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-phone text-[#3d35c4] text-[12px]"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Phone</p>
+                                <a href="tel:{{ job.hr_phone }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline">
+                                    {{ job.hr_phone }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if job.hr_email %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-envelope text-[#3d35c4] text-[12px]"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Email</p>
+                                <a href="mailto:{{ job.hr_email }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline break-all">
+                                    {{ job.hr_email }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                <!-- IF MASKING IS DISABLED -->
+                {% else %}
+                    <!-- Show Full Details Immediately without the Get Details button -->
+                    <div class="space-y-3">
+                        {% if job.hr_name %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-user text-[#3d35c4] text-[12px]"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">HR Name</p>
+                                <p class="text-[13px] text-[#1a2b4a] font-bold">{{ job.hr_name }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if job.hr_phone %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-phone text-[#3d35c4] text-[12px]"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Phone</p>
+                                <a href="tel:{{ job.hr_phone }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline">
+                                    {{ job.hr_phone }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if job.hr_email %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-envelope text-[#3d35c4] text-[12px]"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Email</p>
+                                <a href="mailto:{{ job.hr_email }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline break-all">
+                                    {{ job.hr_email }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
             </div>
             {% endif %}
 
@@ -255,7 +356,7 @@
                 <div class="space-y-4">
                     {% for sj in similar %}
                     <a href="{% url 'job_detail' sj.slug %}"
-                       class="block hover:bg-[#f8fbff] rounded-[10px] p-2 -mx-2 transition no-underline">
+                        class="block hover:bg-[#f8fbff] rounded-[10px] p-2 -mx-2 transition no-underline">
                         <p class="text-[13.5px] font-bold text-[#1a2b4a]">{{ sj.title }}</p>
                         <p class="text-[12px] text-[#7a8fa6] mt-0.5">{{ sj.company }}</p>
                         <p class="text-[12px] text-[#aab8c8] mt-0.5">
@@ -290,7 +391,6 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Full Name <span class="text-[#e74c3c]">*</span></label>
-                        <!-- Updated to use dynamic profile -->
                         <input type="text" name="full_name" value="{{ profile.full_name }}" required class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
                     </div>
                     <div>
@@ -299,14 +399,12 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Phone Number <span class="text-[#e74c3c]">*</span></label>
-                        <!-- Updated to use dynamic profile -->
                         <input type="tel" name="phone" value="{{ profile.phone_number|default:'' }}" required placeholder="+91 00000 00000" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
                     </div>
                 </div>
 
                 <div class="pt-2">
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Resume / CV <span class="text-[#e74c3c]">*</span></label>
-                    <!-- Updated to use dynamic profile -->
                     {% if profile.resume %}
                         <div class="flex items-center gap-2 mb-2 text-[12px] text-[#057a2e] font-bold bg-[#e6fff0] p-2 rounded-[6px] border border-[#b2f2bb]">
                             <i class="fa-solid fa-circle-check"></i> We have your resume on file. Upload a new one below to replace it.
@@ -334,4 +432,55 @@
         </div>
     </div>
 </div>
+
+<!-- Scripts -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const btnRevealHR = document.getElementById('btn-reveal-hr');
+        
+        if (btnRevealHR) {
+            btnRevealHR.addEventListener('click', async function() {
+                const originalBtnText = this.innerHTML;
+                
+                // IF LOGGED IN: Send email silently in the background
+                {% if request.user.is_authenticated %}
+                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending to Email...';
+                this.disabled = true;
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'send_hr_email');
+                    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+                    // Post to the current URL
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Create a nice green success badge to inject into the revealed card
+                        const fullView = document.getElementById('hr-full-view');
+                        const successMsg = document.createElement('div');
+                        successMsg.className = "mt-3 bg-[#e6fff0] border border-[#b2f2bb] text-[#057a2e] text-[12px] font-bold px-3 py-2 rounded-[8px] flex items-center gap-2 animate-[fade-in-up_0.3s_ease-out]";
+                        successMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> A copy has been sent to your email!';
+                        fullView.appendChild(successMsg);
+                    }
+                } catch (error) {
+                    console.error('Error sending email:', error);
+                }
+                {% endif %}
+
+                // Hide the masked view container
+                document.getElementById('hr-masked-view').classList.add('hidden');
+                
+                // Show the full HR details container with a smooth fade-in animation
+                document.getElementById('hr-full-view').classList.remove('hidden');
+            });
+        }
+    });
+</script>
 {% endblock %}
