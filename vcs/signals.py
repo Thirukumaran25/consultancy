@@ -1,86 +1,107 @@
-# signals.py
+# vcs/signals.py
 import threading
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import EmailMessage
 from django.conf import settings
-from .models import Job, Feed, CandidateProfile, TraineeProfile
 
-# ── BACKGROUND THREAD FOR FAST SENDING ──
-class EmailThread(threading.Thread):
-    def __init__(self, subject, message, bcc_list):
-        self.subject = subject
-        self.message = message
+
+def _get_target_emails():
+    """Returns emails for all active Pro candidates and Trainees."""
+    from vcs.models import CandidateProfile, TraineeProfile
+    from django.utils import timezone
+
+    pro_emails = list(
+        CandidateProfile.objects.filter(
+            subscription_type='Pro',
+            pro_expiry_date__gt=timezone.now(),  # ← only non-expired Pro users
+            user__is_active=True,
+        ).values_list('user__email', flat=True)
+    )
+
+    trainee_emails = list(
+        TraineeProfile.objects.filter(
+            is_active=True,
+            user__is_active=True,
+        ).values_list('user__email', flat=True)
+    )
+
+    all_emails = list(set(pro_emails + trainee_emails))
+    return [e for e in all_emails if e]
+
+
+class _EmailThread(threading.Thread):
+    def __init__(self, subject, body, bcc_list):
+        super().__init__(daemon=True)
+        self.subject  = subject
+        self.body     = body
         self.bcc_list = bcc_list
-        threading.Thread.__init__(self)
 
     def run(self):
+        if not self.bcc_list:
+            return
         email = EmailMessage(
             subject=self.subject,
-            body=self.message,
+            body=self.body,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[settings.DEFAULT_FROM_EMAIL], # Send to self
-            bcc=self.bcc_list                 # Blind-copy everyone else
+            to=[settings.DEFAULT_FROM_EMAIL],
+            bcc=self.bcc_list,
         )
         email.send(fail_silently=True)
 
-def get_target_emails():
-    """Helper function to get all Trainees and PRO Candidates"""
-    # Get Pro Candidate emails
-    pro_candidates = CandidateProfile.objects.filter(
-        subscription_type='Pro', 
-        user__is_active=True
-    ).values_list('user__email', flat=True)
-    
-    # Get Trainee emails
-    trainees = TraineeProfile.objects.filter(
-        user__is_active=True
-    ).values_list('user__email', flat=True)
-    
-    # Combine lists, remove duplicates, and remove empty emails
-    all_emails = list(set(list(pro_candidates) + list(trainees)))
-    return [email for email in all_emails if email]
 
-
-# ── TRIGGER: WHEN A JOB IS ADDED ──
-@receiver(post_save, sender=Job)
+@receiver(post_save, sender='vcs.Job')
 def notify_new_job(sender, instance, created, **kwargs):
-    # Only trigger if it's a NEW job and it's active
-    if created and instance.is_active:
-        emails = get_target_emails()
-        if not emails:
-            return
-            
-        subject = f"New Job Posted: {instance.title} at {instance.company}"
-        message = (
-            f"Hello,\n\n"
-            f"A new job '{instance.title}' has just been posted by {instance.company}.\n\n"
-            f"Log in to your VCS dashboard to check the requirements and apply early!\n\n"
-            f"Best Regards,\nVCS Team"
-        )
-        
-        # Start the background email thread
-        EmailThread(subject, message, emails).start()
+    if not created or not instance.is_active:
+        return
+
+    emails = _get_target_emails()
+    if not emails:
+        return
+
+    site = getattr(settings, 'SITE_NAME', 'VCS')
+    subject = f"New Job Alert: {instance.title} at {instance.company}"
+    body = f"""Hello,
+
+A new job has just been posted that might interest you!
+
+Position : {instance.title}
+Company  : {instance.company}
+Location : {instance.location}
+Type     : {instance.job_type}
+Salary   : {instance.get_salary_display()}
+
+Log in to your {site} dashboard to apply early!
+
+Best Regards,
+The {site} Team"""
+
+    _EmailThread(subject, body, emails).start()
 
 
-# ── TRIGGER: WHEN A FEED/NEWS IS ADDED ──
-@receiver(post_save, sender=Feed)
+@receiver(post_save, sender='vcs.Feed')
 def notify_new_feed(sender, instance, created, **kwargs):
-    # Only trigger if it's a NEW feed and it's published
-    if created and getattr(instance, 'is_published', True):
-        emails = get_target_emails()
-        if not emails:
-            return
-            
-        feed_type = instance.get_feed_type_display() if hasattr(instance, 'get_feed_type_display') else 'Update'
-        
-        subject = f"New VCS {feed_type}: {instance.title}"
-        message = (
-            f"Hello,\n\n"
-            f"We just published a new {feed_type}: '{instance.title}'.\n\n"
-            f"Log in to your VCS dashboard to read more insights and updates.\n\n"
-            f"Best Regards,\nVCS Team"
-        )
-        
-        # Start the background email thread
-        EmailThread(subject, message, emails).start()
+    if not created or not instance.is_published:
+        return
+
+    emails = _get_target_emails()
+    if not emails:
+        return
+
+    site       = getattr(settings, 'SITE_NAME', 'VCS')
+    feed_label = instance.get_feed_type_display()
+    subject    = f"New {site} {feed_label}: {instance.title}"
+    body = f"""Hello,
+
+We just published a new {feed_label} for you!
+
+"{instance.title}"
+
+{instance.excerpt}
+
+Log in to your {site} dashboard to read the full article.
+
+Best Regards,
+The {site} Team"""
+
+    _EmailThread(subject, body, emails).start()

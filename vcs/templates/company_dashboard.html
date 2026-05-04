@@ -37,15 +37,6 @@
 
     <main class="flex-1">
         <div class="max-w-[1400px] mx-auto px-5 md:px-8 py-8 md:py-10">
-
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="p-3 px-4 rounded-lg mb-6 text-[13px] font-semibold border {% if message.tags == 'error' %}bg-[#fff0f0] text-[#c0392b] border-[#ffd0d0]{% else %}bg-[#e6fff0] text-[#057a2e] border-[#b2f2bb]{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                 <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:-translate-y-1">
                     <div class="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[18px] mb-3.5 bg-[#fff7e6] text-[#b45309]"><i class="fa-solid fa-briefcase"></i></div>

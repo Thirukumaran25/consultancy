@@ -280,6 +280,33 @@ def payment_failed(request):
     })
 
 
+# Add this helper anywhere in views.py
+def _check_and_expire_subscription(user):
+    """Silently expire Pro if past expiry date — called at login."""
+    if user.role != User.Role.CANDIDATE:
+        return
+    if not hasattr(user, 'candidate_profile'):
+        return
+    profile = user.candidate_profile
+    if (
+        profile.subscription_type == 'Pro'
+        and profile.pro_expiry_date
+        and profile.pro_expiry_date <= timezone.now()
+    ):
+        profile.subscription_type = 'Free'
+        profile.pro_expiry_date   = None
+        profile.save(update_fields=['subscription_type', 'pro_expiry_date'])
+
+        send_mail(
+            subject="Your Pro Plan Has Expired",
+            message=f"Hi {profile.full_name},\n\nYour Pro subscription has expired. "
+                    f"Upgrade again to regain access to premium features.\n\nBest,\nVCS Team",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+
+    
 # ── LOGIN ──────────────────────────────────────────────────────────────────
 def login_view(request):
     if request.user.is_authenticated:
@@ -323,6 +350,7 @@ def login_view(request):
                 return fail("Your trainee account has been deactivated.")
 
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        _check_and_expire_subscription(user) 
         return redirect_by_role(user)
 
     return render(request, 'login.html', {
@@ -599,200 +627,351 @@ def candidate_profile(request):
 @login_required(login_url='login')
 def update_headline(request):
     if request.method == 'POST':
-        profile = request.user.candidate_profile
-        profile.resume_headline = request.POST.get('resume_headline', '').strip()
-        profile.save()
-        messages.success(request, "Headline updated.")
+        try:
+            profile = request.user.candidate_profile
+            profile.resume_headline = request.POST.get('resume_headline', '').strip() or None
+            profile.save(update_fields=['resume_headline'])
+            messages.success(request, "Headline updated.")
+        except Exception as e:
+            messages.error(request, f"Could not update headline: {e}")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def update_summary(request):
     if request.method == 'POST':
-        profile = request.user.candidate_profile
-        profile.profile_summary = request.POST.get('profile_summary', '').strip()
-        profile.save()
-        messages.success(request, "Summary updated.")
+        try:
+            profile = request.user.candidate_profile
+            profile.profile_summary = request.POST.get('profile_summary', '').strip() or None
+            profile.save(update_fields=['profile_summary'])
+            messages.success(request, "Summary updated.")
+        except Exception as e:
+            messages.error(request, f"Could not update summary: {e}")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def update_personal(request):
     if request.method == 'POST':
-        p = request.user.candidate_profile
-        p.gender          = request.POST.get('gender') or None
-        p.marital_status  = request.POST.get('marital_status') or None
-        p.date_of_birth   = request.POST.get('date_of_birth') or None
-        p.phone_number    = request.POST.get('phone_number', '').strip() or None
-        p.languages_known = request.POST.get('languages_known', '').strip() or None
-        p.save()
-        messages.success(request, "Personal details updated.")
+        try:
+            p = request.user.candidate_profile
+            p.gender          = request.POST.get('gender') or None
+            p.marital_status  = request.POST.get('marital_status') or None
+            p.phone_number    = request.POST.get('phone_number', '').strip() or None
+            p.languages_known = request.POST.get('languages_known', '').strip() or None
+
+            dob = request.POST.get('date_of_birth', '').strip()
+            p.date_of_birth = dob if dob else None
+
+            p.save(update_fields=[
+                'gender', 'marital_status', 'phone_number',
+                'languages_known', 'date_of_birth'
+            ])
+            messages.success(request, "Personal details updated.")
+        except Exception as e:
+            messages.error(request, f"Could not update personal details: {e}")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def update_resume(request):
-    if request.method == 'POST' and request.FILES.get('resume'):
-        profile = request.user.candidate_profile
-        profile.resume = request.FILES['resume']
-        profile.save()
-        messages.success(request, "Resume updated.")
+    if request.method == 'POST':
+        try:
+            profile = request.user.candidate_profile
+            f = request.FILES.get('resume')
+            if not f:
+                messages.error(request, "No file selected.")
+                return redirect('candidate_profile')
+
+            allowed = ['pdf', 'doc', 'docx']
+            ext = f.name.rsplit('.', 1)[-1].lower()
+            if ext not in allowed:
+                messages.error(request, "Only PDF, DOC, DOCX files are allowed.")
+                return redirect('candidate_profile')
+
+            if f.size > 5 * 1024 * 1024:  # 5 MB
+                messages.error(request, "File too large. Max 5 MB.")
+                return redirect('candidate_profile')
+
+            profile.resume = f
+            profile.save(update_fields=['resume'])
+            messages.success(request, "Resume updated.")
+        except Exception as e:
+            messages.error(request, f"Could not upload resume: {e}")
     return redirect('candidate_profile')
 
 
-@login_required(login_url='login')
+login_required(login_url='login')
 def add_skill(request):
     if request.method == 'POST':
         raw = request.POST.get('skill_name', '').strip()
-        if raw:
-            skill_names = [s.strip() for s in raw.split(',') if s.strip()]
-            for name in skill_names:
-                skill, _ = Skill.objects.get_or_create(
-                    name__iexact=name,
-                    defaults={'name': name}
-                )
+        if not raw:
+            messages.error(request, "Please enter at least one skill.")
+            return redirect('candidate_profile')
+
+        skill_names = [s.strip() for s in raw.split(',') if s.strip()]
+        added = 0
+        for name in skill_names:
+            # Step 1: Try exact case-insensitive match first (find existing)
+            existing = Skill.objects.filter(name__iexact=name).first()
+            if existing:
+                request.user.candidate_profile.skills.add(existing)
+            else:
+                # Step 2: Create with the user's original casing
+                skill = Skill.objects.create(name=name)
                 request.user.candidate_profile.skills.add(skill)
-            count = len(skill_names)
-            messages.success(request, f"{count} skill{'s' if count > 1 else ''} added.")
+            added += 1
+
+        messages.success(request, f"{added} skill{'s' if added > 1 else ''} added.")
     return redirect('candidate_profile')
 
 
-
+# ── REMOVE SKILL (candidate) ───────────────────────────────────────────────
 @login_required(login_url='login')
 def remove_skill(request, skill_id):
     if request.method == 'POST':
-        skill = Skill.objects.get(id=skill_id)
-        request.user.candidate_profile.skills.remove(skill)
+        try:
+            skill = Skill.objects.get(id=skill_id)
+            request.user.candidate_profile.skills.remove(skill)
+            messages.success(request, f"'{skill.name}' removed.")
+        except Skill.DoesNotExist:
+            messages.error(request, "Skill not found.")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def update_profile_photo(request):
-    if request.method == 'POST' and request.FILES.get('profile_photo'):
-        profile = request.user.candidate_profile
-        profile.profile_photo = request.FILES['profile_photo']
-        profile.save()
-        messages.success(request, "Profile photo updated.")
+    if request.method == 'POST':
+        try:
+            profile = request.user.candidate_profile
+            f = request.FILES.get('profile_photo')
+            if not f:
+                messages.error(request, "No file selected.")
+                return redirect('candidate_profile')
+
+            allowed = ['jpg', 'jpeg', 'png', 'webp']
+            ext = f.name.rsplit('.', 1)[-1].lower()
+            if ext not in allowed:
+                messages.error(request, "Only JPG, PNG, WEBP images are allowed.")
+                return redirect('candidate_profile')
+
+            if f.size > 2 * 1024 * 1024:  # 2 MB
+                messages.error(request, "Image too large. Max 2 MB.")
+                return redirect('candidate_profile')
+
+            profile.profile_photo = f
+            profile.save(update_fields=['profile_photo'])
+            messages.success(request, "Profile photo updated.")
+        except Exception as e:
+            messages.error(request, f"Could not update photo: {e}")
     return redirect('candidate_profile')
+
 
 @login_required(login_url='login')
 def save_employment(request):
     if request.method == 'POST':
-        profile    = request.user.candidate_profile
-        emp_id     = request.POST.get('emp_id')
-        is_current = request.POST.get('is_current') == 'on'
-        data = {
-            'designation':  request.POST.get('designation', '').strip(),
-            'company_name': request.POST.get('company_name', '').strip(),
-            'start_date':   request.POST.get('start_date'),
-            'end_date':     None if is_current else request.POST.get('end_date') or None,
-            'is_current':   is_current,
-            'location':     request.POST.get('location', '').strip() or None,
-            'description':  request.POST.get('description', '').strip() or None,
-        }
-        if emp_id:
-            Employment.objects.filter(id=emp_id, candidate=profile).update(**data)
-            messages.success(request, "Employment updated.")
-        else:
-            Employment.objects.create(candidate=profile, **data)
-            messages.success(request, "Employment added.")
+        try:
+            profile    = request.user.candidate_profile
+            emp_id     = request.POST.get('emp_id', '').strip()
+            is_current = request.POST.get('is_current') == 'on'
+
+            designation  = request.POST.get('designation', '').strip()
+            company_name = request.POST.get('company_name', '').strip()
+            start_date   = request.POST.get('start_date', '').strip()
+
+            if not designation or not company_name or not start_date:
+                messages.error(request, "Designation, Company, and Start Date are required.")
+                return redirect('candidate_profile')
+
+            data = {
+                'designation':  designation,
+                'company_name': company_name,
+                'start_date':   start_date,
+                'end_date':     None if is_current else (request.POST.get('end_date', '').strip() or None),
+                'is_current':   is_current,
+                'location':     request.POST.get('location', '').strip() or None,
+                'description':  request.POST.get('description', '').strip() or None,
+            }
+
+            if emp_id:
+                updated = Employment.objects.filter(id=emp_id, candidate=profile).update(**data)
+                if updated:
+                    messages.success(request, "Employment updated.")
+                else:
+                    messages.error(request, "Employment record not found.")
+            else:
+                Employment.objects.create(candidate=profile, **data)
+                messages.success(request, "Employment added.")
+
+        except Exception as e:
+            messages.error(request, f"Could not save employment: {e}")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def delete_employment(request, emp_id):
     if request.method == 'POST':
-        Employment.objects.filter(id=emp_id, candidate=request.user.candidate_profile).delete()
-        messages.success(request, "Employment deleted.")
+        try:
+            deleted, _ = Employment.objects.filter(
+                id=emp_id, candidate=request.user.candidate_profile
+            ).delete()
+            if deleted:
+                messages.success(request, "Employment deleted.")
+            else:
+                messages.error(request, "Record not found.")
+        except Exception as e:
+            messages.error(request, f"Could not delete employment: {e}")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def save_education(request):
     if request.method == 'POST':
-        profile = request.user.candidate_profile
-        edu_id  = request.POST.get('edu_id')
-        data = {
-            'education_level': request.POST.get('education_level', '').strip(),
-            'course':          request.POST.get('course', '').strip() or None,
-            'university':      request.POST.get('university', '').strip(),
-            'start_year':      request.POST.get('start_year'),
-            'end_year':        request.POST.get('end_year'),
-            'course_type':     request.POST.get('course_type', 'Full Time'),
-        }
-        if edu_id:
-            Education.objects.filter(id=edu_id, candidate=profile).update(**data)
-            messages.success(request, "Education updated.")
-        else:
-            Education.objects.create(candidate=profile, **data)
-            messages.success(request, "Education added.")
+        try:
+            profile    = request.user.candidate_profile
+            edu_id     = request.POST.get('edu_id', '').strip()
+
+            education_level = request.POST.get('education_level', '').strip()
+            university      = request.POST.get('university', '').strip()
+            start_year      = request.POST.get('start_year', '').strip()
+            end_year        = request.POST.get('end_year', '').strip()
+
+            if not education_level or not university or not start_year or not end_year:
+                messages.error(request, "Education level, University, and Years are required.")
+                return redirect('candidate_profile')
+
+            data = {
+                'education_level': education_level,
+                'course':          request.POST.get('course', '').strip() or None,
+                'university':      university,
+                'start_year':      int(start_year),
+                'end_year':        int(end_year),
+                'course_type':     request.POST.get('course_type', 'Full Time'),
+            }
+
+            if edu_id:
+                updated = Education.objects.filter(id=edu_id, candidate=profile).update(**data)
+                if updated:
+                    messages.success(request, "Education updated.")
+                else:
+                    messages.error(request, "Education record not found.")
+            else:
+                Education.objects.create(candidate=profile, **data)
+                messages.success(request, "Education added.")
+
+        except ValueError:
+            messages.error(request, "Invalid year format.")
+        except Exception as e:
+            messages.error(request, f"Could not save education: {e}")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def delete_education(request, edu_id):
     if request.method == 'POST':
-        Education.objects.filter(id=edu_id, candidate=request.user.candidate_profile).delete()
-        messages.success(request, "Education deleted.")
+        try:
+            deleted, _ = Education.objects.filter(
+                id=edu_id, candidate=request.user.candidate_profile
+            ).delete()
+            if deleted:
+                messages.success(request, "Education deleted.")
+            else:
+                messages.error(request, "Record not found.")
+        except Exception as e:
+            messages.error(request, f"Could not delete education: {e}")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def save_project(request):
     if request.method == 'POST':
-        profile    = request.user.candidate_profile
-        proj_id    = request.POST.get('proj_id')
-        is_ongoing = request.POST.get('is_ongoing') == 'on'
-        data = {
-            'title':       request.POST.get('title', '').strip(),
-            'project_url': request.POST.get('project_url', '').strip() or None,
-            'start_date':  request.POST.get('start_date') or None,
-            'end_date':    None if is_ongoing else request.POST.get('end_date') or None,
-            'is_ongoing':  is_ongoing,
-            'description': request.POST.get('description', '').strip(),
-        }
-        if proj_id:
-            Project.objects.filter(id=proj_id, candidate=profile).update(**data)
-            messages.success(request, "Project updated.")
-        else:
-            Project.objects.create(candidate=profile, **data)
-            messages.success(request, "Project added.")
+        try:
+            profile    = request.user.candidate_profile
+            proj_id    = request.POST.get('proj_id', '').strip()
+            is_ongoing = request.POST.get('is_ongoing') == 'on'
+
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+
+            if not title or not description:
+                messages.error(request, "Title and Description are required.")
+                return redirect('candidate_profile')
+
+            project_url = request.POST.get('project_url', '').strip()
+            # Basic URL validation
+            if project_url and not project_url.startswith(('http://', 'https://')):
+                project_url = 'https://' + project_url
+
+            data = {
+                'title':       title,
+                'project_url': project_url or None,
+                'start_date':  request.POST.get('start_date', '').strip() or None,
+                'end_date':    None if is_ongoing else (request.POST.get('end_date', '').strip() or None),
+                'is_ongoing':  is_ongoing,
+                'description': description,
+            }
+
+            if proj_id:
+                updated = Project.objects.filter(id=proj_id, candidate=profile).update(**data)
+                if updated:
+                    messages.success(request, "Project updated.")
+                else:
+                    messages.error(request, "Project not found.")
+            else:
+                Project.objects.create(candidate=profile, **data)
+                messages.success(request, "Project added.")
+
+        except Exception as e:
+            messages.error(request, f"Could not save project: {e}")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def delete_project(request, proj_id):
     if request.method == 'POST':
-        Project.objects.filter(id=proj_id, candidate=request.user.candidate_profile).delete()
-        messages.success(request, "Project deleted.")
+        try:
+            deleted, _ = Project.objects.filter(
+                id=proj_id, candidate=request.user.candidate_profile
+            ).delete()
+            if deleted:
+                messages.success(request, "Project deleted.")
+            else:
+                messages.error(request, "Record not found.")
+        except Exception as e:
+            messages.error(request, f"Could not delete project: {e}")
     return redirect('candidate_profile')
 
 
 @login_required(login_url='login')
 def mark_fresher(request):
     if request.method == 'POST':
-        user = request.user
-        if getattr(user, 'role', '') == 'candidate':
-            profile = user.candidate_profile
-            redirect_url_name = 'candidate_profile'
-        elif getattr(user, 'role', '') == 'trainee':
-            profile = user.trainee_profile
-            redirect_url_name = 'trainee_profile'
-        else:
-            return redirect('dashboard')
+        try:
+            user = request.user
+            if user.role == 'candidate':
+                profile = user.candidate_profile
+                redirect_url_name = 'candidate_profile'
+            elif user.role == 'trainee':
+                profile = user.trainee_profile
+                redirect_url_name = 'trainee_profile'
+            else:
+                messages.error(request, "Action not permitted.")
+                return redirect('dashboard_router')
 
-        if request.POST.get('unmark') == '1':
-            profile.is_fresher = False
-            messages.success(request, "Removed fresher status.")
-        else:
-            profile.is_fresher = True
-            messages.success(request, "Marked as fresher. Recruiters will now see you are open to entry-level roles.")
-            
-        profile.save()
-        url = reverse(redirect_url_name) + '#employment'
-        return redirect(url)
-        
-    return redirect('dashboard')
+            if request.POST.get('unmark') == '1':
+                profile.is_fresher = False
+                messages.success(request, "Fresher status removed.")
+            else:
+                profile.is_fresher = True
+                messages.success(request, "Marked as fresher.")
+
+            profile.save(update_fields=['is_fresher'])
+            return redirect(reverse(redirect_url_name) + '#employment')
+
+        except Exception as e:
+            messages.error(request, f"Could not update fresher status: {e}")
+            return redirect('candidate_profile')
+
+    return redirect('candidate_profile')
 
 
 # ── COMPANY REGISTER ───────────────────────────────────────────────────────
@@ -999,7 +1178,7 @@ def trainee_dashboard(request):
         'interview': apps.filter(status='Interview').count(),
         'pending': apps.filter(status='Pending').count(),
         'offered': apps.filter(status='Offered').count(),
-        'rejected': apps.filter(status__in=['Rejected', 'Withdrawn']).count(),
+        'rejected': apps.filter(status__in=['Rejected']).count(),
     }
     
     recent_apps = apps.order_by('-applied_at')[:5]
@@ -1308,16 +1487,40 @@ def job_list(request):
     })
 
 
+def _can_user_apply(user):
+    """Helper to check if a Free candidate has reached their monthly limit."""
+    if not user.is_authenticated:
+        return False
+        
+    role = getattr(user, 'role', '')
+    if role == 'trainee':
+        return True
+        
+    if role == 'candidate' and hasattr(user, 'candidate_profile'):
+        profile = user.candidate_profile
+        
+        if profile.subscription_type == 'Pro':
+            return True
+            
+        now = timezone.now()
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        app_count = JobApplication.objects.filter(
+            candidate=profile,
+            applied_at__gte=start_of_month 
+        ).count()
+        
+        return app_count < 5
+        
+    return False
+
+
 def job_detail(request, slug):
     job = Job.objects.select_related('category').get(slug=slug, is_active=True)
 
-    # ── 1. HANDLE SILENT AJAX REQUEST TO SEND EMAIL ──
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        # Check if this is the "Send HR Email" action and the user is actually logged in
         if request.POST.get('action') == 'send_hr_email' and request.user.is_authenticated:
             subject = f"HR Contact Details: {job.title} at {job.company}"
             
-            # Construct the email body
             msg = f"Hello {request.user.first_name or request.user.username},\n\n"
             msg += f"Here are the HR contact details you requested for the {job.title} role:\n\n"
             msg += f"Company: {job.company}\n"
@@ -1327,10 +1530,12 @@ def job_detail(request, slug):
             msg += "Best of luck with your job application!\n\nThe Team"
             
             try:
+                from django.core.mail import send_mail
+                from django.conf import settings
                 send_mail(
                     subject,
                     msg,
-                    settings.DEFAULT_FROM_EMAIL,  # Make sure this is set in settings.py
+                    settings.DEFAULT_FROM_EMAIL,  
                     [request.user.email],
                     fail_silently=True,
                 )
@@ -1340,7 +1545,6 @@ def job_detail(request, slug):
                 
         return JsonResponse({'success': False, 'error': 'Unauthorized'})
 
-    # ── 2. STANDARD GET REQUEST LOGIC (Your existing code) ──
     similar = Job.objects.filter(
         is_active=True, category=job.category
     ).exclude(id=job.id)[:4]
@@ -1348,9 +1552,11 @@ def job_detail(request, slug):
     already_applied = False
     application     = None
     profile         = None 
+    can_apply       = False 
     
     if request.user.is_authenticated:
         role = getattr(request.user, 'role', '')
+        can_apply = _can_user_apply(request.user) 
         
         if role == 'candidate':
             application = JobApplication.objects.filter(job=job, candidate__user=request.user).first()
@@ -1374,6 +1580,7 @@ def job_detail(request, slug):
         'already_applied': already_applied,
         'application':     application,
         'profile':         profile, 
+        'can_apply':       can_apply,
         'skills_list':     skills_list,
         'responsibilities': [r.strip() for r in (job.responsibilities or '').split('\n') if r.strip()],
         'requirements':    [r.strip() for r in (job.requirements or '').split('\n') if r.strip()],
@@ -1394,10 +1601,19 @@ def apply_job(request, slug):
     if job.deadline and job.deadline < timezone.now().date():
         messages.error(request, "Sorry, applications for this job are now closed.")
         return redirect('job_detail', slug=slug)
+        
+    if not _can_user_apply(request.user):
+        messages.error(request, "You have reached your limit of 5 free applications this month. Please upgrade to Pro to continue applying.")
+        return redirect('upgrade_plan')
    
     profile = request.user.candidate_profile if request.user.role == 'candidate' else request.user.trainee_profile
 
-    if JobApplication.objects.filter(job=job, candidate__user=request.user).exists():
+    if request.user.role == 'candidate':
+        already_applied = JobApplication.objects.filter(job=job, candidate=profile).exists()
+    else:
+        already_applied = JobApplication.objects.filter(job=job, trainee=profile).exists()
+
+    if already_applied:
         messages.warning(request, "You have already applied for this job.")
         return redirect('job_detail', slug=slug)
 
@@ -1430,18 +1646,6 @@ def apply_job(request, slug):
                 cover_letter=cover_letter or None,
             )
         messages.success(request, f"Successfully applied for {job.title}!")
-        
-    return redirect('job_detail', slug=slug)
-
-
-@login_required(login_url='login')
-def withdraw_application(request, slug):
-    job = Job.objects.get(slug=slug)
-    JobApplication.objects.filter(
-        job=job,
-        candidate=request.user.candidate_profile
-    ).update(status=JobApplication.Status.WITHDRAWN)
-    messages.success(request, "Application withdrawn.")
     return redirect('job_detail', slug=slug)
 
 
@@ -1470,14 +1674,22 @@ def my_applications(request):
 
 
 def is_premium_user(user):
-    """Check if user can access premium content."""
+    """Check if user can access premium content — respects expiry date."""
     if not user.is_authenticated:
         return False
     if user.role == User.Role.TRAINEE:
         return True
     if user.role == User.Role.CANDIDATE:
         if hasattr(user, 'candidate_profile'):
-            return user.candidate_profile.subscription_type == 'Pro'
+            profile = user.candidate_profile
+            if profile.subscription_type != 'Pro':
+                return False
+            if profile.pro_expiry_date and profile.pro_expiry_date <= timezone.now():
+                profile.subscription_type = 'Free'
+                profile.pro_expiry_date   = None
+                profile.save(update_fields=['subscription_type', 'pro_expiry_date'])
+                return False
+            return True
     return False
 
 
@@ -1543,4 +1755,22 @@ def feed_detail(request, slug):
         'related':     related,
         'tags':        feed.get_tags_list(),
         'ui_settings': get_ui(),
+    })
+
+
+
+def company_terms_view(request):
+    terms = TermsAndConditions.objects.filter(is_active=True, role='company').first()
+    
+    return render(request, 'company_terms.html', {
+        'terms': terms,
+        'current_role': 'company'
+    })
+
+def candidate_terms_view(request):
+    terms = TermsAndConditions.objects.filter(is_active=True, role='candidate').first()
+    
+    return render(request, 'candidate_terms.html', {
+        'terms': terms,
+        'current_role': 'candidate'
     })

@@ -11,6 +11,8 @@ urlpatterns = [
     path('upgrade/', views.upgrade_subscription, name='upgrade_subscription'),
     path('payment/success/',   views.payment_success,      name='payment_success'),
     path('payment/failed/',    views.payment_failed,       name='payment_failed'),
+    path('terms/company/', views.company_terms_view, name='company_terms'),
+    path('terms/candidate/', views.candidate_terms_view, name='candidate_terms'),
 
     # Add to urlpatterns
     path('services/',                         views.services,          name='services'),
@@ -21,7 +23,6 @@ urlpatterns = [
     path('jobs/',                        views.job_list,            name='job_list'),
     path('jobs/<slug:slug>/',            views.job_detail,          name='job_detail'),
     path('jobs/<slug:slug>/apply/',      views.apply_job,           name='apply_job'),
-    path('jobs/<slug:slug>/withdraw/',   views.withdraw_application, name='withdraw_application'),
     path('my-applications/',             views.my_applications,     name='my_applications'),
 
 

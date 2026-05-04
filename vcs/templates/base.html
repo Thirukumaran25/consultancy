@@ -12,15 +12,12 @@
         @import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap');
     </style>
     
-    <style type="text/tailwindcss">
+   <style type="text/tailwindcss">
         @layer components {
-            /* ── NEW DESKTOP DESIGN: Floating Pills ── */
             .nav-link { @apply text-white/90 font-bold text-[14.5px] hover:text-white hover:bg-white/10 px-5 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center; }
-            .nav-link.active { @apply bg-white text-[#4238ca] shadow-sm pointer-events-none; } 
-
-            /* ── NEW MOBILE DESIGN: Rounded Cards ── */
+            .nav-link.active { @apply bg-white text-[#4238ca] shadow-sm; } 
             .mobile-link { @apply flex items-center gap-3 text-white/90 font-bold text-[15px] px-5 py-3 rounded-[12px] hover:bg-white/10 hover:text-white transition-all; }
-            .mobile-link.active { @apply bg-white text-[#4238ca] shadow-sm pointer-events-none; }
+            .mobile-link.active { @apply bg-white text-[#4238ca] shadow-sm; }
 
             .footer-link { @apply text-white/90 text-[13px] hover:text-white hover:underline transition-colors duration-200 block mb-2; }
             .social-icon { @apply text-[20px] text-white hover:text-gray-200 transition-colors duration-200; }
@@ -31,9 +28,7 @@
 </head>
 <body class="font-['Exo',sans-serif] antialiased bg-[#eef2f7] min-h-screen flex flex-col">
 
-    <!-- Store the current URL name to make checking active states bulletproof -->
     {% with url_name=request.resolver_match.url_name %}
-
     <nav class="bg-[#4238ca] text-white shadow-md sticky top-0 z-50 py-2">
         <div class="max-w-[1400px] mx-auto px-4 md:px-8 flex justify-between items-center h-[60px]">
             
@@ -144,6 +139,34 @@
     </nav>
     {% endwith %}
 
+    <!-- ── FLOATING TOAST NOTIFICATIONS ── -->
+    {% if messages %}
+    <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none">
+        {% for message in messages %}
+            <div class="toast-message pointer-events-auto flex items-start w-full max-w-sm p-4 space-x-3 bg-white rounded-[12px] shadow-lg border-l-4 transition-all duration-500 ease-out transform translate-x-0 opacity-100
+                {% if message.tags == 'success' %}border-[#10b981] text-[#065f46] bg-[#ecfdf5]
+                {% elif message.tags == 'error' %}border-[#ef4444] text-[#991b1b] bg-[#fef2f2]
+                {% elif message.tags == 'warning' %}border-[#f59e0b] text-[#92400e] bg-[#fffbeb]
+                {% else %}border-[#3b82f6] text-[#1e3a8a] bg-[#eff6ff]{% endif %}"
+                role="alert">
+                
+                <div class="mt-0.5 shrink-0">
+                    {% if message.tags == 'success' %} <i class="fa-solid fa-circle-check text-[#10b981]"></i>
+                    {% elif message.tags == 'error' %} <i class="fa-solid fa-circle-exclamation text-[#ef4444]"></i>
+                    {% elif message.tags == 'warning' %} <i class="fa-solid fa-triangle-exclamation text-[#f59e0b]"></i>
+                    {% else %} <i class="fa-solid fa-circle-info text-[#3b82f6]"></i> {% endif %}
+                </div>
+
+                <div class="text-[14px] font-semibold leading-snug flex-1">{{ message }}</div>
+                
+                <button type="button" onclick="this.parentElement.remove();" class="text-gray-400 hover:text-gray-900 transition-colors shrink-0 focus:outline-none">
+                    <i class="fa-solid fa-xmark text-[16px]"></i>
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <main class="flex-1">
         {% block content %}
         {% endblock %}
@@ -217,6 +240,20 @@
         
         btn.addEventListener('click', () => {
             menu.classList.toggle('hidden');
+        });
+    </script>
+
+    <!-- ── TOAST AUTO-DISMISS SCRIPT ── -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toasts = document.querySelectorAll('.toast-message');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-0', 'opacity-100');
+                    toast.classList.add('translate-x-full', 'opacity-0');
+                    setTimeout(() => { toast.remove(); }, 500); 
+                }, 4000); 
+            });
         });
     </script>
 

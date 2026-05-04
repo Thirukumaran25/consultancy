@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Conditions - {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-[#4a5568]">
+    <div class="max-w-[800px] mx-auto py-10 px-4 md:px-6">
+        
+        <!-- ── COMPANY TERMS CONTENT ── -->
+        {% if terms %}
+            <div class="bg-white rounded-[16px] p-6 md:p-8 shadow-sm border border-gray-100">
+                <div class="mb-6 border-b border-gray-100 pb-6">
+                    <h1 class="text-[24px] md:text-[28px] font-bold text-[#1a2b4a]">{{ terms.title }}</h1>
+                </div>
+                
+                <div class="prose max-w-none text-[#4a5568] leading-relaxed text-[15px]">
+                    {{ terms.content|safe }}
+                </div>
+            </div>
+        {% else %}
+            <!-- FALLBACK IF NO DOCUMENT EXISTS -->
+            <div class="text-center py-20 bg-white rounded-[16px] border border-gray-100 shadow-sm">
+                <i class="fa-solid fa-building text-[40px] text-[#c5d4e6] mb-4"></i>
+                <h2 class="text-[18px] font-bold text-[#1a2b4a] mb-2">Company Terms Updating</h2>
+                <p class="text-[14px] text-[#7a8fa6]">
+                    Our legal agreements for companies are currently being drafted. Check back soon.
+                </p>
+            </div>
+        {% endif %}
+        
+    </div>
+</body>
+</html>

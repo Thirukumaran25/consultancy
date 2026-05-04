@@ -21,8 +21,6 @@
         
         .pwd-check-item.met { @apply text-[#27ae60]; }
         .pwd-check-item.met i { @apply text-[#27ae60]; }
-
-        /* ── TRANSLATED MODAL CSS TO TAILWIND ── */
         .modal { @apply hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-[520px] max-h-[90vh] overflow-y-auto bg-white rounded-[16px] p-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.15)]; }
         .modal.open { @apply block; }
         .modal-title { @apply text-[18px] font-extrabold text-[#1a2b4a] mb-5; }
@@ -40,15 +38,6 @@
         <span class="text-[13px] text-[#7a8fa6]">Member since {{ profile.created_at|date:"d M Y" }}</span>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="mb-4 p-3 px-4 rounded-lg text-[13px]
-                {% if message.tags == 'error' %}bg-[#ffe5e5] text-[#b30000]
-                {% else %}bg-[#e6fff0] text-[#057a2e]{% endif %}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
 
     {% if profile.subscription_type == 'Free' %}
     <div class="bg-gradient-to-r from-[#f59e0b] to-[#ea580c] rounded-[16px] p-6 mb-6 text-white flex flex-col md:flex-row items-center justify-between shadow-[0_4px_20px_rgba(245,158,11,0.2)]">
@@ -66,9 +55,7 @@
     {% endif %}
 
     <div class="flex flex-col lg:flex-row gap-6">
-
         <div class="lg:w-1/3 space-y-6">
-
             <div class="bg-white rounded-[16px] shadow-sm border border-gray-100 relative overflow-hidden">
                 <div class="h-[80px] bg-gradient-to-r from-[#4238ca] to-[#3b82f6]"></div>
                 <div class="px-6 pb-6 flex flex-col items-center -mt-12">
@@ -168,7 +155,7 @@
         </div>
 
         <div class="lg:w-2/3 space-y-5">
-            {% if profile.subscription_type == 'Pro' %}
+    {% if profile.subscription_type == 'Pro' %}
 <div class="bg-white rounded-[20px] p-6 shadow-sm border border-[#e4eaf2] mb-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         
@@ -217,16 +204,24 @@
                         <p class="text-[13px] text-[#e05c5c]">No resume uploaded yet.</p>
                     {% endif %}
                 </div>
-                <div class="flex gap-3 flex-wrap">
+                <div class="flex gap-2 sm:gap-3 flex-nowrap items-center">
                     {% if profile.resume %}
-                    <a href="{{ profile.resume.url }}" target="_blank"
-                       class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] font-bold text-[13px] px-4 py-2 rounded-[8px] transition">
-                        <i class="fa-solid fa-download mr-1"></i> Download
-                    </a>
+                        <!-- View Button (Opens in new tab) -->
+                        <a href="{{ profile.resume.url }}" target="_blank"
+                        class="shrink-0 text-[#059669] bg-[#ecfdf5] hover:bg-[#d1fae5] font-bold text-[13px] px-4 py-2 rounded-[8px] transition flex items-center justify-center">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                        
+                        <!-- Download Button (Added 'download' attribute) -->
+                        <a href="{{ profile.resume.url }}" download
+                        class="shrink-0 text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] font-bold text-[13px] px-4 py-2 rounded-[8px] transition flex items-center justify-center">
+                            <i class="fa-solid fa-download"></i>
+                        </a>
                     {% endif %}
-                    <form method="POST" action="{% url 'update_resume' %}" enctype="multipart/form-data">
+                    
+                    <form method="POST" action="{% url 'update_resume' %}" enctype="multipart/form-data" class="shrink-0 m-0">
                         {% csrf_token %}
-                        <label class="text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[13px] px-4 py-2 rounded-[8px] transition cursor-pointer">
+                        <label class="text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[13px] px-4 py-2 rounded-[8px] transition cursor-pointer inline-block whitespace-nowrap m-0">
                             {% if profile.resume %}Update Resume{% else %}Upload Resume{% endif %}
                             <input type="file" name="resume" accept=".pdf,.doc,.docx" class="hidden" onchange="this.form.submit()">
                         </label>
@@ -461,21 +456,21 @@
                 <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Personal Details</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
                     <div>
-                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Gender</span>
+                        <span class="block text-[12px] text-black font-semibold mb-0.5">Gender</span>
                         <span class="text-[14px] text-[#1a2b4a] font-semibold">{{ profile.gender|default:"—" }}</span>
                     </div>
                     <div>
-                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Marital Status</span>
+                        <span class="block text-[12px] text-black font-semibold mb-0.5">Marital Status</span>
                         <span class="text-[14px] text-[#1a2b4a] font-semibold">{{ profile.marital_status|default:"—" }}</span>
                     </div>
                     <div>
-                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Date of Birth</span>
+                        <span class="block text-[12px] text-black font-semibold mb-0.5">Date of Birth</span>
                         <span class="text-[14px] text-[#1a2b4a] font-semibold">
                             {{ profile.date_of_birth|date:"d M Y"|default:"—" }}
                         </span>
                     </div>
                     <div>
-                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Languages Known</span>
+                        <span class="block text-[12px] text-black font-semibold mb-0.5">Languages Known</span>
                         <span class="text-[14px] text-[#1a2b4a] font-semibold">{{ profile.languages_known|default:"—" }}</span>
                     </div>
                 </div>

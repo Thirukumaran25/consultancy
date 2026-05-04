@@ -94,16 +94,6 @@
                                 {{ application.status }}
                             </span>
                         </div>
-                        {% if application.status == 'Applied' %}
-                        <form method="POST" action="{% url 'withdraw_application' job.slug %}">
-                            {% csrf_token %}
-                            <button type="submit"
-                                class="text-[#e05c5c] bg-[#fff0f0] border border-[#ffd0d0] font-bold text-[13px] px-4 py-2 rounded-[8px] hover:bg-[#ffe0e0] transition"
-                                onclick="return confirm('Withdraw your application?')">
-                                Withdraw
-                            </button>
-                        </form>
-                        {% endif %}
 
                     {% elif job.deadline and job.deadline < today %}
                         <button disabled class="bg-[#f1f5fb] text-[#aab8c8] border border-[#e4eaf2] font-bold text-[15px] px-8 py-3 rounded-[10px] cursor-not-allowed flex items-center gap-2">
@@ -111,14 +101,26 @@
                         </button>
                         
                     {% elif request.user.is_authenticated and request.user.role in 'candidate,trainee' %}
-                        <button onclick="document.getElementById('apply-modal').classList.remove('hidden')"
-                            class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition">
-                            <i class="fa-solid fa-paper-plane mr-2"></i> Apply Now
-                        </button>
+                        
+                        <!-- NEW LIMIT CHECK HERE -->
+                        {% if can_apply %}
+                            <button onclick="document.getElementById('apply-modal').classList.remove('hidden')"
+                                class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition">
+                                <i class="fa-solid fa-paper-plane mr-2"></i> Apply Now
+                            </button>
+                        {% else %}
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <a href="{% url 'upgrade_subscription' %}"
+                                    class="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-white font-bold text-[15px] px-8 py-3 rounded-[10px] transition shadow-md no-underline">
+                                    <i class="fa-solid fa-crown mr-2"></i> Upgrade to Pro to Apply
+                                </a>
+                                <span class="text-xs text-red-500 font-medium">Monthly limit of 5 applications reached.</span>
+                            </div>
+                        {% endif %}
                         
                     {% elif not request.user.is_authenticated %}
                         <a href="{% url 'login' %}"
-                           class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition no-underline">
+                            class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition no-underline">
                             Login to Apply
                         </a>
                     {% endif %}
@@ -176,6 +178,7 @@
                 </div>
             </div>
             {% endif %}
+
             <!-- ── HR CONTACT CARD ── -->
             {% if job.hr_name or job.hr_email or job.hr_phone %}
             <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
@@ -194,8 +197,8 @@
                                 <i class="fa-solid fa-user text-[#aab8c8] text-[12px]"></i>
                             </div>
                             <div>
-                                <p class="text-[11px] text-[#aab8c8] font-bold uppercase tracking-wide">HR Name</p>
-                                <p class="text-[13px] text-[#4a5568] font-bold">{{ job.hr_name|slice:":2" }}••••••••</p>
+                                <p class="text-[11px] text-black font-bold uppercase tracking-wide">HR Name</p>
+                                <p class="text-[13px] text-black font-bold">{{ job.hr_name|slice:":2" }}••••••••</p>
                             </div>
                         </div>
                         {% endif %}
@@ -206,8 +209,8 @@
                                 <i class="fa-solid fa-phone text-[#aab8c8] text-[12px]"></i>
                             </div>
                             <div>
-                                <p class="text-[11px] text-[#aab8c8] font-bold uppercase tracking-wide">Phone</p>
-                                <p class="text-[13px] text-[#4a5568] font-bold">{{ job.hr_phone|slice:":3" }}•••••••</p>
+                                <p class="text-[11px] text-black font-bold uppercase tracking-wide">Phone</p>
+                                <p class="text-[13px] text-black font-bold">{{ job.hr_phone|slice:":3" }}•••••••</p>
                             </div>
                         </div>
                         {% endif %}
@@ -218,8 +221,8 @@
                                 <i class="fa-solid fa-envelope text-[#aab8c8] text-[12px]"></i>
                             </div>
                             <div>
-                                <p class="text-[11px] text-[#aab8c8] font-bold uppercase tracking-wide">Email</p>
-                                <p class="text-[13px] text-[#4a5568] font-bold">{{ job.hr_email|slice:":3" }}••••@••••.com</p>
+                                <p class="text-[11px] text-black font-bold uppercase tracking-wide">Email</p>
+                                <p class="text-[13px] text-black font-bold">{{ job.hr_email|slice:":3" }}••••@••••.com</p>
                             </div>
                         </div>
                         {% endif %}
@@ -283,7 +286,6 @@
 
                 <!-- IF MASKING IS DISABLED -->
                 {% else %}
-                    <!-- Show Full Details Immediately without the Get Details button -->
                     <div class="space-y-3">
                         {% if job.hr_name %}
                         <div class="flex items-center gap-3">
@@ -329,7 +331,6 @@
                 
             </div>
             {% endif %}
-
         </div>
 
         <!-- ── SIDEBAR ── -->
@@ -358,8 +359,8 @@
                     <a href="{% url 'job_detail' sj.slug %}"
                         class="block hover:bg-[#f8fbff] rounded-[10px] p-2 -mx-2 transition no-underline">
                         <p class="text-[13.5px] font-bold text-[#1a2b4a]">{{ sj.title }}</p>
-                        <p class="text-[12px] text-[#7a8fa6] mt-0.5">{{ sj.company }}</p>
-                        <p class="text-[12px] text-[#aab8c8] mt-0.5">
+                        <p class="text-[12px] text-gray-700 mt-0.5">{{ sj.company }}</p>
+                        <p class="text-[12px] text-gray-700 mt-0.5">
                             <i class="fa-solid fa-location-dot mr-1"></i>{{ sj.location }} •
                             {{ sj.get_salary_display }}
                         </p>

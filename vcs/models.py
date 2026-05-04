@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.validators import FileExtensionValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class UISettings(models.Model):
@@ -338,7 +339,6 @@ class JobApplication(models.Model):
         INTERVIEW  = 'Interview',  'Interview Scheduled'
         OFFERED    = 'Offered',    'Offer Extended'
         REJECTED   = 'Rejected',  'Rejected'
-        WITHDRAWN  = 'Withdrawn',  'Withdrawn'
 
     job       = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
     candidate = models.ForeignKey('CandidateProfile', on_delete=models.CASCADE, related_name='applications', null=True, blank=True)    
@@ -570,3 +570,35 @@ class PaymentOrder(models.Model):
     @property
     def amount_rupees(self):
         return self.amount_paise // 100
+    
+
+
+class TermsAndConditions(models.Model):
+    ROLE_CHOICES = (
+        ('candidate', 'Candidate'),
+        ('company', 'Company'),
+    )
+    
+    title = models.CharField(max_length=200, default="Terms and Conditions")
+    content = CKEditor5Field(help_text="You can use HTML here to format paragraphs and lists.")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    is_active = models.BooleanField(default=True, help_text="Making this active will deactivate previous versions for this role.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Terms & Conditions"
+        verbose_name_plural = "Terms & Conditions"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.get_role_display()}"
+        
+    def save(self, *args, **kwargs):
+        if self.is_active:
+            TermsAndConditions.objects.filter(
+                role=self.role, 
+                is_active=True
+            ).exclude(pk=self.pk).update(is_active=False)
+            
+        super().save(*args, **kwargs)

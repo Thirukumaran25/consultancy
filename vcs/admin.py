@@ -190,3 +190,12 @@ class PaymentOrderAdmin(admin.ModelAdmin):
     def amount_rupees_display(self, obj):
         return f"₹{obj.amount_rupees}"
     amount_rupees_display.short_description = 'Amount'
+
+
+@admin.register(TermsAndConditions)
+class TermsAndConditionsAdmin(admin.ModelAdmin):
+    list_display = ('title', 'role', 'is_active', 'updated_at')
+    list_filter = ('role', 'is_active')
+    search_fields = ('title', 'content')
+    list_editable = ('is_active',) 
+    readonly_fields = ('created_at', 'updated_at')

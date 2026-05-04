@@ -65,8 +65,11 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'django_q',
+    'django_ckeditor_5',
     'vcs',
 ]
+
 
 SITE_ID = 1
 
@@ -190,3 +193,19 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+Q_CLUSTER = {
+    'name': 'vcs',
+    'workers': 2,
+    'timeout': 60,
+    'orm': 'default',
+}
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}
