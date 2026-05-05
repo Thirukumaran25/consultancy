@@ -17,8 +17,9 @@ import hmac
 import hashlib
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-import json
 from django.core.mail import send_mail
+import json, uuid
+from .models import ChatSession
 
 
 
@@ -1774,3 +1775,42 @@ def candidate_terms_view(request):
         'terms': terms,
         'current_role': 'candidate'
     })
+
+
+def _get_session_key(request):
+    key = request.session.get('chat_session_key')
+    if not key:
+        key = f"user_{request.user.id if request.user.is_authenticated else 'anon'}_{uuid.uuid4().hex[:12]}"
+        request.session['chat_session_key'] = key
+    return key
+
+@login_required
+def chatbot_api(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        query = data.get('query', '').strip()
+        
+        if not query: return JsonResponse({'error': 'Empty question.'}, status=400)
+        
+        from .rag_engine import chat
+        result = chat(query=query, session_key=_get_session_key(request), user=request.user)
+        return JsonResponse(result)
+
+@login_required
+def chatbot_history(request):
+    """Loads the previous chat bubbles when the user opens the modal."""
+    try:
+        session = ChatSession.objects.get(session_key=_get_session_key(request))
+        messages = [{'role': m.role, 'content': m.content, 'sources': m.sources} for m in session.messages.order_by('id')]
+        return JsonResponse({'messages': messages})
+    except ChatSession.DoesNotExist:
+        return JsonResponse({'messages': []})
+
+@login_required
+def chatbot_clear(request):
+    """Wipes the chat session."""
+    if request.method == 'POST':
+        old_key = request.session.pop('chat_session_key', None)
+        if old_key:
+            ChatSession.objects.filter(session_key=old_key).delete()
+        return JsonResponse({'status': 'cleared'})

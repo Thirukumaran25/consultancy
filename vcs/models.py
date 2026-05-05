@@ -4,6 +4,8 @@ from django.core.validators import FileExtensionValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django_ckeditor_5.fields import CKEditor5Field
+from django.db import models
+from django.conf import settings
 
 
 class UISettings(models.Model):
@@ -602,3 +604,47 @@ class TermsAndConditions(models.Model):
             ).exclude(pk=self.pk).update(is_active=False)
             
         super().save(*args, **kwargs)
+
+
+
+class ChatbotDocument(models.Model):
+    """PDFs uploaded via admin that feed the chatbot knowledge base."""
+    title       = models.CharField(max_length=255)
+    pdf_file    = models.FileField(upload_to='chatbot_docs/')
+    description = models.TextField(blank=True, null=True)
+    is_active   = models.BooleanField(default=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    indexed_at  = models.DateTimeField(null=True, blank=True)
+    page_count  = models.PositiveIntegerField(default=0)
+    chunk_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return self.title
+
+class ChatSession(models.Model):
+    """A conversation session for a user."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,  null=True, blank=True)
+    session_key = models.CharField(max_length=100, unique=True)
+    started_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+class ChatMessage(models.Model):
+    """Individual message in a chat session."""
+    class Role(models.TextChoices):
+        USER      = 'user',      'User'
+        ASSISTANT = 'assistant', 'Assistant'
+
+    session    = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
+    role       = models.CharField(max_length=10, choices=Role.choices)
+    content    = models.TextField()
+    sources    = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['session', '-created_at']),
+        ]

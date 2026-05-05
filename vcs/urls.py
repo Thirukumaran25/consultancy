@@ -14,6 +14,10 @@ urlpatterns = [
     path('terms/company/', views.company_terms_view, name='company_terms'),
     path('terms/candidate/', views.candidate_terms_view, name='candidate_terms'),
 
+    path('chatbot/api/', views.chatbot_api, name='chatbot_api'),
+    path('chatbot/history/', views.chatbot_history, name='chatbot_history'),
+    path('chatbot/clear/', views.chatbot_clear, name='chatbot_clear'),
+
     # Add to urlpatterns
     path('services/',                         views.services,          name='services'),
     path('services/feeds/',                   views.feed_list,         name='feed_list'),

@@ -33,6 +33,32 @@ ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 RAZORPAY_KEY_ID     = os.getenv('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
 
+# ── LLM / RAG ───────────────────────────────────────────────────────────────
+QDRANT_URL        = os.environ.get('QDRANT_URL', 'http://localhost:6333')
+QDRANT_API_KEY    = os.environ.get('QDRANT_API_KEY', None)
+
+GEMINI_API_KEY    = os.environ.get('GEMINI_API_KEY', '')
+GROQ_API_KEY      = os.environ.get('GROQ_API_KEY', '')
+OPENAI_API_KEY    = os.environ.get('OPENAI_API_KEY', '')
+
+# ── Switch provider here ─────────────────────────────────────────────────────
+# Use 'groq' for free + fast generation (get key at console.groq.com/keys)
+# Use 'google' for Gemini (needs paid quota or lower-traffic key)
+ACTIVE_LLM_PROVIDER = os.environ.get('ACTIVE_LLM_PROVIDER', 'groq')
+
+# Gemini generation model — gemini-1.5-flash has better free quota than flash-lite
+GEMINI_MODEL  = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
+# Groq free models: llama3-8b-8192 | llama3-70b-8192 | mixtral-8x7b-32768
+GROQ_MODEL    = os.environ.get('GROQ_MODEL', 'llama3-8b-8192')
+OPENAI_MODEL  = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
+
+# RAG
+CHATBOT_CHUNK_SIZE           = 800
+CHATBOT_CHUNK_OVERLAP        = 150
+CHATBOT_MAX_HISTORY          = 6
+CHATBOT_TOP_K                = 5
+CHATBOT_SIMILARITY_THRESHOLD = 0.45
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

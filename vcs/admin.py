@@ -3,7 +3,12 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from django.utils.html import format_html
+from django.contrib import messages as admin_messages
+from django.shortcuts import redirect
+from django.urls import path
 from .models import *
+
 
 class CustomUserAdmin(UserAdmin):
     model = User
@@ -199,3 +204,48 @@ class TermsAndConditionsAdmin(admin.ModelAdmin):
     search_fields = ('title', 'content')
     list_editable = ('is_active',) 
     readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(ChatbotDocument)
+class ChatbotDocumentAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'is_active', 'page_count', 'chunk_count', 'indexed_at', 'status_badge', 'index_action')
+    list_filter   = ('is_active',)
+    search_fields = ('title', 'description')
+    readonly_fields = ('indexed_at', 'page_count', 'chunk_count', 'uploaded_at')
+
+    def status_badge(self, obj):
+        if not obj.indexed_at: 
+            return format_html('<span style="color:red;">{}</span>', '⏳ Not Indexed')
+        return format_html('<span style="color:green;">{}</span>', '✓ Indexed')
+    
+    def index_action(self, obj):
+        return format_html('<a href="/admin/vcs/chatbotdocument/{}/index/" class="button">⚡ Index</a>', obj.pk)
+
+    def get_urls(self):
+        return [path('<int:doc_id>/index/', self.admin_site.admin_view(self.index_view))] + super().get_urls()
+
+    def index_view(self, request, doc_id):
+        from .rag_engine import index_document
+        try:
+            doc = ChatbotDocument.objects.get(pk=doc_id)
+            count = index_document(doc)
+            self.message_user(request, f'Indexed successfully: {count} chunks.', admin_messages.SUCCESS)
+        except Exception as e:
+            self.message_user(request, f'Failed: {e}', admin_messages.ERROR)
+        return redirect('/admin/vcs/chatbotdocument/')
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        
+        if not change or 'pdf_file' in form.changed_data:
+            from .rag_engine import index_document
+            try:
+                index_document(obj)
+                self.message_user(request, "Document uploaded and indexed perfectly!", admin_messages.SUCCESS)
+            except Exception as e:
+                self.message_user(request, f"Document saved, but indexing failed: {e}", admin_messages.ERROR)
+
+    def delete_model(self, request, obj):
+        from .rag_engine import delete_document_vectors
+        delete_document_vectors(obj.id)
+        super().delete_model(request, obj)

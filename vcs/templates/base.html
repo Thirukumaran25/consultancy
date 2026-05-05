@@ -234,6 +234,147 @@
         <i class="fa-solid fa-robot"></i>
     </button>
 
+
+
+<!-- ── CHATBOT MODAL ─────────────────────────────────────────── -->
+{% if user.is_authenticated %}
+<button id="chat-fab" aria-label="Open AI Assistant" class="fixed bottom-6 right-6 z-[999] w-[58px] h-[58px] rounded-full bg-gradient-to-br from-[#4238ca] to-[#3b82f6] flex items-center justify-center shadow-[0_4px_20px_rgba(66,56,202,0.4)] hover:shadow-[0_6px_28px_rgba(66,56,202,0.5)] hover:scale-105 transition-all duration-200 group">
+    <i class="fa-solid fa-robot text-white text-[22px] group-[.open]:hidden" id="fab-icon-open"></i>
+    <i class="fa-solid fa-xmark text-white text-[22px] hidden group-[.open]:block" id="fab-icon-close"></i>
+    <span id="chat-badge" class="absolute -top-1 -right-1 w-[18px] h-[18px] bg-[#ef4444] text-white text-[10px] font-extrabold rounded-full flex items-center justify-center hidden">1</span>
+</button>
+
+<div id="chat-panel" class="fixed bottom-[82px] right-6 z-[998] w-[380px] max-w-[calc(100vw-24px)] bg-white rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right scale-0 opacity-0 pointer-events-none" style="height: 520px;">
+    <div class="bg-gradient-to-r from-[#4238ca] to-[#3b82f6] px-4 py-3.5 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center">
+                <i class="fa-solid fa-robot text-white text-[15px]"></i>
+            </div>
+            <div>
+                <p class="text-white font-extrabold text-[14px] leading-tight">VCS Assistant</p>
+            </div>
+        </div>
+        <button id="chat-clear-btn" title="New conversation" class="text-white/70 hover:text-white transition text-[13px] px-2 py-1 rounded-[6px] hover:bg-white/10">
+            <i class="fa-solid fa-rotate-right mr-1"></i>New
+        </button>
+    </div>
+
+    <div id="chat-messages" class="flex-1 overflow-y-auto px-4 py-3 space-y-3 scroll-smooth" style="overscroll-behavior: contain;">
+        <div id="chat-welcome" class="flex items-start gap-2">
+            <div class="w-[28px] h-[28px] rounded-full bg-gradient-to-br from-[#4238ca] to-[#3b82f6] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-robot text-white text-[11px]"></i>
+            </div>
+            <div class="bg-[#f8fbff] border border-[#e4eaf2] rounded-[12px] rounded-tl-[4px] px-3.5 py-2.5 max-w-[85%]">
+                <p class="text-[13px] text-[#1a2b4a] leading-relaxed">
+                    👋 Hi <strong>{{ user.first_name|default:user.username }}</strong>! I'm your VCS AI Assistant. Ask me anything about our services.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-suggestions" class="px-3 pt-1 pb-2 flex flex-wrap gap-1.5 shrink-0 border-t border-[#f0f4f8]">
+        <p class="text-[10.5px] text-[#aab8c8] font-semibold w-full mb-0.5">Try asking:</p>
+        
+        <!-- Replaced the unsupported split loop with standard buttons -->
+        <button class="chat-suggestion text-[11.5px] font-semibold text-[#4238ca] bg-[#eef3ff] border border-[#c5d4f0] px-2.5 py-1 rounded-full hover:bg-[#dfe8ff] transition">
+            What services does VCS offer?
+        </button>
+        <button class="chat-suggestion text-[11.5px] font-semibold text-[#4238ca] bg-[#eef3ff] border border-[#c5d4f0] px-2.5 py-1 rounded-full hover:bg-[#dfe8ff] transition">
+            How do I apply for a job?
+        </button>
+        <button class="chat-suggestion text-[11.5px] font-semibold text-[#4238ca] bg-[#eef3ff] border border-[#c5d4f0] px-2.5 py-1 rounded-full hover:bg-[#dfe8ff] transition">
+            What training programs are available?
+        </button>
+    </div>
+
+    <div class="px-3 pb-3 pt-2 shrink-0 border-t border-[#f0f4f8]">
+        <div class="flex gap-2 items-end">
+            <div class="flex-1 relative">
+                <textarea id="chat-input" placeholder="Ask a question…" rows="1" maxlength="1000" class="w-full px-3.5 py-2.5 border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none resize-none focus:border-[#4238ca] focus:bg-white transition max-h-[80px] overflow-y-auto leading-snug" style="scrollbar-width:none;"></textarea>
+            </div>
+            <button id="chat-send-btn" class="w-[38px] h-[38px] bg-[#4238ca] hover:bg-[#3730a3] text-white rounded-[10px] flex items-center justify-center transition disabled:opacity-40 disabled:cursor-not-allowed shrink-0 mb-px">
+                <i class="fa-solid fa-paper-plane text-[13px]" id="chat-send-icon"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const fab = document.getElementById('chat-fab'), panel = document.getElementById('chat-panel'), msgsEl = document.getElementById('chat-messages'), inputEl = document.getElementById('chat-input'), sendBtn = document.getElementById('chat-send-btn'), sendIcon = document.getElementById('chat-send-icon'), suggestBox = document.getElementById('chat-suggestions'), welcomeEl = document.getElementById('chat-welcome'), clearBtn = document.getElementById('chat-clear-btn'), badge = document.getElementById('chat-badge'), CSRF = '{{ csrf_token }}';
+    let isOpen = false, isLoading = false, historyLoaded = false;
+
+    function openPanel() {
+        isOpen = true; fab.classList.add('open'); panel.classList.remove('scale-0', 'opacity-0', 'pointer-events-none'); panel.classList.add('scale-100', 'opacity-100'); badge.classList.add('hidden');
+        if (!historyLoaded) loadHistory();
+        setTimeout(() => inputEl.focus(), 200);
+    }
+    function closePanel() { isOpen = false; fab.classList.remove('open'); panel.classList.add('scale-0', 'opacity-0', 'pointer-events-none'); panel.classList.remove('scale-100', 'opacity-100'); }
+    fab.addEventListener('click', () => isOpen ? closePanel() : openPanel());
+
+    async function loadHistory() {
+        historyLoaded = true;
+        try {
+            const res = await fetch('{% url "chatbot_history" %}'); const data = await res.json();
+            if (data.messages && data.messages.length > 0) {
+                welcomeEl.classList.add('hidden'); suggestBox.classList.add('hidden');
+                data.messages.forEach(m => appendBubble(m.role, m.content, m.sources || []));
+            }
+        } catch (e) {}
+    }
+
+    function formatAnswer(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/^[-•]\s(.+)$/gm, '<li class="ml-3 list-disc">$1</li>').replace(/(<li.*<\/li>)/s, '<ul class="space-y-0.5 mt-1">$1</ul>').replace(/\n/g, '<br>'); }
+
+    function appendBubble(role, text, sources = []) {
+        const wrap = document.createElement('div');
+        if (role === 'user') {
+            wrap.className = 'flex items-end gap-2 justify-end';
+            wrap.innerHTML = `<div class="bg-[#4238ca] text-white rounded-[12px] rounded-br-[4px] px-3.5 py-2.5 max-w-[82%] text-[13px] leading-relaxed">${text.replace(/</g,'&lt;')}</div><div class="w-[26px] h-[26px] rounded-full bg-[#eef3ff] flex items-center justify-center shrink-0 text-[11px] font-extrabold text-[#4238ca]">{{ user.username|slice:":1"|upper }}</div>`;
+        } else {
+            let srcHtml = sources.length ? `<div class="flex flex-wrap gap-1 mt-1.5">${sources.map(s => `<span class="text-[10.5px] bg-[#eef3ff] text-[#4238ca] font-semibold px-2 py-0.5 rounded-full border border-[#c5d4f0]"><i class="fa-solid fa-file-pdf mr-0.5 text-[9px]"></i>${s}</span>`).join('')}</div>` : '';
+            wrap.className = 'flex items-start gap-2';
+            wrap.innerHTML = `<div class="w-[28px] h-[28px] rounded-full bg-gradient-to-br from-[#4238ca] to-[#3b82f6] flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-robot text-white text-[11px]"></i></div><div class="max-w-[85%]"><div class="bg-[#f8fbff] border border-[#e4eaf2] rounded-[12px] rounded-tl-[4px] px-3.5 py-2.5 text-[13px] text-[#1a2b4a] leading-relaxed">${formatAnswer(text)}</div>${srcHtml}</div>`;
+        }
+        msgsEl.appendChild(wrap); msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+
+    function appendTyping() {
+        const el = document.createElement('div'); el.id = 'chat-typing'; el.className = 'flex items-start gap-2';
+        el.innerHTML = `<div class="w-[28px] h-[28px] rounded-full bg-gradient-to-br from-[#4238ca] to-[#3b82f6] flex items-center justify-center shrink-0"><i class="fa-solid fa-robot text-white text-[11px]"></i></div><div class="bg-[#f8fbff] border border-[#e4eaf2] rounded-[12px] rounded-tl-[4px] px-4 py-3 flex gap-1.5 items-center"><span class="w-2 h-2 rounded-full bg-[#4238ca] animate-bounce"></span><span class="w-2 h-2 rounded-full bg-[#4238ca] animate-bounce" style="animation-delay:150ms"></span><span class="w-2 h-2 rounded-full bg-[#4238ca] animate-bounce" style="animation-delay:300ms"></span></div>`;
+        msgsEl.appendChild(el); msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+
+    async function sendMessage(q) {
+        const query = (q || inputEl.value).trim(); if (!query || isLoading) return;
+        welcomeEl.classList.add('hidden'); suggestBox.classList.add('hidden'); appendBubble('user', query);
+        inputEl.value = ''; inputEl.style.height = 'auto'; isLoading = true; sendBtn.disabled = true; sendIcon.className = 'fa-solid fa-spinner fa-spin text-[13px]'; appendTyping();
+        try {
+            const res = await fetch('{% url "chatbot_api" %}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF }, body: JSON.stringify({ query }) });
+            const data = await res.json();
+            document.getElementById('chat-typing')?.remove();
+            appendBubble('assistant', data.error ? '⚠ ' + data.error : data.answer, data.sources || []);
+        } catch (err) {
+            document.getElementById('chat-typing')?.remove(); appendBubble('assistant', '⚠ Network error. Please try again.');
+        } finally {
+            isLoading = false; sendBtn.disabled = false; sendIcon.className = 'fa-solid fa-paper-plane text-[13px]';
+            if (!isOpen) badge.classList.remove('hidden');
+        }
+    }
+
+    inputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+    inputEl.addEventListener('input', () => { inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 80) + 'px'; });
+    sendBtn.addEventListener('click', () => sendMessage());
+    document.querySelectorAll('.chat-suggestion').forEach(btn => btn.addEventListener('click', () => sendMessage(btn.textContent.trim())));
+    clearBtn.addEventListener('click', async () => {
+        if (!confirm('Start new conversation?')) return;
+        await fetch('{% url "chatbot_clear" %}', { method: 'POST', headers: { 'X-CSRFToken': CSRF } });
+        msgsEl.innerHTML = ''; historyLoaded = false; welcomeEl.classList.remove('hidden'); suggestBox.classList.remove('hidden'); msgsEl.appendChild(welcomeEl); openPanel();
+    });
+    document.addEventListener('click', e => { if (isOpen && !panel.contains(e.target) && !fab.contains(e.target)) closePanel(); });
+})();
+</script>
+{% endif %}
+
     <script>
         const btn = document.getElementById('mobileMenuBtn');
         const menu = document.getElementById('mobileMenu');
