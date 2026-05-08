@@ -126,7 +126,7 @@
             <div class="inline-flex items-center gap-1.5 bg-[#eef3ff] text-[#4b6cf5] text-[11.5px] font-bold py-1 px-3 rounded-[20px]">
                 <i class="fa-solid fa-user-tie"></i> Candidate Registration
             </div>
-            <a href="{% url 'login' %}" class="text-[#4b6cf5] font-semibold text-[13px] no-underline hover:underline">
+            <a href="{% url 'login' %}" class="text-[#4b6cf5] justify-center text-center font-semibold text-[13px] no-underline hover:underline">
                 ← Back to Login
             </a>
         </div>
@@ -156,6 +156,7 @@
                 <div class="relative">
                     <i class="fa-solid fa-id-card field-icon"></i>
                     <input type="text" name="full_name" id="id_full_name"
+                            pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed"
                            placeholder="Your full name" maxlength="200" required
                            value="{{ form_data.full_name|default:'' }}"
                            class="input-base {% if errors.full_name %}error{% endif %}">
@@ -204,7 +205,8 @@
                 <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Mobile Number</label>
                 <div class="relative">
                     <i class="fa-solid fa-phone field-icon"></i>
-                    <input type="tel" name="phone_number" id="id_phone"
+                    <input type="tel" name="phone_number" id="id_phone" 
+                            minlength="7" maxlength="15" pattern="\d{7,15}" title="Phone number must be between 7 and 15 digits"
                            placeholder="+91 00000 00000" required
                            value="{{ form_data.phone_number|default:'' }}"
                            class="input-base {% if errors.phone_number %}error{% endif %}">

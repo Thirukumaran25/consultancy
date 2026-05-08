@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <div class="flex-1 p-[32px_22px] md:p-[44px] flex flex-col justify-center">
+    <div class="flex-1 p-[32px_22px] md:p-[44px] flex flex-col justify-center relative">
         
         {% if messages %}
             {% for message in messages %}
@@ -56,18 +56,19 @@
         <div class="flex flex-row flex-wrap sm:flex-nowrap bg-[#f1f5fb] rounded-[14px] p-1 mb-5 gap-1">
             <button class="type-tab active-candidate flex-1 min-w-[30%] py-2 sm:py-2.5 px-1 sm:px-2 rounded-[10px] bg-transparent font-['Exo',sans-serif] text-[11px] sm:text-[13px] font-bold text-[#7a8fa6] cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 transition-all duration-250 text-center leading-tight" id="tab-candidate" onclick="switchTab('candidate')">
                 <i class="fa-solid fa-user-tie text-[14px] sm:text-base"></i> 
-                <span class="break-words">{{ ui_settings.candidate_tab_text }}</span>
+                <span class="break-words">{{ ui_settings.candidate_tab_text|default:"Candidate" }}</span>
             </button>
             <button class="type-tab flex-1 min-w-[30%] py-2 sm:py-2.5 px-1 sm:px-2 rounded-[10px] bg-transparent font-['Exo',sans-serif] text-[11px] sm:text-[13px] font-bold text-[#7a8fa6] cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 transition-all duration-250 text-center leading-tight" id="tab-trainee" onclick="switchTab('trainee')">
                 <i class="fa-solid fa-user-graduate text-[14px] sm:text-base"></i> 
-                <span class="break-words">{{ ui_settings.trainee_tab_text }}</span>
+                <span class="break-words">{{ ui_settings.trainee_tab_text|default:"Trainee" }}</span>
             </button>
             <button class="type-tab flex-1 min-w-[30%] py-2 sm:py-2.5 px-1 sm:px-2 rounded-[10px] bg-transparent font-['Exo',sans-serif] text-[11px] sm:text-[13px] font-bold text-[#7a8fa6] cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 transition-all duration-250 text-center leading-tight" id="tab-company" onclick="switchTab('company')">
                 <i class="fa-solid fa-building text-[14px] sm:text-base"></i> 
-                <span class="break-words">{{ ui_settings.company_tab_text }}</span>
+                <span class="break-words">{{ ui_settings.company_tab_text|default:"Company" }}</span>
             </button>
         </div>
 
+        <!-- Candidate Panel -->
         <div class="login-panel active" id="candidate-panel">
             <h1 class="text-[26px] font-extrabold text-[#1a2b4a] mb-1.5">Candidate Login</h1>
             <p class="text-[13px] text-[#7a8fa6] mb-[15px]">Welcome back! Enter your credentials to continue.</p>
@@ -80,7 +81,7 @@
                     <label class="block text-[13px] font-bold text-[#1a2b4a] mb-[7px]">Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="text" name="username" placeholder="Enter your username" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="text" name="username" placeholder="Enter your username" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                 </div>
 
@@ -88,15 +89,15 @@
                     <label class="block text-[13px] font-bold text-[#1a2b4a] mb-[7px]">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="password" id="cand-pwd" name="password" placeholder="Enter your password" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
-                        <i class="fa-solid fa-eye absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#aab8c8] cursor-pointer transition-colors duration-200 hover:text-[#4b6cf5]" onclick="togglePwd('cand-pwd', this)"></i>
+                        <input type="password" id="cand-pwd" name="password" placeholder="Enter your password" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <i class="fa-solid fa-eye absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#aab8c8] cursor-pointer hover:text-[#4b6cf5]" onclick="togglePwd('cand-pwd', this)"></i>
                     </div>
                     <div class="flex justify-end mt-1.5">
-                        <a href="/forgot-password/" class="text-[12px] text-[#e05c5c] font-semibold no-underline hover:underline">Forgot Password?</a>
+                        <button type="button" onclick="openForgotPasswordModal()" class="text-[12px] text-[#e05c5c] font-semibold no-underline hover:underline cursor-pointer bg-transparent border-none p-0">Forgot Password?</button>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full p-3 border-none rounded-[10px] font-['Exo',sans-serif] text-[14.5px] font-bold cursor-pointer mt-1.5 transition-all duration-200 tracking-[0.3px] flex items-center justify-center gap-2 bg-[#3d35c4] text-white hover:bg-[#2d27a8] active:scale-[0.99]">
+                <button type="submit" class="w-full p-3 border-none rounded-[10px] font-['Exo',sans-serif] text-[14.5px] font-bold cursor-pointer mt-1.5 transition-all duration-200 flex items-center justify-center gap-2 bg-[#3d35c4] text-white hover:bg-[#2d27a8] active:scale-[0.99]">
                     <i class="fa-solid fa-right-to-bracket"></i> Login
                 </button>
             </form>
@@ -116,10 +117,11 @@
             </div>
 
             <div class="text-center mt-[18px] text-[13px] text-[#7a8fa6]">
-                No account? <a href="{% url 'candidate_register' %}" class="font-bold no-underline hover:underline text-[#4b6cf5]">Register</a>
+                Don't Have an account? <a href="{% url 'candidate_register' %}" class="font-bold no-underline hover:underline text-[#4b6cf5]">Register</a>
             </div>
         </div>
 
+        <!-- Trainee Panel -->
         <div class="login-panel" id="trainee-panel">
             <h1 class="text-[26px] font-extrabold text-[#1a2b4a] mb-1.5">Trainee Login</h1>
             <p class="text-[13px] text-[#7a8fa6] mb-[15px]">Welcome back! Enter your credentials to continue.</p>
@@ -132,7 +134,7 @@
                     <label class="block text-[13px] font-bold text-[#1a2b4a] mb-[7px]">Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="text" name="username" placeholder="Enter your username" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="text" name="username" placeholder="Enter your username" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                 </div>
 
@@ -140,17 +142,21 @@
                     <label class="block text-[13px] font-bold text-[#1a2b4a] mb-[7px]">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="password" id="train-pwd" name="password" placeholder="Enter your password" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
-                        <i class="fa-solid fa-eye absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#aab8c8] cursor-pointer transition-colors duration-200 hover:text-[#4b6cf5]" onclick="togglePwd('train-pwd', this)"></i>
+                        <input type="password" id="train-pwd" name="password" placeholder="Enter your password" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <i class="fa-solid fa-eye absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#aab8c8] cursor-pointer hover:text-[#4b6cf5]" onclick="togglePwd('train-pwd', this)"></i>
+                    </div>
+                    <div class="flex justify-end mt-1.5">
+                        <button type="button" onclick="openForgotPasswordModal()" class="text-[12px] text-[#e05c5c] font-semibold no-underline hover:underline cursor-pointer bg-transparent border-none p-0">Forgot Password?</button>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full p-3 border-none rounded-[10px] font-['Exo',sans-serif] text-[14.5px] font-bold cursor-pointer mt-1.5 transition-all duration-200 tracking-[0.3px] flex items-center justify-center gap-2 bg-[#3d35c4] text-white hover:bg-[#2d27a8] active:scale-[0.99]">
+                <button type="submit" class="w-full p-3 border-none rounded-[10px] font-['Exo',sans-serif] text-[14.5px] font-bold cursor-pointer mt-1.5 transition-all duration-200 flex items-center justify-center gap-2 bg-[#3d35c4] text-white hover:bg-[#2d27a8] active:scale-[0.99]">
                     <i class="fa-solid fa-right-to-bracket"></i> Login
                 </button>
             </form>
         </div>
 
+        <!-- Company Panel -->
         <div class="login-panel" id="company-panel">
             <h1 class="text-[26px] font-extrabold text-[#1a2b4a] mb-1.5">Company Login</h1>
             <p class="text-[13px] text-[#7a8fa6] mb-[15px]">Access your company dashboard and manage postings.</p>
@@ -163,7 +169,7 @@
                     <label class="block text-[13px] font-bold text-[#1a2b4a] mb-[7px]">Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="text" name="username" placeholder="Enter company username" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(230,126,34,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <input type="text" name="username" placeholder="Enter company username" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:bg-white placeholder:text-[#b0bfcc]">
                     </div>
                 </div>
 
@@ -171,33 +177,31 @@
                     <label class="block text-[13px] font-bold text-[#1a2b4a] mb-[7px]">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-[#aab8c8] pointer-events-none"></i>
-                        <input type="password" id="comp-pwd" name="password" placeholder="Enter your password" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(230,126,34,0.12)] focus:bg-white placeholder:text-[#b0bfcc]">
-                        <i class="fa-solid fa-eye absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#aab8c8] cursor-pointer transition-colors duration-200 hover:text-[#4b6cf5]" onclick="togglePwd('comp-pwd', this)"></i>
+                        <input type="password" id="comp-pwd" name="password" placeholder="Enter your password" required class="w-full py-[11px] px-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] font-['Exo',sans-serif] text-[13.5px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:bg-white placeholder:text-[#b0bfcc]">
+                        <i class="fa-solid fa-eye absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#aab8c8] cursor-pointer hover:text-[#4b6cf5]" onclick="togglePwd('comp-pwd', this)"></i>
                     </div>
                     <div class="flex justify-end mt-1.5">
-                        <a href="/forgot-password/" class="text-[12px] text-[#e05c5c] font-semibold no-underline hover:underline">Forgot Password?</a>
+                        <button type="button" onclick="openForgotPasswordModal()" class="text-[12px] text-[#e05c5c] font-semibold no-underline hover:underline cursor-pointer bg-transparent border-none p-0">Forgot Password?</button>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full p-3 border-none rounded-[10px] font-['Exo',sans-serif] text-[14.5px] font-bold cursor-pointer mt-1.5 transition-all duration-200 tracking-[0.3px] flex items-center justify-center gap-2 bg-[#3d35c4] text-white hover:bg-[#2d27a8] active:scale-[0.99]">
+                <button type="submit" class="w-full p-3 border-none rounded-[10px] font-['Exo',sans-serif] text-[14.5px] font-bold cursor-pointer mt-1.5 transition-all duration-200 flex items-center justify-center gap-2 bg-[#3d35c4] text-white hover:bg-[#2d27a8] active:scale-[0.99]">
                     <i class="fa-solid fa-right-to-bracket"></i> Login as Company
                 </button>
             </form>
 
             <div class="text-center mt-[20px] text-[13px] text-[#7a8fa6]">
                 New company? <a href="{% url 'company_register' %}" class="font-bold no-underline hover:underline text-[#2d27a8]">Register Here</a>
-                | <button type="button" onclick="openStatusModal()" class="font-bold no-underline hover:underline text-[#2d27a8] cursor-pointer bg-transparent border-none p-0">
-                    Check application status
-                </button>
+                | <button type="button" onclick="openStatusModal()" class="font-bold no-underline hover:underline text-[#2d27a8] cursor-pointer bg-transparent border-none p-0">Check application status</button>
             </div>
         </div>
 
     </div>
 </div>
 
+<!-- ── CHECK STATUS MODAL ── -->
 <div id="status-modal-backdrop" onclick="closeStatusModal()" class="hidden fixed inset-0 bg-black/40 z-40 transition-opacity"></div>
 <div id="status-modal" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-[400px] bg-white rounded-[16px] p-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] font-['Exo',sans-serif]">
-    
     <div class="flex justify-between items-center mb-2">
         <h3 class="text-[18px] font-extrabold text-[#1a2b4a]">Application Status</h3>
         <button onclick="closeStatusModal()" class="text-[#aab8c8] hover:text-[#e74c3c] transition text-[16px]">
@@ -224,30 +228,146 @@
                 <input type="password" id="status-password" required class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5]">
             </div>
         </div>
-        
         <button type="submit" id="btn-check-status" class="w-full p-[12px] bg-[#3d35c4] text-white border-none rounded-[10px] text-[14px] font-bold cursor-pointer transition-all duration-200 hover:bg-[#2d27a8] flex items-center justify-center gap-2">
             <i class="fa-solid fa-magnifying-glass"></i> Check Status
         </button>
     </form>
 </div>
 
+<!-- ── FORGOT PASSWORD MODAL ── -->
+<div id="fp-modal-backdrop" onclick="closeForgotPasswordModal()" class="hidden fixed inset-0 bg-black/40 z-40 transition-opacity"></div>
+<div id="fp-modal" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-[420px] bg-white rounded-[16px] p-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] font-['Exo',sans-serif]">
+    
+    <div class="flex justify-between items-center mb-2">
+        <h3 class="text-[18px] font-extrabold text-[#1a2b4a]" id="fp-modal-title">Reset Password</h3>
+        <button onclick="closeForgotPasswordModal()" class="text-[#aab8c8] hover:text-[#e74c3c] transition text-[16px]">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div id="fp-alert" class="hidden p-3 rounded-lg text-[13px] border mb-4 font-semibold flex items-start gap-2"></div>
+
+    <!-- STEP 1: Enter Email -->
+    <div id="fp-step-1" class="block">
+        <p class="text-[13px] text-[#7a8fa6] mb-5">Enter your email address. We'll send you a 6-digit OTP to verify your identity.</p>
+        <div class="mb-4">
+            <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Email Address</label>
+            <div class="relative">
+                <i class="fa-regular fa-envelope absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8]"></i>
+                <input type="email" id="fp-email" placeholder="e.g., user@example.com" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] bg-[#f8fbff] outline-none focus:border-[#4b6cf5]">
+            </div>
+        </div>
+        <button type="button" id="btn-send-otp" onclick="sendOTP()" class="w-full p-[12px] bg-[#3d35c4] text-white rounded-[10px] font-bold flex items-center justify-center gap-2 hover:bg-[#2d27a8]">
+            Send Verification Code <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+
+    <!-- STEP 2: Verify OTP -->
+    <div id="fp-step-2" class="hidden">
+        <div class="w-12 h-12 bg-[#eef3ff] text-[#4238ca] rounded-full flex items-center justify-center text-[20px] mx-auto mb-3"><i class="fa-solid fa-envelope-open-text"></i></div>
+        <p class="text-[13px] text-center text-[#7a8fa6] mb-5">We've sent a 6-digit code to <br><strong id="fp-display-email" class="text-[#1a2b4a]"></strong></p>
+        
+        <div class="mb-5">
+            <input type="text" id="fp-otp" maxlength="6" placeholder="• • • • • •" class="w-full py-3 px-3 border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[20px] tracking-[0.5em] font-extrabold text-center text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5]">
+        </div>
+        <button type="button" id="btn-verify-otp" onclick="verifyOTP()" class="w-full p-[12px] bg-[#3d35c4] text-white rounded-[10px] font-bold flex items-center justify-center gap-2 hover:bg-[#2d27a8]">
+            <i class="fa-solid fa-shield-check"></i> Verify OTP
+        </button>
+        <div class="text-center mt-3">
+            <button type="button" onclick="sendOTP()" class="text-[12px] font-bold text-[#7a8fa6] hover:text-[#4238ca] bg-transparent border-none p-0 cursor-pointer">Didn't receive code? Resend</button>
+        </div>
+    </div>
+
+    <!-- STEP 3: Enter New Password -->
+    <div id="fp-step-3" class="hidden">
+        <div class="w-12 h-12 bg-[#ecfdf5] text-[#10b981] rounded-full flex items-center justify-center text-[20px] mx-auto mb-3"><i class="fa-solid fa-check-double"></i></div>
+        <p class="text-[13px] text-center text-[#7a8fa6] mb-5">Identity verified! Please create a new password.</p>
+        
+        <div class="space-y-4 mb-5">
+            <div>
+                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">New Password</label>
+                <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8]"></i>
+                    <input type="password" id="fp-new-password" placeholder="Minimum 8 characters" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] bg-[#f8fbff] outline-none focus:border-[#4b6cf5]">
+                </div>
+            </div>
+            <div>
+                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Confirm Password</label>
+                <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-[13px] top-1/2 -translate-y-1/2 text-[13px] text-[#aab8c8]"></i>
+                    <input type="password" id="fp-confirm-password" placeholder="Confirm your password" class="w-full py-2.5 px-[14px] pl-[38px] border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] bg-[#f8fbff] outline-none focus:border-[#4b6cf5]">
+                </div>
+            </div>
+        </div>
+        <button type="button" id="btn-save-pwd" onclick="saveNewPassword()" class="w-full p-[12px] bg-[#10b981] text-white rounded-[10px] font-bold flex items-center justify-center gap-2 hover:bg-[#059669]">
+            <i class="fa-solid fa-floppy-disk"></i> Save New Password
+        </button>
+    </div>
+</div>
+
+<!-- ── JAVASCRIPT SCRIPTS ── -->
 <script>
-    const modalBackdrop = document.getElementById('status-modal-backdrop');
-    const modal = document.getElementById('status-modal');
+    // Tab Switching Logic
+    function switchTab(type) {
+        const leftPanel  = document.getElementById('leftPanel');
+        const tabCand    = document.getElementById('tab-candidate');
+        const tabTrain   = document.getElementById('tab-trainee');
+        const tabComp    = document.getElementById('tab-company');
+        const panelCand  = document.getElementById('candidate-panel');
+        const panelTrain = document.getElementById('trainee-panel');
+        const panelComp  = document.getElementById('company-panel');
+
+        [tabCand, tabTrain, tabComp].forEach(t => t.classList.remove('active-candidate', 'active-company'));
+        [panelCand, panelTrain, panelComp].forEach(p => p.classList.remove('active'));
+        leftPanel.classList.remove('company-mode');
+
+        if (type === 'candidate') {
+            tabCand.classList.add('active-candidate');
+            panelCand.classList.add('active');
+        } else if (type === 'trainee') {
+            tabTrain.classList.add('active-candidate'); 
+            panelTrain.classList.add('active');
+        } else if (type === 'company') {
+            tabComp.classList.add('active-company'); 
+            panelComp.classList.add('active');
+            leftPanel.classList.add('company-mode');
+        }
+    }
+
+    function togglePwd(inputId, icon) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    // Restore active tab after failed login
+    document.addEventListener('DOMContentLoaded', function () {
+        const activeTab = "{{ active_tab|default:'candidate' }}";
+        switchTab(activeTab);
+    });
+
+    // ── CHECK STATUS MODAL LOGIC ──
+    const statusBackdrop = document.getElementById('status-modal-backdrop');
+    const statusModal = document.getElementById('status-modal');
     const resultBox = document.getElementById('status-result');
     const statusForm = document.getElementById('status-form');
     const btnCheck = document.getElementById('btn-check-status');
 
     function openStatusModal() {
-        modalBackdrop.classList.remove('hidden');
-        modal.classList.remove('hidden');
+        statusBackdrop.classList.remove('hidden');
+        statusModal.classList.remove('hidden');
         resultBox.classList.add('hidden');
         statusForm.reset();
     }
 
     function closeStatusModal() {
-        modalBackdrop.classList.add('hidden');
-        modal.classList.add('hidden');
+        statusBackdrop.classList.add('hidden');
+        statusModal.classList.add('hidden');
     }
 
     statusForm.addEventListener('submit', async function(e) {
@@ -255,7 +375,7 @@
         
         const usernameVal = document.getElementById('status-username').value;
         const passwordVal = document.getElementById('status-password').value;
-        const csrfToken = document.querySelector('#status-form [name=csrfmiddlewaretoken]').value;
+        const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
         
         btnCheck.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
         btnCheck.disabled = true;
@@ -291,56 +411,168 @@
         btnCheck.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Check Status';
         btnCheck.disabled = false;
     });
-</script>
 
-
-<script>
-function switchTab(type) {
-    const leftPanel  = document.getElementById('leftPanel');
-    const tabCand    = document.getElementById('tab-candidate');
-    const tabTrain   = document.getElementById('tab-trainee');
-    const tabComp    = document.getElementById('tab-company');
-    const panelCand  = document.getElementById('candidate-panel');
-    const panelTrain = document.getElementById('trainee-panel');
-    const panelComp  = document.getElementById('company-panel');
-
-    [tabCand, tabTrain, tabComp].forEach(t => {
-        t.classList.remove('active-candidate', 'active-company');
-    });
+    // ── FORGOT PASSWORD MODAL LOGIC (AJAX) ──
+    const fpBackdrop = document.getElementById('fp-modal-backdrop');
+    const fpModal = document.getElementById('fp-modal');
+    const fpAlert = document.getElementById('fp-alert');
     
-    [panelCand, panelTrain, panelComp].forEach(p => p.classList.remove('active'));
-    leftPanel.classList.remove('company-mode');
-
-    if (type === 'candidate') {
-        tabCand.classList.add('active-candidate');
-        panelCand.classList.add('active');
-    } else if (type === 'trainee') {
-        tabTrain.classList.add('active-candidate'); 
-        panelTrain.classList.add('active');
-    } else if (type === 'company') {
-        tabComp.classList.add('active-company'); 
-        panelComp.classList.add('active');
-        leftPanel.classList.add('company-mode');
+    function openForgotPasswordModal() {
+        fpBackdrop.classList.remove('hidden');
+        fpModal.classList.remove('hidden');
+        
+        // Reset to Step 1
+        document.getElementById('fp-step-1').classList.remove('hidden');
+        document.getElementById('fp-step-2').classList.add('hidden');
+        document.getElementById('fp-step-3').classList.add('hidden');
+        document.getElementById('fp-modal-title').innerText = "Reset Password";
+        fpAlert.classList.add('hidden');
+        
+        // Clear inputs
+        document.getElementById('fp-email').value = '';
+        document.getElementById('fp-otp').value = '';
+        document.getElementById('fp-new-password').value = '';
+        document.getElementById('fp-confirm-password').value = '';
     }
-}
 
-function togglePwd(inputId, icon) {
-    const input = document.getElementById(inputId);
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    function closeForgotPasswordModal() {
+        fpBackdrop.classList.add('hidden');
+        fpModal.classList.add('hidden');
     }
-}
 
-// ── Restore active tab after failed login ──────────────────────────────────
-// Django passes active_tab so the correct panel stays open on error
-document.addEventListener('DOMContentLoaded', function () {
-    const activeTab = "{{ active_tab|default:'candidate' }}";
-    switchTab(activeTab);
-});
+    function showFpAlert(msg, type='error') {
+        fpAlert.classList.remove('hidden', 'text-[#c0392b]', 'bg-[#fff0f0]', 'border-[#ffd0d0]', 'text-[#057a2e]', 'bg-[#e6fff0]', 'border-[#b2f2bb]');
+        if(type === 'error') {
+            fpAlert.classList.add('text-[#c0392b]', 'bg-[#fff0f0]', 'border-[#ffd0d0]');
+            fpAlert.innerHTML = `<i class="fa-solid fa-triangle-exclamation mt-0.5"></i> <span>${msg}</span>`;
+        } else {
+            fpAlert.classList.add('text-[#057a2e]', 'bg-[#e6fff0]', 'border-[#b2f2bb]');
+            fpAlert.innerHTML = `<i class="fa-solid fa-circle-check mt-0.5"></i> <span>${msg}</span>`;
+        }
+    }
+
+    async function sendOTP() {
+        const email = document.getElementById('fp-email').value.trim();
+        if(!email) return showFpAlert("Please enter your email.");
+        
+        const btn = document.getElementById('btn-send-otp');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
+
+        const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+
+        try {
+            const response = await fetch('/api/send-reset-otp/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email: email })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                document.getElementById('fp-display-email').innerText = email;
+                document.getElementById('fp-step-1').classList.add('hidden');
+                document.getElementById('fp-step-2').classList.remove('hidden');
+                document.getElementById('fp-modal-title').innerText = "Verify Identity";
+                fpAlert.classList.add('hidden');
+            } else {
+                throw new Error(data.error || "Failed to send OTP.");
+            }
+        } catch (error) {
+            showFpAlert(error.message);
+        } finally {
+            btn.innerHTML = 'Send Verification Code <i class="fa-solid fa-arrow-right"></i>';
+            btn.disabled = false;
+        }
+    }
+
+    async function verifyOTP() {
+        const email = document.getElementById('fp-email').value.trim();
+        const otp = document.getElementById('fp-otp').value.trim();
+        if(otp.length !== 6) return showFpAlert("Please enter a valid 6-digit OTP.");
+
+        const btn = document.getElementById('btn-verify-otp');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+        btn.disabled = true;
+        
+        const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+
+        try {
+            const response = await fetch('/api/verify-reset-otp/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email: email, otp: otp })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                document.getElementById('fp-step-2').classList.add('hidden');
+                document.getElementById('fp-step-3').classList.remove('hidden');
+                document.getElementById('fp-modal-title').innerText = "Create New Password";
+                fpAlert.classList.add('hidden');
+            } else {
+                throw new Error(data.error || "Invalid OTP.");
+            }
+        } catch (error) {
+            showFpAlert(error.message);
+        } finally {
+            btn.innerHTML = '<i class="fa-solid fa-shield-check"></i> Verify OTP';
+            btn.disabled = false;
+        }
+    }
+
+    async function saveNewPassword() {
+        const email = document.getElementById('fp-email').value.trim();
+        const otp = document.getElementById('fp-otp').value.trim();
+        const pwd1 = document.getElementById('fp-new-password').value;
+        const pwd2 = document.getElementById('fp-confirm-password').value;
+        
+        if(pwd1.length < 8) return showFpAlert("Password must be at least 8 characters.");
+        if(pwd1 !== pwd2) return showFpAlert("Passwords do not match.");
+
+        const btn = document.getElementById('btn-save-pwd');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+        
+        const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+
+        try {
+            const response = await fetch('/api/reset-password/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email: email, otp: otp, new_password: pwd1 })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                showFpAlert("Password successfully reset! You can now log in.", "success");
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Saved';
+                setTimeout(() => {
+                    closeForgotPasswordModal();
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save New Password';
+                    btn.disabled = false;
+                }, 2000);
+            } else {
+                throw new Error(data.error || "Failed to reset password.");
+            }
+        } catch (error) {
+            showFpAlert(error.message);
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save New Password';
+            btn.disabled = false;
+        }
+    }
 </script>
 
 </body>

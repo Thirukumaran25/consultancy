@@ -2,116 +2,112 @@
 {% block title %}Dashboard — {{ ui_settings.site_name|default:"VCS" }}{% endblock %}
 
 {% block content %}
-<div class="max-w-[1400px] mx-auto px-5 md:px-8 py-8">
+<div class="max-w-[1400px] mx-auto px-4 sm:px-5 md:px-8 py-4 sm:py-6 md:py-8">
 
     {% if not is_premium and active_offer %}
-<!-- ── DYNAMIC PRO OFFER BANNER ── -->
-<div class="relative w-full rounded-[24px] overflow-hidden flex flex-col md:flex-row items-center justify-between p-6 mb-10 shadow-sm"
-     style="background: linear-gradient(to right, {{ active_offer.bg_gradient_start }}, {{ active_offer.bg_gradient_end }});">
+    <!-- ── DYNAMIC PRO OFFER BANNER ── -->
+    <div class="relative w-full rounded-[20px] sm:rounded-[24px] overflow-hidden flex flex-col md:flex-row items-center justify-between p-4 sm:p-5 md:p-6 mb-6 sm:mb-8 md:mb-10 shadow-sm"
+        style="background: linear-gradient(to right, {{ active_offer.bg_gradient_start }}, {{ active_offer.bg_gradient_end }});">
 
-    <!-- Left: Illustration -->
-    <div class="w-full md:w-1/4 flex justify-center md:justify-start mb-6 md:mb-0 relative z-10">
-        {% if active_offer.illustration %}
-            <img src="{{ active_offer.illustration.url }}" alt="Offer Illustration" class="max-h-[160px] md:max-h-[180px] object-contain drop-shadow-md">
-        {% else %}
-            <!-- Placeholder if no image is uploaded yet -->
-            <div class="h-[140px] w-[140px] bg-white/40 rounded-[20px] flex items-center justify-center text-yellow-800 text-[12px] font-bold text-center p-4 border border-yellow-500 border-dashed">
-                Upload image<br>in Admin
-            </div>
-        {% endif %}
-    </div>
+        <div class="w-full md:w-1/4 flex justify-center md:justify-start mb-4 sm:mb-6 md:mb-0 relative z-10">
+            {% if active_offer.illustration %}
+                <img src="{{ active_offer.illustration.url }}" alt="Offer Illustration" class="max-h-[110px] sm:max-h-[140px] md:max-h-[180px] object-contain drop-shadow-md">
+            {% else %}
+                <div class="h-[100px] w-[100px] sm:h-[120px] sm:w-[140px] bg-white/40 rounded-[16px] sm:rounded-[20px] flex items-center justify-center text-yellow-800 text-[10px] sm:text-[11px] md:text-[12px] font-bold text-center p-3 sm:p-4 border border-yellow-500 border-dashed">
+                    Upload image<br>in Admin
+                </div>
+            {% endif %}
+        </div>
 
-    <!-- Center: Text Content -->
-    <div class="w-full md:w-2/4 flex flex-col items-center text-center mb-6 md:mb-0 relative z-10">
-        <span class="text-[13px] md:text-[15px] font-bold tracking-[0.2em] text-black uppercase mb-3">
-            {{ active_offer.subtitle }}
-        </span>
-        <h2 class="text-[36px] md:text-[46px] font-black text-black leading-tight tracking-tight">
-            {{ active_offer.main_title }}
-        </h2>
-    </div>
+        <div class="w-full md:w-2/4 flex flex-col items-center text-center mb-5 sm:mb-6 md:mb-0 relative z-10 px-2 sm:px-4">
+            <span class="text-[10px] sm:text-[12px] md:text-[15px] font-bold tracking-[0.15em] sm:tracking-[0.2em] text-black uppercase mb-1.5 sm:mb-2 md:mb-3">
+                {{ active_offer.subtitle }}
+            </span>
+            <h2 class="text-[22px] sm:text-[28px] md:text-[46px] font-black text-black leading-tight tracking-tight">
+                {{ active_offer.main_title }}
+            </h2>
+        </div>
 
-    <!-- Right: Action Button -->
-    <div class="w-full md:w-1/4 flex flex-col items-center justify-center relative z-10">
-        <a href="{% url 'upgrade_subscription' %}"
-           class="bg-gradient-to-r from-[#171717] to-[#b45309] text-white font-bold text-[18px] md:text-[20px] px-8 py-3.5 rounded-full hover:shadow-[0_8px_20px_rgba(180,83,9,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3 mb-3 no-underline">
-            <i class="fa-solid fa-crown text-[#fde68a]"></i> {{ active_offer.button_text }}
-        </a>
-        <p class="text-[16px] font-extrabold text-black">
-            {{ active_offer.bottom_text }}
-        </p>
+        <div class="w-full md:w-1/4 flex flex-col items-center justify-center relative z-10">
+            <a href="{% url 'upgrade_subscription' %}"
+            class="w-full sm:w-auto bg-gradient-to-r from-[#171717] to-[#b45309] text-white font-bold text-[14px] sm:text-[16px] md:text-[20px] px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-3.5 rounded-full hover:shadow-[0_8px_20px_rgba(180,83,9,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 mb-2 sm:mb-3 no-underline text-center">
+                <i class="fa-solid fa-crown text-[#fde68a] text-[12px] sm:text-[14px] md:text-[16px]"></i> {{ active_offer.button_text }}
+            </a>
+            <p class="text-[12px] sm:text-[14px] md:text-[16px] font-extrabold text-black text-center">
+                {{ active_offer.bottom_text }}
+            </p>
+        </div>
+        <div class="absolute bottom-0 left-1/4 w-[120px] sm:w-[150px] md:w-[200px] h-[120px] sm:h-[150px] md:h-[200px] bg-[radial-gradient(#d97706_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-10 rounded-full blur-sm z-0"></div>
     </div>
-    <div class="absolute bottom-0 left-1/4 w-[200px] h-[200px] bg-[radial-gradient(#d97706_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-10 rounded-full blur-sm z-0"></div>
-</div>
-{% endif %}
+    {% endif %}
 
     <!-- ── STAT CARDS (Compact Minimalist Design) ── -->
-<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-8">
     {% with cards=stats %}
 
     <!-- Total Applied -->
-    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
-        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#eef3ff] text-[#3d35c4] flex items-center justify-center text-[17px]">
+    <div class="bg-white rounded-[16px] p-3 sm:p-4 border border-[#e4eaf2] flex items-center gap-3 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px] shrink-0 rounded-full bg-[#eef3ff] text-[#3d35c4] flex items-center justify-center text-[15px] sm:text-[17px]">
             <i class="fa-solid fa-file-export"></i>
         </div>
-        <div>
-            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.total }}</p>
-            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Total Applied</h3>
+        <div class="min-w-0">
+            <p class="text-[18px] sm:text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.total }}</p>
+            <h3 class="text-[11.5px] sm:text-[12.5px] font-bold text-[#7a8fa6] leading-none truncate">Total Applied</h3>
         </div>
     </div>
 
     <!-- Shortlisted -->
-    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
-        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#e6fff0] text-[#057a2e] flex items-center justify-center text-[17px]">
+    <div class="bg-white rounded-[16px] p-3 sm:p-4 border border-[#e4eaf2] flex items-center gap-3 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px] shrink-0 rounded-full bg-[#e6fff0] text-[#057a2e] flex items-center justify-center text-[15px] sm:text-[17px]">
             <i class="fa-solid fa-clipboard-check"></i>
         </div>
-        <div>
-            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.shortlisted }}</p>
-            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Shortlisted</h3>
+        <div class="min-w-0">
+            <p class="text-[18px] sm:text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.shortlisted }}</p>
+            <h3 class="text-[11.5px] sm:text-[12.5px] font-bold text-[#7a8fa6] leading-none truncate">Shortlisted</h3>
         </div>
     </div>
 
     <!-- Interview -->
-    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
-        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#ede9ff] text-[#4338ca] flex items-center justify-center text-[17px]">
+    <div class="bg-white rounded-[16px] p-3 sm:p-4 border border-[#e4eaf2] flex items-center gap-3 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px] shrink-0 rounded-full bg-[#ede9ff] text-[#4338ca] flex items-center justify-center text-[15px] sm:text-[17px]">
             <i class="fa-solid fa-user-tie"></i>
         </div>
-        <div>
-            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.interview }}</p>
-            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Interview</h3>
+        <div class="min-w-0">
+            <p class="text-[18px] sm:text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.interview }}</p>
+            <h3 class="text-[11.5px] sm:text-[12.5px] font-bold text-[#7a8fa6] leading-none truncate">Interview</h3>
         </div>
     </div>
 
     <!-- Pending -->
-    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
-        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#fff7e6] text-[#b45309] flex items-center justify-center text-[17px]">
+    <div class="bg-white rounded-[16px] p-3 sm:p-4 border border-[#e4eaf2] flex items-center gap-3 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px] shrink-0 rounded-full bg-[#fff7e6] text-[#b45309] flex items-center justify-center text-[15px] sm:text-[17px]">
             <i class="fa-solid fa-hourglass-half"></i>
         </div>
-        <div>
-            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.pending }}</p>
-            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Pending</h3>
+        <div class="min-w-0">
+            <p class="text-[18px] sm:text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.pending }}</p>
+            <h3 class="text-[11.5px] sm:text-[12.5px] font-bold text-[#7a8fa6] leading-none truncate">Pending</h3>
         </div>
     </div>
 
     <!-- Offered -->
-    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
-        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#f0fdfa] text-[#0f766e] flex items-center justify-center text-[17px]">
+    <div class="bg-white rounded-[16px] p-3 sm:p-4 border border-[#e4eaf2] flex items-center gap-3 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px] shrink-0 rounded-full bg-[#f0fdfa] text-[#0f766e] flex items-center justify-center text-[15px] sm:text-[17px]">
             <i class="fa-solid fa-file-contract"></i>
         </div>
-        <div>
-            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.offered }}</p>
-            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Offered</h3>
+        <div class="min-w-0">
+            <p class="text-[18px] sm:text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.offered }}</p>
+            <h3 class="text-[11.5px] sm:text-[12.5px] font-bold text-[#7a8fa6] leading-none truncate">Offered</h3>
         </div>
     </div>
 
     <!-- Rejected -->
-    <div class="bg-white rounded-[16px] p-4 border border-[#e4eaf2] flex items-center gap-3.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
-        <div class="w-[44px] h-[44px] shrink-0 rounded-full bg-[#fff1f2] text-[#e11d48] flex items-center justify-center text-[17px]">
+    <div class="bg-white rounded-[16px] p-3 sm:p-4 border border-[#e4eaf2] flex items-center gap-3 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:border-[#d8e4f0] transition-all duration-300">
+        <div class="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px] shrink-0 rounded-full bg-[#fff1f2] text-[#e11d48] flex items-center justify-center text-[15px] sm:text-[17px]">
             <i class="fa-solid fa-box-archive"></i>
         </div>
-        <div>
-            <p class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.rejected }}</p>
-            <h3 class="text-[12.5px] font-bold text-[#7a8fa6] leading-none">Rejected</h3>
+        <div class="min-w-0">
+            <p class="text-[18px] sm:text-[22px] font-black text-[#1a2b4a] leading-none mb-1">{{ stats.rejected }}</p>
+            <h3 class="text-[11.5px] sm:text-[12.5px] font-bold text-[#7a8fa6] leading-none truncate">Rejected</h3>
         </div>
     </div>
 
@@ -123,15 +119,15 @@
         <!-- ── LEFT: RECOMMENDATIONS ── -->
         <div class="flex-1 min-w-0">
 
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div>
-                    <h2 class="text-[17px] font-extrabold text-[#1a2b4a]">
-                        <i class="fa-solid fa-wand-magic-sparkles text-[#4238ca] mr-2"></i>
+                    <h2 class="text-[16px] sm:text-[17px] font-extrabold text-[#1a2b4a]">
+                        <i class="fa-solid fa-wand-magic-sparkles text-[#4238ca] mr-1 sm:mr-2"></i>
                         Recommended for You
                     </h2>
-                    <p class="text-[12px] text-[#7a8fa6] mt-0.5">Based on your skills, experience and activity</p>
+                    <p class="text-[11px] sm:text-[12px] text-[#7a8fa6] mt-0.5">Based on your skills, experience and activity</p>
                 </div>
-                <a href="{% url 'job_list' %}" class="text-[13px] text-[#4238ca] font-bold hover:underline no-underline">
+                <a href="{% url 'job_list' %}" class="text-[12px] sm:text-[13px] text-[#4238ca] font-bold hover:underline no-underline whitespace-nowrap">
                     View All →
                 </a>
             </div>
@@ -139,34 +135,34 @@
             {% if recommended %}
             <div class="space-y-4">
                 {% for rec in recommended %}
-                <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#c5d4f0] transition-all">
+                <div class="bg-white rounded-[14px] p-4 sm:p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#c5d4f0] transition-all">
 
                     <div class="flex items-start gap-3">
                         <!-- Company logo -->
-                        <div class="w-[48px] h-[48px] rounded-[10px] bg-[#eef3ff] flex items-center justify-center shrink-0 text-[18px] font-extrabold text-[#4238ca]">
+                        <div class="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] rounded-[10px] bg-[#eef3ff] flex items-center justify-center shrink-0 text-[16px] sm:text-[18px] font-extrabold text-[#4238ca]">
                             {{ rec.job.company|slice:":1"|upper }}
                         </div>
 
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-2 flex-wrap">
-                                <div>
+                                <div class="min-w-0 w-full sm:w-auto">
                                     <a href="{% url 'job_detail' rec.job.slug %}"
-                                       class="text-[15px] font-bold text-[#1a2b4a] hover:text-[#4238ca] no-underline">
+                                       class="text-[14px] sm:text-[15px] font-bold text-[#1a2b4a] hover:text-[#4238ca] no-underline block truncate">
                                         {{ rec.job.title }}
                                     </a>
-                                    <p class="text-[13px] text-[#7a8fa6] mt-0.5">{{ rec.job.company }}</p>
+                                    <p class="text-[12px] sm:text-[13px] text-[#7a8fa6] mt-0.5 truncate">{{ rec.job.company }}</p>
                                 </div>  
                             </div>
 
                             <!-- Meta -->
-                            <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2">
-                                <span class="text-[12px] text-[#7a8fa6]">
+                            <div class="flex flex-wrap gap-x-3 gap-y-1.5 mt-2">
+                                <span class="text-[11px] sm:text-[12px] text-[#7a8fa6] flex items-center">
                                     <i class="fa-solid fa-location-dot mr-1 text-[#aab8c8]"></i>{{ rec.job.location }}
                                 </span>
-                                <span class="text-[12px] text-[#7a8fa6]">
+                                <span class="text-[11px] sm:text-[12px] text-[#7a8fa6] flex items-center">
                                     <i class="fa-solid fa-briefcase mr-1 text-[#aab8c8]"></i>{{ rec.job.experience }}
                                 </span>
-                                <span class="text-[12px] text-[#7a8fa6]">
+                                <span class="text-[11px] sm:text-[12px] text-[#7a8fa6] flex items-center">
                                     <i class="fa-solid fa-indian-rupee-sign mr-1 text-[#aab8c8]"></i>{{ rec.job.get_salary_display }}
                                 </span>
                             </div>
@@ -175,17 +171,17 @@
                             {% if rec.matching or rec.missing %}
                             <div class="mt-3 flex flex-wrap gap-1.5">
                                 {% for skill in rec.matching %}
-                                <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#e6fff0] text-[#057a2e] border border-[#a7f3d0]">
+                                <span class="text-[10px] sm:text-[11px] font-semibold px-2 py-1 sm:px-2.5 rounded-full bg-[#e6fff0] text-[#057a2e] border border-[#a7f3d0]">
                                     <i class="fa-solid fa-check mr-0.5"></i>{{ skill }}
                                 </span>
                                 {% endfor %}
                                 {% for skill in rec.missing %}
-                                <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#fff0f0] text-[#b91c1c] border border-[#fecaca]">
+                                <span class="text-[10px] sm:text-[11px] font-semibold px-2 py-1 sm:px-2.5 rounded-full bg-[#fff0f0] text-[#b91c1c] border border-[#fecaca]">
                                     <i class="fa-solid fa-plus mr-0.5"></i>{{ skill }}
                                 </span>
                                 {% endfor %}
                                 {% if rec.missing %}
-                                <span class="text-[11px] text-[#7a8fa6] self-center">← learn these</span>
+                                <span class="text-[10px] sm:text-[11px] text-[#7a8fa6] self-center ml-1">← learn these</span>
                                 {% endif %}
                             </div>
                             {% endif %}
@@ -193,20 +189,20 @@
                     </div>
 
                     <!-- Footer -->
-                    <div class="flex items-center justify-between mt-3.5 pt-3 border-t border-[#f0f4f8]">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11.5px] font-bold bg-[#f1f5fb] text-[#4a5568] px-2.5 py-1 rounded-full">
+                    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 mt-3.5 pt-3 border-t border-[#f0f4f8]">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-[10.5px] sm:text-[11.5px] font-bold bg-[#f1f5fb] text-[#4a5568] px-2.5 py-1 rounded-full">
                                 {{ rec.job.job_type }}
                             </span>
-                            <span class="text-[11.5px] text-[#aab8c8]">{{ rec.job.days_ago }}</span>
+                            <span class="text-[10.5px] sm:text-[11.5px] text-[#aab8c8]">{{ rec.job.days_ago }}</span>
                             {% if rec.job.is_featured %}
-                            <span class="text-[11px] font-bold bg-[#fff7e6] text-[#b45309] border border-[#fcd34d] px-2 py-0.5 rounded-full">
+                            <span class="text-[10px] sm:text-[11px] font-bold bg-[#fff7e6] text-[#b45309] border border-[#fcd34d] px-2 py-0.5 rounded-full">
                                 ★ Featured
                             </span>
                             {% endif %}
                         </div>
                         <a href="{% url 'job_detail' rec.job.slug %}"
-                           class="bg-[#4238ca] text-white text-[12.5px] font-bold px-4 py-1.5 rounded-[7px] hover:bg-[#3730a3] transition no-underline">
+                           class="w-full sm:w-auto text-center bg-[#4238ca] text-white text-[12px] sm:text-[12.5px] font-bold px-4 py-2 sm:py-1.5 rounded-[7px] hover:bg-[#3730a3] transition no-underline shrink-0">
                             Apply Now
                         </a>
                     </div>
@@ -216,14 +212,14 @@
 
             {% else %}
             <!-- No recommendations yet -->
-            <div class="bg-white rounded-[14px] p-10 text-center shadow-sm border border-gray-100">
-                <i class="fa-solid fa-wand-magic-sparkles text-[40px] text-[#d8e4f0] mb-4 block"></i>
-                <p class="text-[15px] font-bold text-[#1a2b4a] mb-2">No recommendations yet</p>
-                <p class="text-[13px] text-[#7a8fa6] mb-5">
+            <div class="bg-white rounded-[14px] p-6 sm:p-10 text-center shadow-sm border border-gray-100">
+                <i class="fa-solid fa-wand-magic-sparkles text-[32px] sm:text-[40px] text-[#d8e4f0] mb-3 sm:mb-4 block"></i>
+                <p class="text-[14px] sm:text-[15px] font-bold text-[#1a2b4a] mb-2">No recommendations yet</p>
+                <p class="text-[12px] sm:text-[13px] text-[#7a8fa6] mb-4 sm:mb-5">
                     Add your skills, experience and headline to get personalised job matches.
                 </p>
                 <a href="{% url 'candidate_profile' %}"
-                   class="inline-flex items-center gap-2 bg-[#4238ca] text-white font-bold text-[13px] px-6 py-2.5 rounded-[8px] hover:bg-[#3730a3] transition no-underline">
+                   class="inline-flex items-center justify-center w-full sm:w-auto gap-2 bg-[#4238ca] text-white font-bold text-[12px] sm:text-[13px] px-6 py-2.5 rounded-[8px] hover:bg-[#3730a3] transition no-underline">
                     <i class="fa-solid fa-id-card"></i> Complete Profile
                 </a>
             </div>
@@ -232,14 +228,14 @@
         </div>
 
         <!-- ── RIGHT SIDEBAR ── -->
-        <div class="lg:w-[320px] shrink-0 space-y-5">
+        <div class="lg:w-[320px] shrink-0 space-y-4 sm:space-y-5">
 
             <!-- Recent Applications -->
-            <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100">
+            <div class="bg-white rounded-[14px] p-4 sm:p-5 shadow-sm border border-gray-100">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-[14px] font-extrabold text-[#1a2b4a]">Recent Applications</h3>
+                    <h3 class="text-[13px] sm:text-[14px] font-extrabold text-[#1a2b4a]">Recent Applications</h3>
                     <a href="{% url 'my_applications' %}"
-                       class="text-[12px] text-[#4238ca] font-bold hover:underline no-underline">View All</a>
+                       class="text-[11px] sm:text-[12px] text-[#4238ca] font-bold hover:underline no-underline whitespace-nowrap">View All</a>
                 </div>
 
                 {% if recent_apps %}
@@ -247,16 +243,16 @@
                     {% for app in recent_apps %}
                     <a href="{% url 'job_detail' app.job.slug %}"
                        class="flex items-start gap-3 group no-underline">
-                        <div class="w-[36px] h-[36px] rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0 text-[13px] font-extrabold text-[#4238ca]">
+                        <div class="w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0 text-[12px] sm:text-[13px] font-extrabold text-[#4238ca]">
                             {{ app.job.company|slice:":1"|upper }}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-[13px] font-bold text-[#1a2b4a] group-hover:text-[#4238ca] transition truncate">
+                            <p class="text-[12px] sm:text-[13px] font-bold text-[#1a2b4a] group-hover:text-[#4238ca] transition truncate">
                                 {{ app.job.title }}
                             </p>
-                            <p class="text-[11.5px] text-[#7a8fa6] truncate">{{ app.job.company }}</p>
+                            <p class="text-[11px] sm:text-[11.5px] text-[#7a8fa6] truncate">{{ app.job.company }}</p>
                         </div>
-                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0
+                        <span class="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0
                             {% if app.status == 'Shortlisted' or app.status == 'Offered' %}bg-[#e6fff0] text-[#057a2e]
                             {% elif app.status == 'Rejected' or app.status == 'Withdrawn' %}bg-[#fff0f0] text-[#b91c1c]
                             {% elif app.status == 'Interview' %}bg-[#ede9ff] text-[#4338ca]
@@ -267,11 +263,11 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-6">
-                    <i class="fa-solid fa-file-lines text-[30px] text-[#d8e4f0] mb-3 block"></i>
-                    <p class="text-[13px] text-[#7a8fa6]">No applications yet.</p>
+                <div class="text-center py-5 sm:py-6">
+                    <i class="fa-solid fa-file-lines text-[24px] sm:text-[30px] text-[#d8e4f0] mb-2 sm:mb-3 block"></i>
+                    <p class="text-[12px] sm:text-[13px] text-[#7a8fa6]">No applications yet.</p>
                     <a href="{% url 'job_list' %}"
-                       class="inline-block mt-3 text-[13px] text-[#4238ca] font-bold hover:underline no-underline">
+                       class="inline-block mt-2 sm:mt-3 text-[12px] sm:text-[13px] text-[#4238ca] font-bold hover:underline no-underline">
                         Browse Jobs
                     </a>
                 </div>
@@ -279,25 +275,25 @@
             </div>
 
             <!-- Skills snapshot -->
-            <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100">
+            <div class="bg-white rounded-[14px] p-4 sm:p-5 shadow-sm border border-gray-100">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-[14px] font-extrabold text-[#1a2b4a]">Your Skills</h3>
+                    <h3 class="text-[13px] sm:text-[14px] font-extrabold text-[#1a2b4a]">Your Skills</h3>
                     <a href="{% url 'candidate_profile' %}#skills"
-                       class="text-[12px] text-[#4238ca] font-bold hover:underline no-underline">Edit</a>
+                       class="text-[11px] sm:text-[12px] text-[#4238ca] font-bold hover:underline no-underline">Edit</a>
                 </div>
                 {% if profile.skills.exists %}
                 <div class="flex flex-wrap gap-2">
                     {% for skill in profile.skills.all %}
-                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[12px] font-semibold px-3 py-1 rounded-full">
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[11px] sm:text-[12px] font-semibold px-2.5 sm:px-3 py-1 rounded-full">
                         {{ skill.name }}
                     </span>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-4">
-                    <p class="text-[13px] text-[#aab8c8] italic mb-3">No skills added yet.</p>
+                <div class="text-center py-3 sm:py-4">
+                    <p class="text-[12px] sm:text-[13px] text-[#aab8c8] italic mb-2 sm:mb-3">No skills added yet.</p>
                     <a href="{% url 'candidate_profile' %}#skills"
-                       class="text-[13px] text-[#4238ca] font-bold hover:underline no-underline">
+                       class="text-[12px] sm:text-[13px] text-[#4238ca] font-bold hover:underline no-underline">
                         + Add Skills
                     </a>
                 </div>
@@ -305,41 +301,41 @@
             </div>
 
             <!-- Quick Actions -->
-            <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100">
-                <h3 class="text-[14px] font-extrabold text-[#1a2b4a] mb-4">Quick Actions</h3>
+            <div class="bg-white rounded-[14px] p-4 sm:p-5 shadow-sm border border-gray-100">
+                <h3 class="text-[13px] sm:text-[14px] font-extrabold text-[#1a2b4a] mb-3 sm:mb-4">Quick Actions</h3>
                 <div class="space-y-2">
                     <a href="{% url 'candidate_profile' %}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-[8px] hover:bg-[#f8fbff] text-[#4a5568] transition no-underline group">
-                        <div class="w-[32px] h-[32px] rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-id-card text-[#4238ca] text-[13px]"></i>
+                       class="flex items-center gap-3 px-3 py-2 sm:py-2.5 rounded-[8px] hover:bg-[#f8fbff] text-[#4a5568] transition no-underline group">
+                        <div class="w-[28px] h-[28px] sm:w-[32px] sm:h-[32px] rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-id-card text-[#4238ca] text-[12px] sm:text-[13px]"></i>
                         </div>
-                        <span class="text-[13px] font-semibold group-hover:text-[#4238ca] transition">Update Profile</span>
-                        <i class="fa-solid fa-chevron-right text-[11px] text-[#aab8c8] ml-auto"></i>
+                        <span class="text-[12px] sm:text-[13px] font-semibold group-hover:text-[#4238ca] transition">Update Profile</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] sm:text-[11px] text-[#aab8c8] ml-auto"></i>
                     </a>
                     <a href="{% url 'job_list' %}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-[8px] hover:bg-[#f8fbff] text-[#4a5568] transition no-underline group">
-                        <div class="w-[32px] h-[32px] rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-magnifying-glass text-[#4238ca] text-[13px]"></i>
+                       class="flex items-center gap-3 px-3 py-2 sm:py-2.5 rounded-[8px] hover:bg-[#f8fbff] text-[#4a5568] transition no-underline group">
+                        <div class="w-[28px] h-[28px] sm:w-[32px] sm:h-[32px] rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-magnifying-glass text-[#4238ca] text-[12px] sm:text-[13px]"></i>
                         </div>
-                        <span class="text-[13px] font-semibold group-hover:text-[#4238ca] transition">Search Jobs</span>
-                        <i class="fa-solid fa-chevron-right text-[11px] text-[#aab8c8] ml-auto"></i>
+                        <span class="text-[12px] sm:text-[13px] font-semibold group-hover:text-[#4238ca] transition">Search Jobs</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] sm:text-[11px] text-[#aab8c8] ml-auto"></i>
                     </a>
                     <a href="{% url 'my_applications' %}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-[8px] hover:bg-[#f8fbff] text-[#4a5568] transition no-underline group">
-                        <div class="w-[32px] h-[32px] rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-file-lines text-[#4238ca] text-[13px]"></i>
+                       class="flex items-center gap-3 px-3 py-2 sm:py-2.5 rounded-[8px] hover:bg-[#f8fbff] text-[#4a5568] transition no-underline group">
+                        <div class="w-[28px] h-[28px] sm:w-[32px] sm:h-[32px] rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-file-lines text-[#4238ca] text-[12px] sm:text-[13px]"></i>
                         </div>
-                        <span class="text-[13px] font-semibold group-hover:text-[#4238ca] transition">My Applications</span>
-                        <i class="fa-solid fa-chevron-right text-[11px] text-[#aab8c8] ml-auto"></i>
+                        <span class="text-[12px] sm:text-[13px] font-semibold group-hover:text-[#4238ca] transition">My Applications</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] sm:text-[11px] text-[#aab8c8] ml-auto"></i>
                     </a>
                     {% if not profile.resume %}
                     <a href="{% url 'candidate_profile' %}#resume"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-[8px] bg-[#fff7e6] hover:bg-[#fff0d6] text-[#b45309] transition no-underline group">
-                        <div class="w-[32px] h-[32px] rounded-[8px] bg-[#fcd34d]/30 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-triangle-exclamation text-[#b45309] text-[13px]"></i>
+                       class="flex items-center gap-3 px-3 py-2 sm:py-2.5 rounded-[8px] bg-[#fff7e6] hover:bg-[#fff0d6] text-[#b45309] transition no-underline group">
+                        <div class="w-[28px] h-[28px] sm:w-[32px] sm:h-[32px] rounded-[8px] bg-[#fcd34d]/30 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation text-[#b45309] text-[12px] sm:text-[13px]"></i>
                         </div>
-                        <span class="text-[13px] font-bold">Upload Resume</span>
-                        <i class="fa-solid fa-chevron-right text-[11px] text-[#b45309] ml-auto"></i>
+                        <span class="text-[12px] sm:text-[13px] font-bold">Upload Resume</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] sm:text-[11px] text-[#b45309] ml-auto"></i>
                     </a>
                     {% endif %}
                 </div>

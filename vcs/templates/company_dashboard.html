@@ -8,106 +8,168 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .hide-scroll::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="font-['Exo',sans-serif] antialiased bg-[#eef2f7] min-h-screen flex flex-col">
+<body class="antialiased bg-[#f4f7fb] text-slate-800 min-h-screen flex flex-col">
 
-    <nav class="bg-[#4238ca] text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-[1400px] mx-auto px-4 md:px-8 flex justify-between items-center h-[70px]">
-            <a href="{% url 'company_dashboard' %}" class="flex items-center gap-3 no-underline">
-                <div class="w-[45px] h-[45px] bg-white rounded-full p-1 flex items-center justify-center shadow-sm">
-                    <img src="{% if ui_settings.logo %}{{ ui_settings.logo.url }}{% else %}/static/images/logo.png{% endif %}" alt="Logo" class="w-full h-full rounded-full object-cover">
+    {% if messages %}
+    <div class="fixed top-20 right-4 sm:right-6 z-[100] flex flex-col gap-3 w-[calc(100%-32px)] sm:w-auto" id="toast-container">
+        {% for message in messages %}
+        <div class="toast flex items-center p-4 w-full sm:max-w-sm text-slate-700 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border-l-4 {% if message.tags == 'success' %}border-emerald-500{% elif message.tags == 'warning' %}border-amber-500{% elif message.tags == 'error' %}border-rose-500{% else %}border-indigo-500{% endif %} transform transition-all duration-300 translate-x-0 opacity-100" role="alert">
+            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg {% if message.tags == 'success' %}text-emerald-500 bg-emerald-100{% elif message.tags == 'error' %}text-rose-500 bg-rose-100{% elif message.tags == 'warning' %}text-amber-500 bg-amber-100{% else %}text-indigo-500 bg-indigo-100{% endif %}">
+                <i class="fa-solid {% if message.tags == 'success' %}fa-check{% elif message.tags == 'error' %}fa-xmark{% elif message.tags == 'warning' %}fa-triangle-exclamation{% else %}fa-info{% endif %}"></i>
+            </div>
+            <div class="ms-3 text-sm font-medium">{{ message }}</div>
+            <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-slate-400 hover:text-slate-900 rounded-lg p-1.5 hover:bg-slate-100 inline-flex items-center justify-center h-8 w-8" onclick="this.parentElement.remove()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <nav class="bg-[#4238ca] border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-[1400px] mx-auto px-4 md:px-8 flex justify-between items-center h-[72px]">
+            <a href="{% url 'company_dashboard' %}" class="flex items-center gap-3 no-underline group">
+                <div class="w-[42px] h-[42px] rounded-xl bg-indigo-50 flex items-center justify-center border border-indigo-100 transition-transform group-hover:scale-105">
+                    <img src="{% if ui_settings.logo %}{{ ui_settings.logo.url }}{% else %}/static/images/logo.png{% endif %}" alt="Logo" class="w-8 h-8 object-contain">
                 </div>
-                <span class="text-[20px] font-bold tracking-wide hidden sm:block">
-                    {{ ui_settings.site_name|default:"Vetri Consultancy Services" }}
+                <span class="text-[19px] font-extrabold tracking-tight text-white hidden sm:block">
+                    {{ ui_settings.site_name|default:"VCS Portal" }}
                 </span>
             </a>
-            <div class="flex items-center gap-6">
-                <div class="hidden sm:flex items-center gap-2 text-white font-semibold mr-2">
-                    <i class="fa-solid fa-circle-user text-[24px]"></i>
-                    <span class="text-[15px]">{{ profile.company_name }}</span>
+            <div class="flex items-center gap-5">
+                
+                <div class="relative group cursor-pointer">
+                    <div class="hidden sm:flex items-center gap-3 text-slate-600 font-semibold border-r border-slate-200 pr-5">
+                        <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">
+                            {{ profile.company_name|make_list|first|upper }}
+                        </div>
+                        <span class="text-[14px] text-white">{{ profile.company_name }} <i class="fa-solid fa-chevron-down text-[10px] ml-1.5 text-slate-400 transition-transform group-hover:rotate-180"></i></span>
+                    </div>
+                    
+                    <div class="absolute right-5 top-[120%] w-[280px] bg-white rounded-2xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] p-5 pointer-events-none group-hover:pointer-events-auto transform origin-top-right group-hover:translate-y-[-5px]">
+                        <div class="text-center border-b border-slate-100 pb-4 mb-4">
+                            <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 text-xl font-bold flex items-center justify-center mx-auto mb-3">
+                                {{ profile.company_name|make_list|first|upper }}
+                            </div>
+                            <div class="font-extrabold text-slate-800 text-[15px]">{{ profile.company_name }}</div>
+                            <div class="text-[12px] text-slate-500 font-medium mt-0.5 break-all">{{ profile.email }}</div>
+                        </div>
+                        <div class="space-y-3 text-[13px] mb-4">
+                            <div class="flex justify-between items-center"><span class="text-slate-500 font-medium"><i class="fa-solid fa-location-dot w-4 text-center mr-1"></i> Location:</span> <span class="font-bold text-slate-700 text-right">{{ profile.location }}</span></div>
+                            <div class="flex justify-between items-center"><span class="text-slate-500 font-medium"><i class="fa-solid fa-calendar w-4 text-center mr-1"></i> Member Since:</span> <span class="font-bold text-slate-700">{{ profile.created_at|date:"M Y" }}</span></div>
+                        </div>
+                        <a href="{% url 'logout' %}" class="block w-full text-center text-rose-600 bg-rose-50 hover:bg-rose-100 font-bold py-2.5 rounded-xl transition-colors text-[13px]">
+                            <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Logout
+                        </a>
+                    </div>
                 </div>
-                <a href="{% url 'logout' %}" class="bg-[#f44336] hover:bg-[#d32f2f] text-white font-bold py-2 px-4 rounded-[8px] flex items-center gap-2 transition-colors shadow-sm">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+
+                <a href="{% url 'logout' %}" class="sm:hidden text-slate-500 hover:text-rose-600 font-semibold text-[14px] flex items-center transition-colors">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-lg"></i>
                 </a>
             </div>
         </div>
     </nav>
 
-    <main class="flex-1">
-        <div class="max-w-[1400px] mx-auto px-5 md:px-8 py-8 md:py-10">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:-translate-y-1">
-                    <div class="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[18px] mb-3.5 bg-[#fff7e6] text-[#b45309]"><i class="fa-solid fa-briefcase"></i></div>
-                    <div class="text-[12px] text-[#7a8fa6] font-semibold mb-1">Active Postings</div>
-                    <div class="text-[22px] font-extrabold text-[#1a2b4a]">{{ stats.jobs_count }}</div>
-                </div>
-                <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:-translate-y-1">
-                    <div class="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[18px] mb-3.5 bg-[#ede9ff] text-[#3d35c4]"><i class="fa-solid fa-users"></i></div>
-                    <div class="text-[12px] text-[#7a8fa6] font-semibold mb-1">Total Applicants</div>
-                    <div class="text-[22px] font-extrabold text-[#1a2b4a]">{{ stats.applicants_count }}</div>
-                </div>
-                <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:-translate-y-1">
-                    <div class="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[18px] mb-3.5 bg-[#e6fff0] text-[#057a2e]"><i class="fa-solid fa-circle-check"></i></div>
-                    <div class="text-[12px] text-[#7a8fa6] font-semibold mb-1">Candidates Hired</div>
-                    <div class="text-[22px] font-extrabold text-[#1a2b4a]">{{ stats.hired_count }}</div>
-                </div>
-                <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:-translate-y-1">
-                    <div class="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[18px] mb-3.5 {% if profile.status == 'Approved' %}bg-[#e6fff0] text-[#057a2e]{% elif profile.status == 'Rejected' %}bg-[#fff0f0] text-[#c0392b]{% else %}bg-[#fff7e6] text-[#b45309]{% endif %}">
-                        <i class="fa-solid fa-{% if profile.status == 'Approved' %}shield-check{% elif profile.status == 'Rejected' %}circle-xmark{% else %}clock{% endif %}"></i>
+    <main class="flex-1 pb-12">
+        <div class="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-8">
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.1)] transition-all">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-[12px] sm:text-[13px] text-slate-500 font-semibold tracking-wide uppercase">Active Postings</div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-indigo-50 text-indigo-600"><i class="fa-solid fa-briefcase text-lg"></i></div>
                     </div>
-                    <div class="text-[12px] text-[#7a8fa6] font-semibold mb-1">Account Status</div>
-                    <div class="text-[16px] font-extrabold {% if profile.status == 'Approved' %}text-[#057a2e]{% elif profile.status == 'Rejected' %}text-[#c0392b]{% else %}text-[#b45309]{% endif %}">{{ profile.status }}</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-slate-800">{{ stats.jobs_count }}</div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.1)] transition-all">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-[12px] sm:text-[13px] text-slate-500 font-semibold tracking-wide uppercase">Total Applicants</div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-fuchsia-50 text-fuchsia-600"><i class="fa-solid fa-users text-lg"></i></div>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-slate-800">{{ stats.applicants_count }}</div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.1)] transition-all">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-[12px] sm:text-[13px] text-slate-500 font-semibold tracking-wide uppercase">Candidates Hired</div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-600"><i class="fa-solid fa-circle-check text-lg"></i></div>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-slate-800">{{ stats.hired_count }}</div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-8">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+                
+                <div class="xl:col-span-2 space-y-6 lg:space-y-8">
                     
-                    <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)]">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-[16px] font-bold text-[#1a2b4a]"><i class="fa-solid fa-briefcase text-[#b45309] mr-2"></i> My Job Postings</h3>
-                            <button onclick="document.getElementById('postJobModal').classList.remove('hidden')" class="bg-[#3d35c4] hover:bg-[#2d27a8] text-white text-[13px] font-bold py-2 px-4 rounded-[8px] transition-colors">
-                                <i class="fa-solid fa-plus mr-1"></i> Post a Job
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden">
+                        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
+                            <h3 class="text-[15px] sm:text-[16px] font-bold text-slate-800 flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm"><i class="fa-solid fa-briefcase"></i></span>
+                                My Job Postings
+                            </h3>
+                            <button onclick="document.getElementById('postJobModal').classList.remove('hidden')" class="w-full sm:w-auto justify-center bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-semibold py-2.5 px-5 rounded-lg shadow-sm shadow-indigo-200 transition-all active:scale-95 flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-plus"></i> Post New Job
                             </button>
                         </div>
                         
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
+                        <div class="overflow-x-auto hide-scroll">
+                            <table class="w-full text-left min-w-[600px]">
                                 <thead>
-                                    <tr class="border-b border-[#e4eaf2] text-[12px] text-[#7a8fa6] uppercase tracking-wider">
-                                        <th class="pb-3 font-bold whitespace-nowrap">Job Title</th>
-                                        <th class="pb-3 font-bold whitespace-nowrap">Location</th>
-                                        <th class="pb-3 font-bold whitespace-nowrap text-center">Applicants</th>
-                                        <th class="pb-3 font-bold whitespace-nowrap text-right">Actions</th>
+                                    <tr class="bg-slate-50 text-[11px] sm:text-[12px] text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
+                                        <th class="py-3.5 px-4 sm:px-5">Job Details</th>
+                                        <th class="py-3.5 px-4 sm:px-5">Location</th>
+                                        <th class="py-3.5 px-4 sm:px-5">Deadline</th>
+                                        <th class="py-3.5 px-4 sm:px-5 text-center">Applicants</th>
+                                        <th class="py-3.5 px-4 sm:px-5 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody class="divide-y divide-slate-100 text-[13px] sm:text-[14px]">
                                     {% for job in my_jobs %}
-                                    <tr class="border-b border-[#f0f4f8] hover:bg-[#f8fbff] transition-colors group">
-                                        <td class="py-4 text-[14px] font-bold text-[#1a2b4a]">
-                                            {{ job.title }}
-                                            <div class="text-[11.5px] text-[#7a8fa6] font-normal mt-0.5">Posted {{ job.posted_at|date:"d M Y" }}</div>
+                                    <tr class="hover:bg-slate-50/80 transition-colors group">
+                                        <td class="py-4 px-4 sm:px-5">
+                                            <div class="font-bold text-slate-800 mb-0.5">{{ job.title }}</div>
+                                            <div class="text-[11px] sm:text-[12px] text-slate-500 font-medium">Posted {{ job.posted_at|date:"M d, Y" }}</div>
                                         </td>
-                                        <td class="py-4 text-[13px] text-[#4a5568] font-semibold whitespace-nowrap">
-                                            <i class="fa-solid fa-location-dot text-[#aab8c8] mr-1"></i> {{ job.location }}
+                                        <td class="py-4 px-4 sm:px-5 text-[12px] sm:text-[13px] text-slate-600 font-medium whitespace-nowrap">
+                                            <i class="fa-solid fa-location-dot text-slate-400 mr-1.5"></i>{{ job.location }}
                                         </td>
-                                        <td class="py-4 text-center">
-                                            <span class="inline-flex items-center justify-center bg-[#ede9ff] text-[#3d35c4] text-[13px] font-extrabold w-8 h-8 rounded-full">{{ job.applications.count }}</span>
+                                        <td class="py-4 px-4 sm:px-5 text-[12px] sm:text-[13px] text-slate-600 font-medium whitespace-nowrap">
+                                            {% if job.deadline %}
+                                                <i class="fa-regular fa-calendar-xmark text-rose-400 mr-1.5"></i>{{ job.deadline|date:"M d, Y" }}
+                                            {% else %}
+                                                <span class="text-slate-400 italic">No deadline</span>
+                                            {% endif %}
                                         </td>
-                                        <td class="py-4 text-right">
-                                            <div class="flex items-center justify-end gap-2">
-                                                <button type="button" onclick="document.getElementById('viewJobModal-{{ job.id }}').classList.remove('hidden')" class="w-8 h-8 rounded-full flex items-center justify-center bg-[#f1f5fb] text-[#4b6cf5] hover:bg-[#4b6cf5] hover:text-white transition-colors cursor-pointer border-none" title="View Details">
-                                                    <i class="fa-solid fa-eye text-[13px]"></i>
+                                        <td class="py-4 px-4 sm:px-5 text-center">
+                                            <span class="inline-flex items-center justify-center bg-indigo-50 text-indigo-700 text-[11px] sm:text-[12px] font-bold px-3 py-1 rounded-full border border-indigo-100">
+                                                {{ job.applications.count }}
+                                            </span>
+                                        </td>
+                                        <td class="py-4 px-4 sm:px-5 text-right">
+                                            <div class="flex items-center justify-end gap-1.5 sm:opacity-80 group-hover:opacity-100 transition-opacity">
+                                                <button type="button" onclick="document.getElementById('viewJobModal-{{ job.id }}').classList.remove('hidden')" class="w-8 h-8 rounded-md flex items-center justify-center text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-colors bg-slate-50 sm:bg-transparent" title="View Details">
+                                                    <i class="fa-solid fa-eye text-sm"></i>
                                                 </button>
-                                                <a href="{% url 'company_edit_job' job.id %}" class="w-8 h-8 rounded-full flex items-center justify-center bg-[#fffbf0] text-[#f59e0b] hover:bg-[#f59e0b] hover:text-white transition-colors" title="Edit Job">
-                                                    <i class="fa-solid fa-pen text-[13px]"></i>
+                                                <a href="{% url 'company_edit_job' job.id %}" class="w-8 h-8 rounded-md flex items-center justify-center text-slate-400 hover:bg-amber-50 hover:text-amber-600 transition-colors bg-slate-50 sm:bg-transparent" title="Edit Job">
+                                                    <i class="fa-solid fa-pen text-sm"></i>
                                                 </a>
-                                                <form method="POST" action="{% url 'company_delete_job' job.id %}" class="inline">
+                                                <form method="POST" action="{% url 'company_delete_job' job.id %}" class="inline m-0">
                                                     {% csrf_token %}
-                                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this job? This action cannot be undone.')" class="w-8 h-8 rounded-full flex items-center justify-center bg-[#fff0f0] text-[#e74c3c] hover:bg-[#e74c3c] hover:text-white transition-colors cursor-pointer border-none" title="Delete Job">
-                                                        <i class="fa-solid fa-trash text-[13px]"></i>
+                                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this job? This action cannot be undone.')" class="w-8 h-8 rounded-md flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors bg-slate-50 sm:bg-transparent" title="Delete Job">
+                                                        <i class="fa-solid fa-trash text-sm"></i>
                                                     </button>
                                                 </form>
                                             </div>
@@ -115,47 +177,130 @@
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="4" class="text-center py-8">
-                                            <i class="fa-solid fa-folder-open text-[32px] text-[#d8e4f0] mb-3"></i>
-                                            <p class="text-[14px] font-bold text-[#1a2b4a]">No jobs posted yet.</p>
+                                        <td colspan="5" class="text-center py-10 sm:py-12">
+                                            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                <i class="fa-solid fa-folder-open text-xl sm:text-2xl text-slate-400"></i>
+                                            </div>
+                                            <h4 class="text-[14px] sm:text-[15px] font-bold text-slate-700">No jobs posted yet</h4>
+                                            <p class="text-[12px] sm:text-[13px] text-slate-500 mt-1">Click the "Post New Job" button to get started.</p>
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
+                        
+                        {% if my_jobs.has_other_pages %}
+                        <div class="px-4 sm:px-5 py-3 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+                            <span class="text-[12px] sm:text-[13px] text-slate-500 font-medium">Page {{ my_jobs.number }} of {{ my_jobs.paginator.num_pages }}</span>
+                            <div class="flex gap-1.5">
+                                {% if my_jobs.has_previous %}
+                                <a href="?job_page={{ my_jobs.previous_page_number }}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors shadow-sm"><i class="fa-solid fa-chevron-left text-[10px] sm:text-[11px]"></i></a>
+                                {% endif %}
+                                {% if my_jobs.has_next %}
+                                <a href="?job_page={{ my_jobs.next_page_number }}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors shadow-sm"><i class="fa-solid fa-chevron-right text-[10px] sm:text-[11px]"></i></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
 
-                    <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)]">
-                        <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-6"><i class="fa-solid fa-users text-[#3d35c4] mr-2"></i> Received Applications</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden">
+                        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-slate-50/50">
+                            <div class="flex items-center justify-between w-full lg:w-auto shrink-0 gap-3">
+                                <h3 class="text-[15px] sm:text-[16px] font-bold text-slate-800 flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-users"></i></span>
+                                    Received Applications
+                                </h3>
+                                <a href="{% url 'export_applications_excel' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-semibold py-1.5 px-3 rounded-lg shadow-sm shadow-emerald-200 transition-all flex items-center gap-1.5 whitespace-nowrap">
+                                    <i class="fa-solid fa-file-excel"></i> Export
+                                </a>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                                <div class="relative w-full sm:w-auto">
+                                    <i class="fa-solid fa-filter absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px]"></i>
+                                    <select id="filter-job" onchange="filterApplications()" class="w-full sm:w-auto appearance-none bg-white border border-slate-200 rounded-lg text-[13px] font-medium text-slate-600 py-2 pl-8 pr-8 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all cursor-pointer">
+                                        <option value="all">All Job Postings</option>
+                                        {% for job in my_jobs %}
+                                            <option value="{{ job.title|escapejs }}">{{ job.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                                </div>
+                                <div class="relative w-full sm:w-auto">
+                                    <i class="fa-solid fa-layer-group absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px]"></i>
+                                    <select id="filter-status" onchange="filterApplications()" class="w-full sm:w-auto appearance-none bg-white border border-slate-200 rounded-lg text-[13px] font-medium text-slate-600 py-2 pl-8 pr-8 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all cursor-pointer">
+                                        <option value="all">All Statuses</option>
+                                        <option value="Applied">Applied</option>
+                                        <option value="Reviewing">Reviewing</option>
+                                        <option value="Shortlisted">Shortlisted</option>
+                                        <option value="Interview">Interview</option>
+                                        <option value="Offered">Offered</option>
+                                        <option value="Rejected">Rejected</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto hide-scroll">
+                            <table class="w-full text-left min-w-[700px]">
                                 <thead>
-                                    <tr class="border-b border-[#e4eaf2] text-[12px] text-[#7a8fa6] uppercase tracking-wider">
-                                        <th class="pb-3 font-bold whitespace-nowrap">Candidate</th>
-                                        <th class="pb-3 font-bold whitespace-nowrap">Applied For</th>
-                                        <th class="pb-3 font-bold whitespace-nowrap">Date</th>
-                                        <th class="pb-3 font-bold whitespace-nowrap text-center">Resume</th>
-                                        <th class="pb-3 font-bold whitespace-nowrap">Status</th>
+                                    <tr class="bg-slate-50 text-[11px] sm:text-[12px] text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
+                                        <th class="py-3.5 px-4 sm:px-5">Candidate</th>
+                                        <th class="py-3.5 px-4 sm:px-5">Applied For</th>
+                                        <th class="py-3.5 px-4 sm:px-5">Date</th>
+                                        <th class="py-3.5 px-4 sm:px-5 text-center">Resume</th>
+                                        <th class="py-3.5 px-4 sm:px-5 text-right">Status Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody class="divide-y divide-slate-100 text-[13px] sm:text-[14px]">
                                     {% for app in applications %}
-                                    <tr class="border-b border-[#f0f4f8] hover:bg-[#f8fbff] transition-colors group">
-                                        <td class="py-3 text-[13.5px] font-bold text-[#1a2b4a] whitespace-nowrap">{{ app.candidate.full_name }}</td>
-                                        <td class="py-3 text-[13px] text-[#4a5568] font-semibold">{{ app.job.title }}</td>
-                                        <td class="py-3 text-[12.5px] text-[#7a8fa6] whitespace-nowrap">{{ app.applied_at|date:"d M Y" }}</td>
-                                        <td class="py-3 text-center">
-                                            {% if app.candidate.resume %}
-                                            <a href="{{ app.candidate.resume.url }}" target="_blank" class="text-[#4b6cf5] text-[18px] hover:text-[#3d35c4] transition-colors inline-block"><i class="fa-solid fa-file-pdf"></i></a>
+                                    <tr class="application-row hover:bg-slate-50/80 transition-colors" data-job="{{ app.job.title|escapejs }}" data-status="{{ app.status }}">
+                                        
+                                        <td class="py-3.5 px-4 sm:px-5 font-bold text-slate-800 whitespace-nowrap">
+                                            {% if app.candidate %}
+                                                {{ app.candidate.full_name }}
+                                            {% elif app.trainee %}
+                                                {{ app.trainee.full_name }}
                                             {% else %}
-                                            <span class="text-[#aab8c8] text-[12px] italic">Not provided</span>
+                                                Unknown Applicant
                                             {% endif %}
                                         </td>
-                                        <td class="py-3">
-                                            <form method="POST" action="{% url 'update_application_status' app.id %}">
+                                        
+                                        <td class="py-3.5 px-4 sm:px-5 text-slate-600 font-medium">{{ app.job.title }}</td>
+                                        <td class="py-3.5 px-4 sm:px-5 text-[12px] sm:text-[13px] text-slate-500 whitespace-nowrap">{{ app.applied_at|date:"M d, Y" }}</td>
+                                        
+                                        <td class="py-3.5 px-4 sm:px-5 text-center">
+                                            {% if app.candidate and app.candidate.resume %}
+                                                <div class="flex items-center justify-center gap-1.5">
+                                                    <a href="{{ app.candidate.resume.url }}" target="_blank" class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-colors border border-indigo-100 hover:border-indigo-600" title="View Resume">
+                                                        <i class="fa-solid fa-eye text-[12px] sm:text-sm"></i>
+                                                    </a>
+                                                    <a href="{{ app.candidate.resume.url }}" download class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors border border-emerald-100 hover:border-emerald-600" title="Download Resume">
+                                                        <i class="fa-solid fa-download text-[12px] sm:text-sm"></i>
+                                                    </a>
+                                                </div>
+                                            {% elif app.trainee and app.trainee.resume %}
+                                                <div class="flex items-center justify-center gap-1.5">
+                                                    <a href="{{ app.trainee.resume.url }}" target="_blank" class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-colors border border-indigo-100 hover:border-indigo-600" title="View Resume">
+                                                        <i class="fa-solid fa-eye text-[12px] sm:text-sm"></i>
+                                                    </a>
+                                                    <a href="{{ app.trainee.resume.url }}" download class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors border border-emerald-100 hover:border-emerald-600" title="Download Resume">
+                                                        <i class="fa-solid fa-download text-[12px] sm:text-sm"></i>
+                                                    </a>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-slate-300 text-[11px] sm:text-[12px] italic">N/A</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="py-3.5 px-4 sm:px-5 text-right">
+                                            <form method="POST" action="{% url 'update_application_status' app.id %}" class="inline-block relative m-0">
                                                 {% csrf_token %}
-                                                <select name="status" onchange="this.form.submit()" class="bg-white border border-[#d8e4f0] rounded-[6px] text-[12px] font-semibold text-[#4a5568] py-1 px-2 outline-none focus:border-[#4b6cf5] cursor-pointer min-w-[110px]">
+                                                <select name="status" onchange="this.form.submit()" class="appearance-none bg-white border border-slate-200 rounded-lg text-[12px] sm:text-[13px] font-bold py-1.5 pl-3 pr-8 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 cursor-pointer min-w-[110px] sm:min-w-[120px] transition-all 
+                                                    {% if app.status == 'Applied' %}text-slate-600{% elif app.status == 'Reviewing' %}text-amber-600{% elif app.status == 'Shortlisted' %}text-indigo-600{% elif app.status == 'Interview' %}text-blue-600{% elif app.status == 'Offered' %}text-emerald-600{% elif app.status == 'Rejected' %}text-rose-600{% endif %}">
                                                     <option value="Applied" {% if app.status == 'Applied' %}selected{% endif %}>Applied</option>
                                                     <option value="Reviewing" {% if app.status == 'Reviewing' %}selected{% endif %}>Reviewing</option>
                                                     <option value="Shortlisted" {% if app.status == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
@@ -163,34 +308,74 @@
                                                     <option value="Offered" {% if app.status == 'Offered' %}selected{% endif %}>Offered</option>
                                                     <option value="Rejected" {% if app.status == 'Rejected' %}selected{% endif %}>Rejected</option>
                                                 </select>
+                                                <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
                                             </form>
                                         </td>
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="5" class="text-center py-8">
-                                            <i class="fa-solid fa-inbox text-[32px] text-[#d8e4f0] mb-3"></i>
-                                            <p class="text-[14px] font-bold text-[#1a2b4a]">No applications yet.</p>
+                                        <td colspan="5" class="text-center py-10 sm:py-12">
+                                            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                <i class="fa-solid fa-inbox text-xl sm:text-2xl text-slate-400"></i>
+                                            </div>
+                                            <h4 class="text-[14px] sm:text-[15px] font-bold text-slate-700">No applications found</h4>
+                                            <p class="text-[12px] sm:text-[13px] text-slate-500 mt-1">When candidates apply, they will appear here.</p>
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
+                        
+                        {% if applications.has_other_pages %}
+                        <div class="px-4 sm:px-5 py-3 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+                            <span class="text-[12px] sm:text-[13px] text-slate-500 font-medium">Page {{ applications.number }} of {{ applications.paginator.num_pages }}</span>
+                            <div class="flex gap-1.5">
+                                {% if applications.has_previous %}
+                                <a href="?app_page={{ applications.previous_page_number }}{% if request.GET.job_page %}&job_page={{ request.GET.job_page }}{% endif %}" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-colors shadow-sm"><i class="fa-solid fa-chevron-left text-[10px] sm:text-[11px]"></i></a>
+                                {% endif %}
+                                {% if applications.has_next %}
+                                <a href="?app_page={{ applications.next_page_number }}{% if request.GET.job_page %}&job_page={{ request.GET.job_page }}{% endif %}" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-colors shadow-sm"><i class="fa-solid fa-chevron-right text-[10px] sm:text-[11px]"></i></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
-                <div>
-                    <div class="bg-white rounded-[14px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.05)] sticky top-[90px]">
-                        <h3 class="text-[15px] font-bold text-[#1a2b4a] mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-info text-[#b45309]"></i> Company Details</h3>
-                        <div class="flex justify-between py-2.5 border-b border-[#f0f4f8] text-[13px]">
-                            <span class="text-[#7a8fa6] font-semibold">Email</span><span class="text-[#1a2b4a] font-bold">{{ profile.email }}</span>
-                        </div>
-                        <div class="flex justify-between py-2.5 border-b border-[#f0f4f8] text-[13px]">
-                            <span class="text-[#7a8fa6] font-semibold">Location</span><span class="text-[#1a2b4a] font-bold text-right pl-4">{{ profile.location }}</span>
-                        </div>
-                        <div class="flex justify-between py-2.5 border-b border-[#f0f4f8] text-[13px]">
-                            <span class="text-[#7a8fa6] font-semibold">Registered On</span><span class="text-[#1a2b4a] font-bold">{{ profile.created_at|date:"d M Y" }}</span>
+                <div class="xl:col-span-1 hidden xl:block">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] sticky top-[96px] overflow-hidden">
+                        <div class="h-24 bg-gradient-to-r from-indigo-500 to-indigo-600"></div>
+                        <div class="px-6 pb-6 relative">
+                            <div class="w-16 h-16 rounded-xl bg-white border-4 border-white shadow-sm flex items-center justify-center text-indigo-600 text-2xl font-extrabold -mt-8 mb-3">
+                                {{ profile.company_name|make_list|first|upper }}
+                            </div>
+                            <h3 class="text-[18px] font-extrabold text-slate-800">{{ profile.company_name }}</h3>
+                            <p class="text-[13px] text-slate-500 font-medium mb-5">{{ profile.industry|default:"Employer Account" }}</p>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-3 text-[13.5px]">
+                                    <i class="fa-solid fa-envelope text-slate-400 mt-1 w-4 text-center"></i>
+                                    <div class="overflow-hidden">
+                                        <div class="text-[12px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Email</div>
+                                        <div class="font-bold text-slate-800 break-all">{{ profile.email }}</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 text-[13.5px]">
+                                    <i class="fa-solid fa-location-dot text-slate-400 mt-1 w-4 text-center"></i>
+                                    <div>
+                                        <div class="text-[12px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Location</div>
+                                        <div class="font-bold text-slate-800">{{ profile.location }}</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 text-[13.5px]">
+                                    <i class="fa-regular fa-calendar-check text-slate-400 mt-1 w-4 text-center"></i>
+                                    <div>
+                                        <div class="text-[12px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Member Since</div>
+                                        <div class="font-bold text-slate-800">{{ profile.created_at|date:"F Y" }}</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -200,213 +385,256 @@
     </main>
 
     {% for job in my_jobs %}
-    <div id="viewJobModal-{{ job.id }}" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-        <div class="bg-white rounded-[16px] w-full max-w-[700px] max-h-[85vh] overflow-hidden shadow-2xl flex flex-col">
-            <div class="p-6 border-b border-[#e4eaf2] flex justify-between items-center bg-white z-10 shrink-0">
-                <h2 class="text-[18px] font-extrabold text-[#1a2b4a]">{{ job.title }}</h2>
-                <button onclick="document.getElementById('viewJobModal-{{ job.id }}').classList.add('hidden')" class="text-[#aab8c8] hover:text-[#e74c3c] text-[20px] transition-colors"><i class="fa-solid fa-xmark"></i></button>
+    <div id="viewJobModal-{{ job.id }}" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
+                <h3 class="text-[16px] sm:text-lg font-bold text-slate-800 truncate pr-4">Job Details</h3>
+                <button onclick="document.getElementById('viewJobModal-{{ job.id }}').classList.add('hidden')" class="text-slate-400 hover:text-rose-500 transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-rose-50 shrink-0">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
             
-            <div class="overflow-y-auto p-6 space-y-6">
-                <div class="flex flex-wrap gap-2">
-                    <span class="bg-[#f1f5fb] text-[#4a5568] px-3 py-1.5 rounded-[6px] text-[12px] font-bold border border-[#e4eaf2]"><i class="fa-solid fa-location-dot text-[#aab8c8] mr-1"></i> {{ job.location }}</span>
-                    <span class="bg-[#f1f5fb] text-[#4a5568] px-3 py-1.5 rounded-[6px] text-[12px] font-bold border border-[#e4eaf2]"><i class="fa-solid fa-briefcase text-[#aab8c8] mr-1"></i> {{ job.experience }}</span>
-                    <span class="bg-[#f1f5fb] text-[#4a5568] px-3 py-1.5 rounded-[6px] text-[12px] font-bold border border-[#e4eaf2]"><i class="fa-solid fa-indian-rupee-sign text-[#aab8c8] mr-1"></i> {{ job.get_salary_display }}</span>
-                    <span class="bg-[#f1f5fb] text-[#4a5568] px-3 py-1.5 rounded-[6px] text-[12px] font-bold border border-[#e4eaf2]"><i class="fa-solid fa-laptop-house text-[#aab8c8] mr-1"></i> {{ job.work_mode }}</span>
-                    <span class="bg-[#f1f5fb] text-[#4a5568] px-3 py-1.5 rounded-[6px] text-[12px] font-bold border border-[#e4eaf2]"><i class="fa-solid fa-clock text-[#aab8c8] mr-1"></i> {{ job.job_type }}</span>
+            <div class="p-5 sm:p-6 overflow-y-auto flex-1 hide-scroll space-y-5">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-black text-slate-800 mb-2">{{ job.title }}</h2>
+                    <div class="flex flex-wrap gap-x-4 gap-y-2 text-[13px] sm:text-sm text-slate-500 font-medium">
+                        <span class="flex items-center"><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i> {{ job.location }}</span>
+                        <span class="flex items-center"><i class="fa-solid fa-clock mr-1.5 text-slate-400"></i> Posted {{ job.posted_at|date:"M d, Y" }}</span>
+                        {% if job.deadline %}
+                        <span class="text-rose-500 flex items-center"><i class="fa-regular fa-calendar-xmark mr-1.5"></i> Deadline: {{ job.deadline|date:"M d, Y" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex items-center justify-between">
+                    <span class="font-bold text-slate-700 text-[14px] sm:text-[15px]">Total Applicants</span>
+                    <span class="bg-indigo-600 text-white font-bold px-3 py-1 rounded-full text-[13px] sm:text-sm">{{ job.applications.count }}</span>
                 </div>
 
                 <div>
-                    <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-2">Job Description</h4>
-                    <p class="text-[13.5px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.description }}</p>
+                    <h4 class="text-[12px] sm:text-[13px] font-bold text-slate-800 uppercase tracking-wider mb-2">Description</h4>
+                    <p class="text-[13.5px] sm:text-[14px] text-slate-600 leading-relaxed whitespace-pre-line">{{ job.description }}</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {% if job.responsibilities %}
                     <div>
-                        <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-2">Responsibilities</h4>
-                        <p class="text-[13.5px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.responsibilities }}</p>
+                        <h4 class="text-[12px] sm:text-[13px] font-bold text-slate-800 uppercase tracking-wider mb-2">Responsibilities</h4>
+                        <p class="text-[13.5px] sm:text-[14px] text-slate-600 leading-relaxed whitespace-pre-line">{{ job.responsibilities }}</p>
                     </div>
                     {% endif %}
                     
                     {% if job.requirements %}
                     <div>
-                        <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-2">Requirements</h4>
-                        <p class="text-[13.5px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.requirements }}</p>
+                        <h4 class="text-[12px] sm:text-[13px] font-bold text-slate-800 uppercase tracking-wider mb-2">Requirements</h4>
+                        <p class="text-[13.5px] sm:text-[14px] text-slate-600 leading-relaxed whitespace-pre-line">{{ job.requirements }}</p>
                     </div>
                     {% endif %}
                     
-                    {% if job.benefits %}
-                    <div>
-                        <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-2">Benefits</h4>
-                        <p class="text-[13.5px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.benefits }}</p>
-                    </div>
-                    {% endif %}
-                    
-                    <div>
-                        <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-2">Required Skills</h4>
-                        <p class="text-[13.5px] text-[#4a5568] font-bold">{{ job.skills_required }}</p>
+                    <div class="md:col-span-2">
+                        <h4 class="text-[12px] sm:text-[13px] font-bold text-slate-800 uppercase tracking-wider mb-2">Required Skills</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <p class="text-[13px] sm:text-[14px] text-indigo-600 font-bold bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">{{ job.skills_required }}</p>
+                        </div>
                     </div>
                 </div>
 
                 {% if job.hr_name or job.hr_email or job.hr_phone %}
-                <div class="bg-[#f8fbff] border border-[#d8e4f0] rounded-[10px] p-4 mt-4">
-                    <h4 class="text-[13px] font-extrabold text-[#1a2b4a] uppercase tracking-wider mb-2"><i class="fa-solid fa-address-book text-[#aab8c8] mr-1"></i> HR Contact</h4>
-                    <div class="flex flex-wrap gap-4 text-[13px] text-[#4a5568] font-semibold">
-                        {% if job.hr_name %}<span><i class="fa-solid fa-user text-[#aab8c8] mr-1"></i> {{ job.hr_name }}</span>{% endif %}
-                        {% if job.hr_email %}<span><i class="fa-solid fa-envelope text-[#aab8c8] mr-1"></i> {{ job.hr_email }}</span>{% endif %}
-                        {% if job.hr_phone %}<span><i class="fa-solid fa-phone text-[#aab8c8] mr-1"></i> {{ job.hr_phone }}</span>{% endif %}
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 mt-4">
+                    <h4 class="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fa-solid fa-address-book mr-1.5"></i> HR Contact Details</h4>
+                    <div class="flex flex-col sm:flex-row flex-wrap gap-x-6 gap-y-3 text-[13px] sm:text-[13.5px] text-slate-700 font-medium">
+                        {% if job.hr_name %}<span class="flex items-center"><i class="fa-solid fa-user text-slate-400 mr-2 w-4 text-center"></i>{{ job.hr_name }}</span>{% endif %}
+                        {% if job.hr_email %}<span class="flex items-center break-all"><i class="fa-solid fa-envelope text-slate-400 mr-2 w-4 text-center"></i>{{ job.hr_email }}</span>{% endif %}
+                        {% if job.hr_phone %}<span class="flex items-center"><i class="fa-solid fa-phone text-slate-400 mr-2 w-4 text-center"></i>{{ job.hr_phone }}</span>{% endif %}
                     </div>
                 </div>
                 {% endif %}
             </div>
             
-            <div class="p-5 border-t border-[#e4eaf2] bg-gray-50 flex justify-end shrink-0">
-                <button type="button" onclick="document.getElementById('viewJobModal-{{ job.id }}').classList.add('hidden')" class="bg-white border border-[#d8e4f0] hover:bg-[#f1f5fb] text-[#4a5568] font-bold py-2 px-6 rounded-[8px] text-[13px] transition-colors">Close</button>
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end shrink-0">
+                <button type="button" onclick="document.getElementById('viewJobModal-{{ job.id }}').classList.add('hidden')" class="w-full sm:w-auto px-5 py-2.5 text-[13px] sm:text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Close Details</button>
             </div>
         </div>
     </div>
     {% endfor %}
 
-    <div id="postJobModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div class="bg-white rounded-[16px] w-full max-w-[850px] max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
-            <div class="p-6 border-b border-[#e4eaf2] flex justify-between items-center bg-white z-10 shrink-0">
-                <h2 class="text-[18px] font-extrabold text-[#1a2b4a]"><i class="fa-solid fa-plus-circle text-[#3d35c4] mr-2"></i> Post a New Job</h2>
-                <button onclick="document.getElementById('postJobModal').classList.add('hidden')" class="text-[#aab8c8] hover:text-[#e74c3c] text-[20px] transition-colors"><i class="fa-solid fa-xmark"></i></button>
+    <div id="postJobModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 transition-all">
+        <div class="bg-white rounded-2xl w-full max-w-[850px] max-h-[90vh] overflow-hidden shadow-2xl flex flex-col border border-slate-200">
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex justify-between items-center bg-white z-10 shrink-0">
+                <h2 class="text-[16px] sm:text-[18px] font-extrabold text-slate-800">Post a New Job</h2>
+                <button onclick="document.getElementById('postJobModal').classList.add('hidden')" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
             
-            <div class="overflow-y-auto p-6">
-                <form method="POST" action="{% url 'company_post_job' %}" id="postJobForm" class="space-y-6">
+            <div class="overflow-y-auto p-4 sm:p-6 hide-scroll flex-1">
+                <form method="POST" action="{% url 'company_post_job' %}" id="postJobForm" class="space-y-6 sm:space-y-8">
                     {% csrf_token %}
                     
                     <div>
-                        <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-3 border-b border-[#eef2ff] pb-1"><i class="fa-solid fa-circle-info"></i> Basic Information</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Job Title <span class="text-[#e74c3c]">*</span></label>
-                                <input type="text" name="title" required placeholder="e.g. Senior Python Developer" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                        <h4 class="text-[13px] font-bold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-100">1. Basic Information</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                            <div class="sm:col-span-2">
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Job Title <span class="text-rose-500">*</span></label>
+                                <input type="text" name="title" required placeholder="e.g. Senior Python Developer" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
                             </div>
                             <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Category <span class="text-[#e74c3c]">*</span></label>
-                                <select name="category" required class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none cursor-pointer">
-                                    <option value="">-- Select Category --</option>
-                                    {% for cat in categories %}
-                                        <option value="{{ cat.id }}">{{ cat.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Location <span class="text-[#e74c3c]">*</span></label>
-                                <input type="text" name="location" required placeholder="e.g. Chennai, Tamil Nadu" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-3 border-b border-[#eef2ff] pb-1"><i class="fa-solid fa-list-ul"></i> Job Classification</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Job Type</label>
-                                <select name="job_type" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
-                                    {% for val, label in job_types %}
-                                        <option value="{{ val }}">{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Work Mode</label>
-                                <select name="work_mode" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
-                                    {% for val, label in work_modes %}
-                                        <option value="{{ val }}">{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Experience <span class="text-[#e74c3c]">*</span></label>
-                                <input type="text" name="experience" required placeholder="e.g. 2-5 Years" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">No. of Openings <span class="text-[#e74c3c]">*</span></label>
-                                <input type="number" name="openings" required min="1" value="1" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Application Deadline <span class="text-[#aab8c8] font-normal">(optional)</span></label>
-                                <input type="date" name="deadline" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-3 border-b border-[#eef2ff] pb-1"><i class="fa-solid fa-indian-rupee-sign"></i> Salary & Skills</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Salary Range (LPA) <span class="text-[#aab8c8] font-normal">(optional)</span></label>
-                                <div class="flex gap-2">
-                                    <input type="number" name="salary_min" placeholder="Min" class="w-1/2 py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
-                                    <input type="number" name="salary_max" placeholder="Max" class="w-1/2 py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
-                                </div>
-                                <div class="mt-2 flex items-center gap-2">
-                                    <input type="checkbox" name="salary_hidden" id="salary_hidden" class="accent-[#3d35c4] w-4 h-4">
-                                    <label for="salary_hidden" class="text-[12px] text-[#7a8fa6] font-semibold">Hide salary from applicants</label>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Category <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <select name="category" required class="w-full py-2.5 pl-3.5 pr-8 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="">-- Select Category --</option>
+                                        {% for cat in categories %}
+                                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Skills Required <span class="text-[#e74c3c]">*</span></label>
-                                <input type="text" name="skills_required" required placeholder="e.g. Python, Django, REST APIs" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Location <span class="text-rose-500">*</span></label>
+                                <input type="text" name="location" required placeholder="e.g. Chennai, Tamil Nadu" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-3 border-b border-[#eef2ff] pb-1"><i class="fa-solid fa-align-left"></i> Detailed Descriptions</h4>
-                        <div class="space-y-4">
+                        <h4 class="text-[13px] font-bold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-100">2. Job Classification</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
                             <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Main Job Description <span class="text-[#e74c3c]">*</span></label>
-                                <textarea name="description" required rows="3" placeholder="Provide a general overview..." class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none resize-none"></textarea>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Job Type</label>
+                                <div class="relative">
+                                    <select name="job_type" class="w-full py-2.5 pl-3.5 pr-8 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all appearance-none cursor-pointer">
+                                        {% for val, label in job_types %}
+                                            <option value="{{ val }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Key Responsibilities <span class="text-[#aab8c8] font-normal">(optional)</span></label>
-                                <textarea name="responsibilities" rows="3" placeholder="• Write clean code..." class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none resize-none"></textarea>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Work Mode</label>
+                                <div class="relative">
+                                    <select name="work_mode" class="w-full py-2.5 pl-3.5 pr-8 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all appearance-none cursor-pointer">
+                                        {% for val, label in work_modes %}
+                                            <option value="{{ val }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                            <div class="sm:col-span-2 md:col-span-1">
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Experience <span class="text-rose-500">*</span></label>
+                                <input type="text" name="experience" required placeholder="e.g. 2-5 Years" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
                             </div>
                             <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Requirements / Qualifications <span class="text-[#aab8c8] font-normal">(optional)</span></label>
-                                <textarea name="requirements" rows="3" placeholder="• Minimum 3 years experience..." class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none resize-none"></textarea>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Openings <span class="text-rose-500">*</span></label>
+                                <input type="number" name="openings" required min="1" value="1" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
                             </div>
                             <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Benefits & Perks <span class="text-[#aab8c8] font-normal">(optional)</span></label>
-                                <textarea name="benefits" rows="2" placeholder="• Health Insurance..." class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none resize-none"></textarea>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Min Salary (LPA)</label>
+                                <input type="number" name="salary_min" placeholder="e.g. 3" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Max Salary (LPA)</label>
+                                <input type="number" name="salary_max" placeholder="e.g. 8" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Deadline <span class="text-slate-400 font-normal">(optional)</span></label>
+                                <input type="date" name="deadline" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all cursor-pointer">
+                            </div>
+                            <div class="sm:col-span-2 md:col-span-3 flex items-center gap-2 mt-1 sm:mt-2">
+                                <input type="checkbox" name="salary_hidden" id="salary_hidden" class="accent-indigo-600 w-4 h-4 cursor-pointer">
+                                <label for="salary_hidden" class="text-[13px] font-semibold text-slate-600 cursor-pointer select-none">
+                                    Hide salary from candidates (Show "Not Disclosed")
+                                </label>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-[13px] font-extrabold text-[#3d35c4] uppercase tracking-wider mb-3 border-b border-[#eef2ff] pb-1"><i class="fa-solid fa-address-book"></i> HR / Recruiter Details</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <h4 class="text-[13px] font-bold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-100">3. Requirements & Details</h4>
+                        <div class="space-y-4 sm:space-y-5">
                             <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Contact Person</label>
-                                <input type="text" name="hr_name" placeholder="e.g. John Doe" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Skills Required <span class="text-rose-500">*</span></label>
+                                <input type="text" name="skills_required" required placeholder="e.g. Python, Django, REST APIs" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
                             </div>
                             <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Contact Email</label>
-                                <input type="email" name="hr_email" placeholder="hr@company.com" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Main Job Description <span class="text-rose-500">*</span></label>
+                                <textarea name="description" required rows="4" placeholder="Provide a general overview..." class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all resize-none"></textarea>
                             </div>
                             <div>
-                                <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Contact Phone</label>
-                                <input type="tel" name="hr_phone" placeholder="+91 00000 00000" class="w-full py-2.5 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[13px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none">
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Responsibilities <span class="text-slate-400 font-normal">(optional)</span></label>
+                                <textarea name="responsibilities" rows="3" placeholder="Key responsibilities (One per line)..." class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all resize-none"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Requirements <span class="text-slate-400 font-normal">(optional)</span></label>
+                                <textarea name="requirements" rows="3" placeholder="Specific requirements or qualifications (One per line)..." class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all resize-none"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">Benefits & Perks <span class="text-slate-400 font-normal">(optional)</span></label>
+                                <textarea name="benefits" rows="3" placeholder="What you offer (One per line)..." class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-[13px] font-bold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-100">4. HR Contact Details <span class="text-slate-400 font-normal">(optional)</span></h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+                            <div>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">HR Name</label>
+                                <input type="text" name="hr_name" placeholder="e.g. Jane Doe" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">HR Email</label>
+                                <input type="email" name="hr_email" placeholder="e.g. hr@company.com" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[12px] sm:text-[13px] font-bold text-slate-700 mb-1.5">HR Phone</label>
+                                <input type="tel" name="hr_phone" placeholder="e.g. +91 9876543210" class="w-full py-2.5 px-3.5 border border-slate-200 rounded-lg text-[13px] sm:text-[14px] bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all">
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
             
-            <div class="p-6 border-t border-[#e4eaf2] bg-gray-50 flex justify-end gap-3 shrink-0">
-                <button type="button" onclick="document.getElementById('postJobModal').classList.add('hidden')" class="bg-white border border-[#d8e4f0] hover:bg-[#f1f5fb] text-[#4a5568] font-bold py-2.5 px-6 rounded-[8px] text-[13px] transition-colors">Cancel</button>
-                <button type="submit" form="postJobForm" class="bg-[#3d35c4] hover:bg-[#2d27a8] text-white font-bold py-2.5 px-8 rounded-[8px] text-[13px] transition-colors flex items-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> Publish Job
+            <div class="p-4 sm:p-5 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+                <button type="button" onclick="document.getElementById('postJobModal').classList.add('hidden')" class="w-full sm:w-auto px-5 py-2.5 text-[13px] sm:text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-center">Cancel</button>
+                <button type="submit" form="postJobForm" class="w-full sm:w-auto px-6 py-2.5 text-[13px] sm:text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-sm shadow-indigo-200 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Publish Job Post
                 </button>
             </div>
         </div>
     </div>
 
+    <script>
+        function filterApplications() {
+            const jobFilter = document.getElementById('filter-job').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const rows = document.querySelectorAll('.application-row');
+            
+            rows.forEach(row => {
+                const jobMatch = (jobFilter === 'all' || row.dataset.job === jobFilter);
+                const statusMatch = (statusFilter === 'all' || row.dataset.status === statusFilter);
+                
+                if (jobMatch && statusMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Auto-hide toast messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100', 'translate-x-0');
+                    toast.classList.add('opacity-0', 'translate-x-full');
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            });
+        });
+    </script>
 </body>
 </html>

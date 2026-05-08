@@ -2,9 +2,9 @@
 {% block title %}{{ job.title }} — {{ job.company }}{% endblock %}
 
 {% block content %}
-<div class="bg-[#eef2f7] min-h-screen py-6 px-4">
+<div class="bg-[#eef2f7] min-h-screen py-4 sm:py-6 px-4">
     <div class="max-w-[1100px] mx-auto mb-4">
-        <a href="{% url 'job_list' %}" class="text-[#4b6cf5] font-bold text-[13px] hover:underline no-underline">
+        <a href="{% url 'job_list' %}" class="text-[#4b6cf5] font-bold text-[13px] hover:underline no-underline inline-block">
             ← Back to Jobs
         </a>
     </div>
@@ -12,47 +12,47 @@
     <div class="max-w-[1100px] mx-auto flex flex-col lg:flex-row gap-6">
 
         <!-- ── MAIN ── -->
-        <div class="flex-1 min-w-0 space-y-5">
+        <div class="flex-1 min-w-0 space-y-4 sm:space-y-5">
 
             <!-- Job Header Card -->
-            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
-                <div class="flex items-start gap-5 flex-wrap">
+            <div class="bg-white rounded-[16px] p-4 sm:p-6 shadow-sm border border-gray-100">
+                <div class="flex items-start gap-4 sm:gap-5 flex-wrap sm:flex-nowrap">
 
                     <!-- Company Initial Logo -->
-                    <div class="w-[72px] h-[72px] rounded-[12px] border border-gray-100 bg-[#eef3ff] flex items-center justify-center shrink-0">
-                        <span class="text-[28px] font-extrabold text-[#3d35c4]">
+                    <div class="w-[60px] h-[60px] sm:w-[72px] sm:h-[72px] rounded-[12px] border border-gray-100 bg-[#eef3ff] flex items-center justify-center shrink-0">
+                        <span class="text-[24px] sm:text-[28px] font-extrabold text-[#3d35c4]">
                             {{ job.company|slice:":1"|upper }}
                         </span>
                     </div>
 
-                    <div class="flex-1">
+                    <div class="flex-1 w-full min-w-0">
                         <div class="flex items-start justify-between flex-wrap gap-3">
                             <div>
-                                <h1 class="text-[22px] font-extrabold text-[#1a2b4a] mb-1">{{ job.title }}</h1>
-                                <p class="text-[15px] text-[#4a5568] font-semibold">{{ job.company }}</p>
+                                <h1 class="text-[20px] sm:text-[22px] font-extrabold text-[#1a2b4a] mb-1">{{ job.title }}</h1>
+                                <p class="text-[14px] sm:text-[15px] text-[#4a5568] font-semibold">{{ job.company }}</p>
                             </div>
                             {% if job.is_featured %}
-                            <span class="bg-[#fff7e6] text-[#b45309] text-[12px] font-bold px-3 py-1.5 rounded-full border border-[#fcd34d]">
-                                <i class="fa-solid fa-star text-[11px]"></i> Featured
+                            <span class="bg-[#fff7e6] text-[#b45309] text-[11px] sm:text-[12px] font-bold px-3 py-1.5 rounded-full border border-[#fcd34d] shrink-0">
+                                <i class="fa-solid fa-star text-[10px] sm:text-[11px]"></i> Featured
                             </span>
                             {% endif %}
                         </div>
 
                         <!-- Meta Tags -->
-                        <div class="flex flex-wrap gap-3 mt-3">
-                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                        <div class="flex flex-wrap gap-2.5 sm:gap-3 mt-3">
+                            <span class="flex items-center gap-1.5 text-[12px] sm:text-[13px] text-[#4a5568] font-semibold">
                                 <i class="fa-solid fa-location-dot text-[#3d35c4]"></i> {{ job.location }}
                             </span>
-                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                            <span class="flex items-center gap-1.5 text-[12px] sm:text-[13px] text-[#4a5568] font-semibold">
                                 <i class="fa-solid fa-briefcase text-[#3d35c4]"></i> {{ job.experience }}
                             </span>
-                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                            <span class="flex items-center gap-1.5 text-[12px] sm:text-[13px] text-[#4a5568] font-semibold">
                                 <i class="fa-solid fa-indian-rupee-sign text-[#3d35c4]"></i> {{ job.get_salary_display }}
                             </span>
-                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                            <span class="flex items-center gap-1.5 text-[12px] sm:text-[13px] text-[#4a5568] font-semibold">
                                 <i class="fa-solid fa-laptop-house text-[#3d35c4]"></i> {{ job.work_mode }}
                             </span>
-                            <span class="flex items-center gap-1.5 text-[13px] text-[#4a5568] font-semibold">
+                            <span class="flex items-center gap-1.5 text-[12px] sm:text-[13px] text-[#4a5568] font-semibold">
                                 <i class="fa-solid fa-users text-[#3d35c4]"></i>
                                 {{ job.openings }} opening{{ job.openings|pluralize }}
                             </span>
@@ -60,19 +60,19 @@
 
                         <!-- Badges -->
                         <div class="flex flex-wrap gap-2 mt-3">
-                            <span class="bg-[#ede9ff] text-[#4338ca] text-[12px] font-bold px-3 py-1 rounded-full">
+                            <span class="bg-[#ede9ff] text-[#4338ca] text-[11px] sm:text-[12px] font-bold px-3 py-1 rounded-full">
                                 {{ job.job_type }}
                             </span>
                             {% if job.category %}
-                            <span class="bg-[#e6fff0] text-[#057a2e] text-[12px] font-bold px-3 py-1 rounded-full">
+                            <span class="bg-[#e6fff0] text-[#057a2e] text-[11px] sm:text-[12px] font-bold px-3 py-1 rounded-full">
                                 {{ job.category.name }}
                             </span>
                             {% endif %}
-                            <span class="bg-[#f1f5fb] text-[#4a5568] text-[12px] font-bold px-3 py-1 rounded-full">
+                            <span class="bg-[#f1f5fb] text-[#4a5568] text-[11px] sm:text-[12px] font-bold px-3 py-1 rounded-full">
                                 Posted {{ job.days_ago }}
                             </span>
                             {% if job.deadline %}
-                            <span class="bg-[#fff0f0] text-[#e05c5c] text-[12px] font-bold px-3 py-1 rounded-full">
+                            <span class="bg-[#fff0f0] text-[#e05c5c] text-[11px] sm:text-[12px] font-bold px-3 py-1 rounded-full">
                                 Deadline: {{ job.deadline|date:"d M Y" }}
                             </span>
                             {% endif %}
@@ -81,7 +81,7 @@
                 </div>
 
                 <!-- Apply / Applied -->
-                <div class="mt-5 pt-4 border-t border-[#f0f4f8] flex items-center gap-3 flex-wrap">
+                <div class="mt-5 pt-4 border-t border-[#f0f4f8] flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     {% if already_applied %}
                         <div class="flex items-center gap-2 text-[#057a2e] font-bold text-[14px]">
                             <i class="fa-solid fa-circle-check text-[18px]"></i>
@@ -96,31 +96,31 @@
                         </div>
 
                     {% elif job.deadline and job.deadline < today %}
-                        <button disabled class="bg-[#f1f5fb] text-[#aab8c8] border border-[#e4eaf2] font-bold text-[15px] px-8 py-3 rounded-[10px] cursor-not-allowed flex items-center gap-2">
+                        <button disabled class="w-full sm:w-auto justify-center bg-[#f1f5fb] text-[#aab8c8] border border-[#e4eaf2] font-bold text-[15px] px-8 py-3 rounded-[10px] cursor-not-allowed flex items-center gap-2">
                             <i class="fa-solid fa-clock"></i> Applications Closed
                         </button>
                         
                     {% elif request.user.is_authenticated and request.user.role in 'candidate,trainee' %}
                         
-                        <!-- NEW LIMIT CHECK HERE -->
+                        <!-- LIMIT CHECK HERE -->
                         {% if can_apply %}
                             <button onclick="document.getElementById('apply-modal').classList.remove('hidden')"
-                                class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition">
+                                class="w-full sm:w-auto flex justify-center items-center bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition">
                                 <i class="fa-solid fa-paper-plane mr-2"></i> Apply Now
                             </button>
                         {% else %}
-                            <div class="flex items-center gap-3 flex-wrap">
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                                 <a href="{% url 'upgrade_subscription' %}"
-                                    class="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-white font-bold text-[15px] px-8 py-3 rounded-[10px] transition shadow-md no-underline">
+                                    class="w-full sm:w-auto flex justify-center items-center bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-white font-bold text-[15px] px-8 py-3 rounded-[10px] transition shadow-md no-underline">
                                     <i class="fa-solid fa-crown mr-2"></i> Upgrade to Pro to Apply
                                 </a>
-                                <span class="text-xs text-red-500 font-medium">Monthly limit of 5 applications reached.</span>
+                                <span class="text-[12px] sm:text-xs text-red-500 font-medium text-center sm:text-left">Monthly limit of 5 applications reached.</span>
                             </div>
                         {% endif %}
                         
                     {% elif not request.user.is_authenticated %}
                         <a href="{% url 'login' %}"
-                            class="bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition no-underline">
+                            class="w-full sm:w-auto flex justify-center items-center bg-[#3d35c4] text-white font-bold text-[15px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition no-underline">
                             Login to Apply
                         </a>
                     {% endif %}
@@ -128,36 +128,36 @@
             </div>
 
             <!-- Job Description -->
-            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
-                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Job Description</h2>
-                <div class="text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">
+            <div class="bg-white rounded-[16px] p-4 sm:p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[16px] sm:text-[17px] font-bold text-[#1a2b4a] mb-3 sm:mb-4">Job Description</h2>
+                <div class="text-[13.5px] sm:text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">
                     {{ job.description }}
                 </div>
             </div>
 
             <!-- Responsibilities -->
             {% if job.responsibilities %}
-            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
-                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Key Responsibilities</h2>
-                <div class="text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.responsibilities }}</div>
+            <div class="bg-white rounded-[16px] p-4 sm:p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[16px] sm:text-[17px] font-bold text-[#1a2b4a] mb-3 sm:mb-4">Key Responsibilities</h2>
+                <div class="text-[13.5px] sm:text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.responsibilities }}</div>
             </div>
             {% endif %}
 
             <!-- Requirements -->
             {% if job.requirements %}
-            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
-                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Requirements</h2>
-                <div class="text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.requirements }}</div>
+            <div class="bg-white rounded-[16px] p-4 sm:p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[16px] sm:text-[17px] font-bold text-[#1a2b4a] mb-3 sm:mb-4">Requirements</h2>
+                <div class="text-[13.5px] sm:text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ job.requirements }}</div>
             </div>
             {% endif %}
 
             <!-- Benefits -->
             {% if benefits %}
-            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
-                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Benefits & Perks</h2>
+            <div class="bg-white rounded-[16px] p-4 sm:p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[16px] sm:text-[17px] font-bold text-[#1a2b4a] mb-3 sm:mb-4">Benefits & Perks</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {% for item in benefits %}
-                    <div class="flex items-center gap-2.5 text-[14px] text-[#4a5568] bg-[#f8fbff] border border-[#e4eaf2] rounded-[8px] px-3 py-2">
+                    <div class="flex items-center gap-2.5 text-[13.5px] sm:text-[14px] text-[#4a5568] bg-[#f8fbff] border border-[#e4eaf2] rounded-[8px] px-3 py-2">
                         <i class="fa-solid fa-gift text-[#3d35c4] text-[12px]"></i> {{ item }}
                     </div>
                     {% endfor %}
@@ -167,11 +167,11 @@
 
             <!-- Skills -->
             {% if skills_list %}
-            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
-                <h2 class="text-[17px] font-bold text-[#1a2b4a] mb-4">Required Skills</h2>
-                <div class="flex flex-wrap gap-2.5">
+            <div class="bg-white rounded-[16px] p-4 sm:p-6 shadow-sm border border-gray-100">
+                <h2 class="text-[16px] sm:text-[17px] font-bold text-[#1a2b4a] mb-3 sm:mb-4">Required Skills</h2>
+                <div class="flex flex-wrap gap-2 sm:gap-2.5">
                     {% for skill in skills_list %}
-                    <span class="bg-[#ede9ff] text-[#4338ca] text-[13px] font-bold px-4 py-1.5 rounded-full border border-[#c4b5fd]">
+                    <span class="bg-[#ede9ff] text-[#4338ca] text-[12px] sm:text-[13px] font-bold px-3 sm:px-4 py-1 sm:py-1.5 rounded-full border border-[#c4b5fd]">
                         {{ skill }}
                     </span>
                     {% endfor %}
@@ -181,7 +181,7 @@
 
             <!-- ── HR CONTACT CARD ── -->
             {% if job.hr_name or job.hr_email or job.hr_phone %}
-            <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
+            <div class="bg-white rounded-[16px] p-4 sm:p-5 shadow-sm border border-gray-100">
                 <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">
                     <i class="fa-solid fa-headset text-[#3d35c4] mr-2"></i> HR Contact
                 </h3>
@@ -196,9 +196,9 @@
                             <div class="w-[32px] h-[32px] bg-[#f8fbff] border border-[#e4eaf2] rounded-[8px] flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-user text-[#aab8c8] text-[12px]"></i>
                             </div>
-                            <div>
-                                <p class="text-[11px] text-black font-bold uppercase tracking-wide">HR Name</p>
-                                <p class="text-[13px] text-black font-bold">{{ job.hr_name|slice:":2" }}••••••••</p>
+                            <div class="min-w-0">
+                                <p class="text-[11px] text-black font-bold uppercase tracking-wide truncate">HR Name</p>
+                                <p class="text-[13px] text-black font-bold truncate">{{ job.hr_name|slice:":2" }}••••••••</p>
                             </div>
                         </div>
                         {% endif %}
@@ -208,9 +208,9 @@
                             <div class="w-[32px] h-[32px] bg-[#f8fbff] border border-[#e4eaf2] rounded-[8px] flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-phone text-[#aab8c8] text-[12px]"></i>
                             </div>
-                            <div>
-                                <p class="text-[11px] text-black font-bold uppercase tracking-wide">Phone</p>
-                                <p class="text-[13px] text-black font-bold">{{ job.hr_phone|slice:":3" }}•••••••</p>
+                            <div class="min-w-0">
+                                <p class="text-[11px] text-black font-bold uppercase tracking-wide truncate">Phone</p>
+                                <p class="text-[13px] text-black font-bold truncate">{{ job.hr_phone|slice:":3" }}•••••••</p>
                             </div>
                         </div>
                         {% endif %}
@@ -220,9 +220,9 @@
                             <div class="w-[32px] h-[32px] bg-[#f8fbff] border border-[#e4eaf2] rounded-[8px] flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-envelope text-[#aab8c8] text-[12px]"></i>
                             </div>
-                            <div>
-                                <p class="text-[11px] text-black font-bold uppercase tracking-wide">Email</p>
-                                <p class="text-[13px] text-black font-bold">{{ job.hr_email|slice:":3" }}••••@••••.com</p>
+                            <div class="min-w-0">
+                                <p class="text-[11px] text-black font-bold uppercase tracking-wide truncate">Email</p>
+                                <p class="text-[13px] text-black font-bold truncate">{{ job.hr_email|slice:":3" }}••••@••••.com</p>
                             </div>
                         </div>
                         {% endif %}
@@ -248,9 +248,9 @@
                             <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-user text-[#3d35c4] text-[12px]"></i>
                             </div>
-                            <div>
-                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">HR Name</p>
-                                <p class="text-[13px] text-[#1a2b4a] font-bold">{{ job.hr_name }}</p>
+                            <div class="min-w-0">
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide truncate">HR Name</p>
+                                <p class="text-[13px] text-[#1a2b4a] font-bold truncate">{{ job.hr_name }}</p>
                             </div>
                         </div>
                         {% endif %}
@@ -260,9 +260,9 @@
                             <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-phone text-[#3d35c4] text-[12px]"></i>
                             </div>
-                            <div>
-                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Phone</p>
-                                <a href="tel:{{ job.hr_phone }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline">
+                            <div class="min-w-0">
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide truncate">Phone</p>
+                                <a href="tel:{{ job.hr_phone }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline block truncate">
                                     {{ job.hr_phone }}
                                 </a>
                             </div>
@@ -274,9 +274,9 @@
                             <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-envelope text-[#3d35c4] text-[12px]"></i>
                             </div>
-                            <div class="overflow-hidden">
-                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Email</p>
-                                <a href="mailto:{{ job.hr_email }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline break-all">
+                            <div class="min-w-0 w-full overflow-hidden">
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide truncate">Email</p>
+                                <a href="mailto:{{ job.hr_email }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline block break-all">
                                     {{ job.hr_email }}
                                 </a>
                             </div>
@@ -292,9 +292,9 @@
                             <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-user text-[#3d35c4] text-[12px]"></i>
                             </div>
-                            <div>
-                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">HR Name</p>
-                                <p class="text-[13px] text-[#1a2b4a] font-bold">{{ job.hr_name }}</p>
+                            <div class="min-w-0">
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide truncate">HR Name</p>
+                                <p class="text-[13px] text-[#1a2b4a] font-bold truncate">{{ job.hr_name }}</p>
                             </div>
                         </div>
                         {% endif %}
@@ -304,9 +304,9 @@
                             <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-phone text-[#3d35c4] text-[12px]"></i>
                             </div>
-                            <div>
-                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Phone</p>
-                                <a href="tel:{{ job.hr_phone }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline">
+                            <div class="min-w-0">
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide truncate">Phone</p>
+                                <a href="tel:{{ job.hr_phone }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline block truncate">
                                     {{ job.hr_phone }}
                                 </a>
                             </div>
@@ -318,9 +318,9 @@
                             <div class="w-[32px] h-[32px] bg-[#eef3ff] rounded-[8px] flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-envelope text-[#3d35c4] text-[12px]"></i>
                             </div>
-                            <div class="overflow-hidden">
-                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide">Email</p>
-                                <a href="mailto:{{ job.hr_email }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline break-all">
+                            <div class="min-w-0 w-full overflow-hidden">
+                                <p class="text-[11px] text-black font-semibold uppercase tracking-wide truncate">Email</p>
+                                <a href="mailto:{{ job.hr_email }}" class="text-[13px] text-[#3d35c4] font-bold hover:underline no-underline block break-all">
                                     {{ job.hr_email }}
                                 </a>
                             </div>
@@ -334,9 +334,9 @@
         </div>
 
         <!-- ── SIDEBAR ── -->
-        <div class="lg:w-[300px] shrink-0 space-y-5">
+        <div class="lg:w-[300px] shrink-0 space-y-4 sm:space-y-5">
             <!-- Job Overview -->
-            <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
+            <div class="bg-white rounded-[16px] p-4 sm:p-5 shadow-sm border border-gray-100">
                 <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">Job Overview</h3>
                 <div class="space-y-3">
                     {% include "jobs/_overview_row.html" with icon="fa-calendar" label="Posted" value=job.days_ago %}
@@ -352,7 +352,7 @@
 
             <!-- Similar Jobs -->
             {% if similar %}
-            <div class="bg-white rounded-[16px] p-5 shadow-sm border border-gray-100">
+            <div class="bg-white rounded-[16px] p-4 sm:p-5 shadow-sm border border-gray-100">
                 <h3 class="text-[14px] font-bold text-[#1a2b4a] mb-4">Similar Jobs</h3>
                 <div class="space-y-4">
                     {% for sj in similar %}
@@ -375,17 +375,17 @@
 </div>
 
 <!-- ── Apply Modal ── -->
-<div id="apply-modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-[16px] w-full max-w-[550px] shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
-        <div class="p-6 border-b border-[#e4eaf2] flex justify-between items-center bg-white z-10 shrink-0">
-            <h3 class="text-[18px] font-extrabold text-[#1a2b4a]">Apply for {{ job.title }}</h3>
+<div id="apply-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-[16px] w-full max-w-[550px] shadow-xl flex flex-col max-h-[95vh] overflow-hidden">
+        <div class="p-4 sm:p-6 border-b border-[#e4eaf2] flex justify-between items-center bg-white z-10 shrink-0">
+            <h3 class="text-[16px] sm:text-[18px] font-extrabold text-[#1a2b4a] truncate pr-4">Apply for {{ job.title }}</h3>
             <button onclick="document.getElementById('apply-modal').classList.add('hidden')"
-                    class="text-[#aab8c8] hover:text-[#e74c3c] text-[20px] transition-colors">
+                    class="text-[#aab8c8] hover:text-[#e74c3c] text-[20px] transition-colors shrink-0">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
         
-        <div class="overflow-y-auto p-6">
+        <div class="overflow-y-auto p-4 sm:p-6">
             <form method="POST" action="{% url 'apply_job' job.slug %}" enctype="multipart/form-data" class="space-y-4">
                 {% csrf_token %}
                 
@@ -407,11 +407,12 @@
                 <div class="pt-2">
                     <label class="block text-[12.5px] font-bold text-[#1a2b4a] mb-1.5">Resume / CV <span class="text-[#e74c3c]">*</span></label>
                     {% if profile.resume %}
-                        <div class="flex items-center gap-2 mb-2 text-[12px] text-[#057a2e] font-bold bg-[#e6fff0] p-2 rounded-[6px] border border-[#b2f2bb]">
-                            <i class="fa-solid fa-circle-check"></i> We have your resume on file. Upload a new one below to replace it.
+                        <div class="flex items-start gap-2 mb-2 text-[12px] text-[#057a2e] font-bold bg-[#e6fff0] p-2.5 rounded-[6px] border border-[#b2f2bb] leading-snug">
+                            <i class="fa-solid fa-circle-check mt-0.5 shrink-0"></i> 
+                            <span>We have your resume on file. Upload a new one below to replace it.</span>
                         </div>
                     {% endif %}
-                    <input type="file" name="resume" accept=".pdf,.doc,.docx" {% if not profile.resume %}required{% endif %} class="w-full py-2 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[12px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none cursor-pointer file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:bg-[#eef3ff] file:text-[#4b6cf5] hover:file:bg-[#dfe8ff] transition-colors">
+                    <input type="file" name="resume" accept=".pdf,.doc,.docx" {% if not profile.resume %}required{% endif %} class="w-full py-2 px-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] text-[12px] bg-[#f8fbff] focus:bg-white focus:border-[#4b6cf5] outline-none cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:bg-[#eef3ff] file:text-[#4b6cf5] hover:file:bg-[#dfe8ff] transition-colors">
                 </div>
 
                 <div class="pt-2">
@@ -421,11 +422,11 @@
                     <textarea name="cover_letter" rows="4" placeholder="Tell the employer why you are a great fit..." class="w-full p-3 border-[1.5px] border-[#d8e4f0] rounded-[8px] font-['Exo'] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5] resize-none"></textarea>
                 </div>
                 
-                <div class="pt-4 border-t border-[#f0f4f8] flex gap-3 justify-end mt-2">
-                    <button type="button" onclick="document.getElementById('apply-modal').classList.add('hidden')" class="bg-[#f1f5fb] text-[#4a5568] font-bold text-[13px] px-6 py-2.5 rounded-[8px] hover:bg-[#e4eaf2] transition-colors">
+                <div class="pt-4 border-t border-[#f0f4f8] flex flex-col-reverse sm:flex-row gap-3 sm:justify-end mt-2">
+                    <button type="button" onclick="document.getElementById('apply-modal').classList.add('hidden')" class="w-full sm:w-auto bg-[#f1f5fb] text-[#4a5568] font-bold text-[13px] px-6 py-2.5 rounded-[8px] hover:bg-[#e4eaf2] transition-colors text-center">
                         Cancel
                     </button>
-                    <button type="submit" class="bg-[#3d35c4] text-white font-bold text-[13px] px-6 py-2.5 rounded-[8px] hover:bg-[#2d27a8] transition-colors flex items-center gap-2">
+                    <button type="submit" class="w-full sm:w-auto bg-[#3d35c4] text-white font-bold text-[13px] px-6 py-2.5 rounded-[8px] hover:bg-[#2d27a8] transition-colors flex items-center justify-center gap-2">
                         <i class="fa-solid fa-paper-plane"></i> Submit Application
                     </button>
                 </div>
@@ -466,8 +467,8 @@
                         // Create a nice green success badge to inject into the revealed card
                         const fullView = document.getElementById('hr-full-view');
                         const successMsg = document.createElement('div');
-                        successMsg.className = "mt-3 bg-[#e6fff0] border border-[#b2f2bb] text-[#057a2e] text-[12px] font-bold px-3 py-2 rounded-[8px] flex items-center gap-2 animate-[fade-in-up_0.3s_ease-out]";
-                        successMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> A copy has been sent to your email!';
+                        successMsg.className = "mt-3 bg-[#e6fff0] border border-[#b2f2bb] text-[#057a2e] text-[12px] font-bold px-3 py-2 rounded-[8px] flex items-start sm:items-center gap-2 animate-[fade-in-up_0.3s_ease-out]";
+                        successMsg.innerHTML = '<i class="fa-solid fa-circle-check mt-0.5 sm:mt-0"></i> <span>A copy has been sent to your email!</span>';
                         fullView.appendChild(successMsg);
                     }
                 } catch (error) {

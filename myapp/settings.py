@@ -80,6 +80,7 @@ AUTH_USER_MODEL = 'vcs.User'
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -233,5 +234,66 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "LOCATION": "unique-snowflake",
+    }
+}
+
+
+# CKEditor 5 Settings
+CKEDITOR_5_ALLOW_ALL_BACKENDS = True
+CKEDITOR_5_UPLOAD_FILE_VIEW_NAME = 'ck_editor_5_upload_file'
+
+# Complete Toolbar Configuration
+CKEDITOR_5_CONFIGS = {
+    # Basic toolbar for simple text fields
+    'default': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', 'link', '|',
+            'bulletedList', 'numberedList', '|',
+            'outdent', 'indent', '|',
+            'undo', 'redo'
+        ],
+    },
+    
+    # Complete, advanced toolbar for rich text fields (blogs, job descriptions, etc.)
+    'extends': {
+        'toolbar': [
+            'heading', '|',
+            'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+            'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', 'highlight', '|',
+            'alignment', 'outdent', 'indent', '|',
+            'bulletedList', 'numberedList', 'todoList', '|',
+            'link', 'insertImage', 'mediaEmbed', 'insertTable', 'blockQuote', 'horizontalLine', 'code', 'codeBlock', '|',
+            'removeFormat', 'sourceEditing', 'undo', 'redo'
+        ],
+        'image': {
+            'toolbar': [
+                'imageTextAlternative', 'toggleImageCaption', '|',
+                'imageStyle:inline', 'imageStyle:alignLeft', 'imageStyle:alignRight',
+                'imageStyle:alignCenter', 'imageStyle:alignBlockLeft', 'imageStyle:alignBlockRight',
+            ],
+        },
+        'table': {
+            'contentToolbar': [
+                'tableColumn', 'tableRow', 'mergeTableCells',
+                'tableProperties', 'tableCellProperties'
+            ],
+        },
+        'heading': {
+            'options': [
+                { 'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph' },
+                { 'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1' },
+                { 'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2' },
+                { 'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3' },
+                { 'model': 'heading4', 'view': 'h4', 'title': 'Heading 4', 'class': 'ck-heading_heading4' },
+                { 'model': 'heading5', 'view': 'h5', 'title': 'Heading 5', 'class': 'ck-heading_heading5' },
+                { 'model': 'heading6', 'view': 'h6', 'title': 'Heading 6', 'class': 'ck-heading_heading6' },
+            ]
+        },
+        'htmlSupport': {
+            'allow': [
+                {'name': '/.*/', 'attributes': True, 'classes': True, 'styles': True}
+            ]
+        },
     }
 }

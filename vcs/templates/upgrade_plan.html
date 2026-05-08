@@ -2,51 +2,58 @@
 {% block title %}Upgrade to Pro — {{ ui_settings.site_name|default:"VCS" }}{% endblock %}
 
 {% block content %}
-<!-- Safely pass Django data to JavaScript -->
+<style>
+    /* Custom styles for the animated radio button inside plan cards */
+    .selected-card .radio-circle { border-color: #eab308 !important; }
+    .selected-card .radio-dot { transform: scale(1) !important; opacity: 1 !important; }
+    .selected-card .plan-footer { background-color: rgba(253, 230, 138, 0.4) !important; border-color: #fde68a !important; }
+    .selected-card { transform: translateY(-4px); }
+</style>
+
 <script type="application/json" id="plans-data">{{ plans_json|safe }}</script>
 
-<!-- Decorative Top Background -->
-<div class="absolute top-[70px] left-0 w-full h-[250px] bg-gradient-to-b from-[#fff7e6] to-[#eef2f7] -z-10"></div>
+<div class="absolute top-[70px] left-0 w-full h-[300px] bg-gradient-to-b from-[#fff7e6] via-[#f8fafc] to-transparent -z-10"></div>
 
-<div class="max-w-[1050px] mx-auto px-4 py-12 min-h-screen">
+<div class="max-w-[1100px] mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-screen">
 
-    <!-- Header Section -->
-    <div class="flex items-center gap-4 mb-10">
-        <div class="w-[55px] h-[55px] bg-gradient-to-br from-[#1a2b4a] to-[#a16207] rounded-[14px] flex items-center justify-center shadow-md text-white text-[26px]">
+    <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5 mb-10 sm:mb-12">
+        <div class="w-[60px] h-[60px] sm:w-[70px] sm:h-[70px] shrink-0 bg-gradient-to-br from-[#1a2b4a] to-[#a16207] rounded-[18px] flex items-center justify-center shadow-lg text-white text-[28px] sm:text-[32px] transform -rotate-3">
             <i class="fa-solid fa-crown"></i>
         </div>
         <div>
-            <h1 class="text-[30px] font-black text-[#1a2b4a] leading-tight">Elevate your career with Pro</h1>
-            <p class="text-[15px] text-[#4a5568]">Compare plans and choose what's best for your job search.</p>
+            <h1 class="text-[28px] sm:text-[36px] font-black text-[#1a2b4a] leading-tight mb-2 tracking-tight">Elevate your career with Pro</h1>
+            <p class="text-[15px] sm:text-[17px] text-[#4a5568] font-medium">Compare plans and choose the best duration for your job search.</p>
         </div>
     </div>
 
-    <!-- ── STATE 1: ALREADY A PRO MEMBER ── -->
     {% if profile.subscription_type == 'Pro' %}
-        <div class="bg-[#e6fff0] border border-[#b2f2bb] text-[#057a2e] px-8 py-5 rounded-[16px] text-[16px] font-bold flex items-center gap-3 shadow-sm mb-10">
-            <i class="fa-solid fa-circle-check text-[24px]"></i>
-            You are a Pro member! Your plan is active until {{ profile.pro_expiry_date|date:"d M Y" }}.
+        <div class="bg-[#e6fff0] border border-[#b2f2bb] text-[#057a2e] px-5 sm:px-8 py-4 sm:py-5 rounded-[16px] text-[14px] sm:text-[16px] font-bold flex items-center gap-3 sm:gap-4 shadow-sm mb-10">
+            <i class="fa-solid fa-circle-check text-[20px] sm:text-[24px] shrink-0"></i>
+            <span>You are a Pro member! Your plan is active until <span class="text-[#14532d]">{{ profile.pro_expiry_date|date:"d M Y" }}</span>.</span>
         </div>
     {% endif %}
     
-    <!-- ── PRICING SECTION ── -->
-    <div class="flex flex-col lg:flex-row gap-8 mb-14" id="pricing-section">
+    <div class="flex flex-col lg:flex-row gap-8 lg:gap-10 mb-16" id="pricing-section">
         
-        <!-- Left: Plan Cards -->
         <div class="flex-1">
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="plan-cards-container">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" id="plan-cards-container">
                 {% for plan in plans %}
                 <div onclick="selectPlan({{ plan.id }})" id="card-{{ plan.id }}"
-                        class="plan-card relative bg-white border-[1.5px] border-[#d8e4f0] rounded-[16px] cursor-pointer hover:shadow-md transition-all duration-200 overflow-hidden group flex flex-col">
+                     class="plan-card relative bg-white border-2 border-[#d8e4f0] rounded-[20px] cursor-pointer hover:border-[#a16207]/40 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col group">
                     
                     {% if plan.is_popular %}
-                    <div class="absolute top-0 right-4 bg-gradient-to-r from-[#1a2b4a] to-[#a16207] text-white text-[11px] font-bold px-3 py-1 rounded-b-[8px] shadow-sm">
-                        Popular
+                    <div class="absolute top-0 right-0 bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-white text-[10px] uppercase tracking-wider font-extrabold px-4 py-1.5 rounded-bl-[14px] shadow-sm z-10">
+                        Most Popular
                     </div>
                     {% endif %}
 
-                    <div class="p-5 pb-4 flex-1">
-                        <h3 class="text-[18px] font-extrabold text-[#1a2b4a] mb-2">
+                    <div class="p-6 flex-1 flex flex-col relative z-0">
+                        <div class="absolute top-6 right-6 w-5 h-5 rounded-full border-2 border-[#cbd5e1] radio-circle flex items-center justify-center transition-colors duration-300">
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#eab308] scale-0 opacity-0 radio-dot transition-all duration-300"></div>
+                        </div>
+
+                        <p class="text-[12px] font-bold text-[#7a8fa6] uppercase tracking-widest mb-1">Duration</p>
+                        <h3 class="text-[14px] font-extrabold text-[#1a2b4a] mb-6">
                             {% if plan.days > 0 %}
                                 {{ plan.days }} Days
                             {% else %}
@@ -54,21 +61,25 @@
                             {% endif %}
                         </h3>
                         
-                        <div class="flex items-end justify-between flex-wrap gap-2">
-                            <div>
-                                <span class="text-[18px] font-extrabold text-[#1a2b4a]">₹ {{ plan.display_price }}</span>
-                                <span class="text-[14px] text-[#aab8c8] line-through ml-1 font-semibold">₹ {{ plan.base_price }}</span>
+                        <div class="mt-auto">
+                            <div class="flex items-end flex-wrap gap-x-2 gap-y-1 ">
+                                <span class="text-[18px] font-black text-[#1a2b4a] leading-none tracking-tight">₹{{ plan.display_price }}</span>
+                                {% if plan.base_price > plan.display_price %}
+                                    <span class="text-[15px] text-[#aab8c8] line-through font-semibold">₹{{ plan.base_price }}</span>
+                                {% endif %}
                             </div>
                             {% if plan.badge_text %}
-                            <span class="bg-[#22c55e] text-white text-[12px] font-bold px-2 py-1 rounded-[6px] whitespace-nowrap">
-                                {{ plan.badge_text }}
-                            </span>
+                            <div class="mt-2">
+                                <span class="inline-block bg-[#ecfdf5] text-[#059669] border border-[#a7f3d0] text-[11px] font-extrabold px-2.5 py-1 rounded-[6px] uppercase tracking-wide">
+                                    {{ plan.badge_text }}
+                                </span>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
 
                     {% if plan.daily_text %}
-                    <div class="bg-[#f8fbff] text-center py-2.5 text-[13px] font-semibold text-[#4a5568] border-t border-[#e4eaf2] mt-auto">
+                    <div class="plan-footer bg-[#f8fbff] text-center py-3 text-[13px] font-semibold text-[#4a5568] border-t border-[#e4eaf2] mt-auto transition-colors duration-300">
                         {{ plan.daily_text }}
                     </div>
                     {% endif %}
@@ -77,65 +88,67 @@
             </div>
         </div>
 
-        <!-- Right: Dynamic Price Details -->
-        <div class="lg:w-[350px] shrink-0">
-            <div class="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-[#e4eaf2] lg:sticky lg:top-[90px]">
-                <h2 class="text-[18px] font-extrabold text-[#1a2b4a] mb-5">Price details</h2>
+        <div class="lg:w-[360px] shrink-0">
+            <div class="bg-white rounded-[24px] p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-[#e4eaf2] lg:sticky lg:top-[90px]">
+                <h2 class="text-[18px] sm:text-[20px] font-extrabold text-[#1a2b4a] mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-[#aab8c8]"></i> Order Summary
+                </h2>
                 
-                <div class="space-y-3 text-[14px] font-semibold text-[#4a5568]" id="price-breakdown">
-                    <!-- Content injected by JS -->
-                </div>
-
-                <div class="border-t border-[#e4eaf2] my-4 pt-4 flex justify-between items-start">
-                    <span class="text-[15px] font-extrabold text-[#1a2b4a] pt-1">Total payable</span>
-                    <div class="flex flex-col items-end" id="total-payable-container">
-                        <!-- Content injected by JS -->
+                <div class="space-y-3.5 text-[14px] sm:text-[14.5px] font-semibold text-[#4a5568]" id="price-breakdown">
                     </div>
+
+                <div class="border-t-[2px] border-dashed border-[#e4eaf2] my-5 pt-5 flex justify-between items-end">
+                    <span class="text-[16px] font-extrabold text-[#1a2b4a] pb-1">Total Pay</span>
+                    <div class="flex flex-col items-end" id="total-payable-container">
+                        </div>
                 </div>
 
                 <form method="POST" action="">
                     {% csrf_token %}
                     <input type="hidden" name="plan_id" id="selected_plan_id" value="">
-                    <button type="submit" class="w-full bg-[#3d35c4] text-white font-bold text-[16px] py-3.5 rounded-[12px] hover:bg-[#2d27a8] hover:-translate-y-0.5 transition-all shadow-sm mb-3">
-                        Continue to Payment
+                    <button type="submit" class="w-full bg-[#1a2b4a] text-white font-extrabold text-[16px] py-4 rounded-[14px] hover:bg-[#0f172a] hover:-translate-y-1 hover:shadow-lg transition-all duration-300 shadow-sm mb-4 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock text-[13px]"></i> Proceed to Checkout
                     </button>
                 </form>
 
-                <p class="text-[12px] text-[#7a8fa6] text-center font-medium" id="renewal-text">
-                    One-time payment for plan duration
-                </p>
+                <div class="bg-[#f8fbff] rounded-[10px] p-3 text-center border border-[#e4eaf2]">
+                    <p class="text-[12.5px] text-[#7a8fa6] font-semibold flex items-center justify-center gap-1.5" id="renewal-text">
+                        <i class="fa-solid fa-shield-halved text-[#4b6cf5]"></i> One-time payment for plan duration
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
 
-    <!-- ── FEATURES COMPARISON ── -->
-    <div class="bg-white rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-[#e4eaf2] overflow-hidden mb-10">
-        <div class="grid grid-cols-12 items-center px-6 md:px-10 py-6 border-b-2 border-[#f0f4f8]">
+    <div class="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-[#e4eaf2] overflow-hidden mb-10">
+        <div class="grid grid-cols-12 items-center px-4 sm:px-6 md:px-10 py-5 sm:py-6 border-b-[2px] border-[#e4eaf2] bg-[#f8fbff]">
             <div class="col-span-6 md:col-span-8">
-                <h2 class="text-[20px] font-extrabold text-[#1a2b4a]">What you will get</h2>
+                <h2 class="text-[18px] sm:text-[22px] font-extrabold text-[#1a2b4a]">Feature Comparison</h2>
             </div>
             <div class="col-span-3 md:col-span-2 text-center">
-                <span class="text-[14px] font-semibold text-[#4a5568]">Free</span>
+                <span class="text-[13px] sm:text-[15px] font-bold text-[#7a8fa6] uppercase tracking-wide">Free</span>
             </div>
-            <div class="col-span-3 md:col-span-2 text-center">
-                <span class="text-[15px] font-extrabold text-[#b45309] flex items-center justify-center gap-1.5">
-                     Pro <i class="fa-solid fa-crown text-[#f59e0b]"></i>
+            <div class="col-span-3 md:col-span-2 text-center bg-gradient-to-r from-[#1a2b4a] to-[#a16207] py-1.5 rounded-[8px] shadow-sm mx-1 sm:mx-2">
+                <span class="text-[13px] sm:text-[15px] font-black text-white flex items-center justify-center gap-1 sm:gap-1.5 uppercase tracking-wide">
+                    Pro <i class="fa-solid fa-crown text-[#fde68a]"></i>
                 </span>
             </div>
         </div>
 
         <div class="flex flex-col">
             {% for feature in features %}
-                <div class="grid grid-cols-12 items-center px-6 md:px-10 py-5 border-b border-[#f0f4f8] last:border-0 hover:bg-[#f8fbff] transition-colors">
-                    <div class="col-span-6 md:col-span-8">
-                        <span class="text-[15px] font-medium text-[#1a2b4a]">{{ feature.name }}</span>
+                <div class="grid grid-cols-12 items-center px-4 sm:px-6 md:px-10 py-4 sm:py-5 border-b border-[#f0f4f8] last:border-0 hover:bg-[#fcfdff] transition-colors">
+                    <div class="col-span-6 md:col-span-8 pr-2">
+                        <span class="text-[13px] sm:text-[15px] font-bold text-[#1a2b4a]">{{ feature.name }}</span>
                     </div>
                     <div class="col-span-3 md:col-span-2 text-center">
-                        <i class="fa-solid fa-minus text-[#aab8c8] text-[14px]"></i>
+                        <i class="fa-solid fa-minus text-[#cbd5e1] text-[16px]"></i>
                     </div>
                     <div class="col-span-3 md:col-span-2 text-center">
-                        <i class="fa-solid fa-check text-[#f59e0b] text-[18px] font-bold"></i>
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto bg-[#e6fff0] rounded-full flex items-center justify-center border border-[#b2f2bb]">
+                            <i class="fa-solid fa-check text-[#059669] text-[14px] sm:text-[18px] font-bold"></i>
+                        </div>
                     </div>
                 </div>
             {% endfor %}
@@ -143,7 +156,6 @@
     </div>
 </div>
 
-<!-- ── JAVASCRIPT ── -->
 <script>
     if (document.getElementById('plans-data')) {
         const plansData = JSON.parse(document.getElementById('plans-data').textContent);
@@ -151,28 +163,31 @@
         function selectPlan(id) {
             const plan = plansData.find(p => p.id === id);
             
+            // Handle Card Styling
             document.querySelectorAll('.plan-card').forEach(card => {
                 if (card.id === `card-${id}`) {
-                    card.classList.add('border-[#eab308]', 'shadow-md', 'ring-1', 'ring-[#eab308]', 'bg-[#fffbeb]');
-                    card.classList.remove('border-[#d8e4f0]', 'bg-white');
+                    // Original requested classes + selected-card for custom CSS hook
+                    card.classList.add('border-[#eab308]', 'shadow-xl', 'ring-1', 'ring-[#eab308]', 'bg-[#fffbeb]', 'selected-card');
+                    card.classList.remove('border-[#d8e4f0]', 'bg-white', 'hover:border-[#a16207]/40');
                 } else {
-                    card.classList.remove('border-[#eab308]', 'shadow-md', 'ring-1', 'ring-[#eab308]', 'bg-[#fffbeb]');
-                    card.classList.add('border-[#d8e4f0]', 'bg-white');
+                    card.classList.remove('border-[#eab308]', 'shadow-xl', 'ring-1', 'ring-[#eab308]', 'bg-[#fffbeb]', 'selected-card');
+                    card.classList.add('border-[#d8e4f0]', 'bg-white', 'hover:border-[#a16207]/40');
                 }
             });
 
+            // Update Receipt Data
             let breakdownHTML = `
                 <div class="flex justify-between items-center">
-                    <span>Base Price</span>
-                    <span>₹ ${plan.base_price}</span>
+                    <span class="text-[#7a8fa6]">Base Price</span>
+                    <span class="text-[#1a2b4a] font-bold">₹ ${plan.base_price}</span>
                 </div>
             `;
 
             if (plan.discount1_amount > 0) {
                 breakdownHTML += `
                     <div class="flex justify-between items-center">
-                        <span>Discount <span class="text-[#22c55e]">(${plan.discount1}% off)</span></span>
-                        <span class="text-[#22c55e] font-bold">- ₹ ${plan.discount1_amount}</span>
+                        <span class="text-[#7a8fa6]">Discount <span class="text-[#059669] font-bold ml-1">(${plan.discount1}% off)</span></span>
+                        <span class="text-[#059669] font-bold">- ₹ ${plan.discount1_amount}</span>
                     </div>
                 `;
             }
@@ -180,37 +195,36 @@
             if (plan.discount2_amount > 0) {
                 breakdownHTML += `
                     <div class="flex justify-between items-center">
-                        <span>Discount <span class="text-[#22c55e]">(${plan.discount2}% off)</span></span>
-                        <span class="text-[#22c55e] font-bold">- ₹ ${plan.discount2_amount}</span>
+                        <span class="text-[#7a8fa6]">Discount <span class="text-[#059669] font-bold ml-1">(${plan.discount2}% off)</span></span>
+                        <span class="text-[#059669] font-bold">- ₹ ${plan.discount2_amount}</span>
                     </div>
                 `;
             }
 
             breakdownHTML += `
                 <div class="flex justify-between items-center">
-                    <span>Estimated GST</span>
-                    <span>₹ ${plan.gst_amount}</span>
+                    <span class="text-[#7a8fa6]">Estimated GST</span>
+                    <span class="text-[#1a2b4a] font-bold">₹ ${plan.gst_amount}</span>
                 </div>
             `;
 
             document.getElementById('price-breakdown').innerHTML = breakdownHTML;
             
             document.getElementById('total-payable-container').innerHTML = `
-                <span class="text-[22px] font-black text-[#1a2b4a] leading-none mb-1.5">₹ ${plan.final_payable}</span>
-                <span class="text-[11px] font-bold text-[#7a8fa6] bg-[#f1f5fb] px-2 py-1 rounded-[6px]">Base ₹${plan.display_price} + GST ₹${plan.gst_amount} = ₹${plan.final_payable}</span>
+                <span class="text-[28px] sm:text-[32px] font-black text-[#1a2b4a] leading-none mb-1">₹${plan.final_payable}</span>
+                <span class="text-[11px] font-bold text-[#7a8fa6] bg-[#f1f5fb] px-2 py-1 rounded-[6px]">Base ₹${plan.display_price} + GST ₹${plan.gst_amount}</span>
             `;
             
             document.getElementById('selected_plan_id').value = plan.id;
             
             let durStr = plan.days > 0 ? `${plan.days} days` : (plan.months === 1 ? 'month' : `${plan.months} months`);
-            document.getElementById('renewal-text').innerText = `Valid for ${durStr}`;
+            document.getElementById('renewal-text').innerHTML = `<i class="fa-solid fa-shield-halved text-[#4b6cf5]"></i> Valid for ${durStr}. No auto-renewal.`;
         }
 
         if (plansData.length > 0) selectPlan(plansData[0].id);
     }
 </script>
 
-<!-- ── PAYMENT MODAL ── -->
 {% if show_payment_modal %}
 <div id="payment-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-[24px] max-w-[460px] w-full shadow-2xl relative overflow-hidden animate-[fade-in-up_0.3s_ease-out]">
@@ -219,65 +233,60 @@
             <i class="fa-solid fa-xmark"></i>
         </a>
 
-        <div class="p-8">
+        <div class="p-6 sm:p-8">
             <div class="text-center mb-6">
-                <div class="w-[50px] h-[50px] bg-gradient-to-br from-[#1a2b4a] to-[#a16207] rounded-[14px] flex items-center justify-center mx-auto mb-3">
+                <div class="w-[50px] h-[50px] bg-gradient-to-br from-[#1a2b4a] to-[#a16207] rounded-[14px] flex items-center justify-center mx-auto mb-3 shadow-md">
                     <i class="fa-solid fa-crown text-white text-[20px]"></i>
                 </div>
-                <h2 class="text-[22px] font-extrabold text-[#1a2b4a]">Order Summary</h2>
+                <h2 class="text-[20px] sm:text-[22px] font-extrabold text-[#1a2b4a]">Confirm Payment</h2>
             </div>
 
-            <div class="space-y-2.5 text-[13.5px] mb-4 bg-[#f8fbff] p-4 rounded-[12px] border border-[#e4eaf2]">
+            <div class="space-y-2.5 text-[13.5px] mb-6 bg-[#f8fbff] p-5 rounded-[16px] border border-[#e4eaf2]">
                 <div class="flex justify-between items-center text-[#4a5568]">
-                    <span class="font-semibold">Plan</span>
+                    <span class="font-semibold text-[#7a8fa6]">Plan Selected</span>
                     <span class="font-bold text-[#1a2b4a]">
                         Pro — {% if plan.days > 0 %}{{ plan.days }} Days{% else %}{{ plan.months }} Month{% if plan.months > 1 %}s{% endif %}{% endif %}
                     </span>
                 </div>
                 <div class="flex justify-between items-center text-[#4a5568]">
-                    <span class="font-semibold">Order ID</span>
-                    <span class="font-mono text-[11.5px] text-[#7a8fa6]">{{ rz_order.id }}</span>
+                    <span class="font-semibold text-[#7a8fa6]">Payment ID</span>
+                    <span class="font-mono text-[11.5px] font-bold text-[#1a2b4a] bg-[#e4eaf2] px-2 py-0.5 rounded">{{ rz_order.id }}</span>
                 </div>
 
-                <div class="border-t border-[#e4eaf2] my-1"></div>
+                <div class="border-t border-[#d8e4f0] my-3"></div>
 
                 <div class="flex justify-between items-center text-[#4a5568]">
-                    <span class="font-semibold">Base Price</span>
-                    <span>₹{{ calc.base_price }}</span>
+                    <span class="font-semibold text-[#7a8fa6]">Base Price</span>
+                    <span class="font-bold text-[#1a2b4a]">₹{{ calc.base_price }}</span>
                 </div>
 
                 {% if calc.discount1_amount > 0 %}
                 <div class="flex justify-between items-center">
-                    <span class="text-[#4a5568] font-semibold">Discount <span class="text-[#22c55e]">({{ plan.discount1 }}%)</span></span>
-                    <span class="text-[#22c55e] font-bold">- ₹{{ calc.discount1_amount }}</span>
+                    <span class="text-[#7a8fa6] font-semibold">Discount <span class="text-[#059669]">({{ plan.discount1 }}%)</span></span>
+                    <span class="text-[#059669] font-bold">- ₹{{ calc.discount1_amount }}</span>
                 </div>
                 {% endif %}
 
                 {% if calc.discount2_amount > 0 %}
                 <div class="flex justify-between items-center">
-                    <span class="text-[#4a5568] font-semibold">Discount <span class="text-[#22c55e]">({{ plan.discount2 }}%)</span></span>
-                    <span class="text-[#22c55e] font-bold">- ₹{{ calc.discount2_amount }}</span>
+                    <span class="text-[#7a8fa6] font-semibold">Discount <span class="text-[#059669]">({{ plan.discount2 }}%)</span></span>
+                    <span class="text-[#059669] font-bold">- ₹{{ calc.discount2_amount }}</span>
                 </div>
                 {% endif %}
 
                 <div class="flex justify-between items-center text-[#4a5568]">
-                    <span class="font-semibold">GST ({{ plan.gst_pct }}%)</span>
-                    <span>₹{{ calc.gst_amount }}</span>
+                    <span class="font-semibold text-[#7a8fa6]">GST ({{ plan.gst_pct }}%)</span>
+                    <span class="font-bold text-[#1a2b4a]">₹{{ calc.gst_amount }}</span>
                 </div>
 
-                <div class="border-t border-[#d8e4f0] pt-3 mt-2 flex justify-between items-start">
-                    <span class="text-[15px] font-extrabold text-[#1a2b4a]">Total</span>
-                    <div class="flex flex-col items-end">
-                        <span class="text-[20px] font-extrabold text-[#b45309] leading-none mb-1.5">₹{{ final_rupees }}</span>
-                        <span class="text-[11px] font-bold text-[#b45309] bg-[#fff7e6] border border-[#fcd34d] px-2 py-1 rounded-[6px]">
-                            Base ₹{{ calc.display_price }} + GST ₹{{ calc.gst_amount }} = ₹{{ final_rupees }}
-                        </span>
-                    </div>
+                <div class="border-t-[2px] border-dashed border-[#d8e4f0] pt-4 mt-3 flex justify-between items-end">
+                    <span class="text-[15px] font-black text-[#1a2b4a] pb-0.5">Total Amount</span>
+                    <span class="text-[24px] font-black text-[#1a2b4a] leading-none">₹{{ final_rupees }}</span>
                 </div>
             </div>
 
-            <button id="rzp-pay-btn" class="w-full bg-[#3d35c4] text-white font-extrabold text-[16px] py-4 rounded-[12px] shadow-md flex items-center justify-center gap-3">
-                <i class="fa-solid fa-lock text-[14px]"></i> Pay ₹{{ final_rupees }} Securely
+            <button id="rzp-pay-btn" class="w-full bg-[#1a2b4a] hover:bg-[#0f172a] text-white font-extrabold text-[16px] py-4 rounded-[14px] shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-lock text-[14px] text-[#aab8c8]"></i> Pay Securely Now
             </button>
         </div>
     </div>
@@ -299,7 +308,7 @@
         name: "{{ ui_settings.site_name|default:'VCS' }}",
         order_id: "{{ rz_order.id }}",
         prefill: { name: "{{ profile.full_name }}", email: "{{ request.user.email }}" },
-        theme: { color: "#3d35c4" },
+        theme: { color: "#1a2b4a" },
         handler: function(response) {
             document.getElementById('rzp_order_id').value = response.razorpay_order_id;
             document.getElementById('rzp_payment_id').value = response.razorpay_payment_id;

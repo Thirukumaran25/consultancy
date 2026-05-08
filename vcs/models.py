@@ -352,6 +352,13 @@ class JobApplication(models.Model):
 
     class Meta:
         unique_together = ('job', 'candidate')
+        constraints = [
+                models.UniqueConstraint(
+                    fields=['job', 'trainee'],
+                    condition=models.Q(trainee__isnull=False),
+                    name='unique_trainee_job_application'
+                )
+            ]
         ordering = ['-applied_at']
 
     def __str__(self):

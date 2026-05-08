@@ -23,21 +23,21 @@
         .pwd-check-item.met i { @apply text-[#27ae60]; }
 
         /* ── TRANSLATED MODAL CSS TO TAILWIND ── */
-        .modal { @apply hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-[520px] max-h-[90vh] overflow-y-auto bg-white rounded-[16px] p-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.15)]; }
+        .modal { @apply hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] sm:w-full max-w-[520px] max-h-[90vh] overflow-y-auto bg-white rounded-[16px] p-5 sm:p-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.15)]; }
         .modal.open { @apply block; }
-        .modal-title { @apply text-[18px] font-extrabold text-[#1a2b4a] mb-5; }
+        .modal-title { @apply text-[16px] sm:text-[18px] font-extrabold text-[#1a2b4a] mb-4 sm:mb-5; }
         .form-label { @apply block text-[12.5px] font-bold text-black mb-1.5; }
-        .form-input { @apply w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white; }
-        .btn-primary { @apply bg-[#3d35c4] text-white border-none py-2.5 px-6 rounded-[10px] text-[14px] font-bold cursor-pointer transition-colors duration-200 hover:bg-[#2d27a8]; }
-        .btn-cancel { @apply bg-[#f1f5fb] text-[#4a5568] border-none py-2.5 px-6 rounded-[10px] text-[14px] font-bold cursor-pointer transition-colors duration-200 hover:bg-[#e4eaf2]; }
+        .form-input { @apply w-full py-2 sm:py-2.5 px-3 sm:px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white; }
+        .btn-primary { @apply w-full sm:w-auto bg-[#3d35c4] text-white border-none py-2.5 px-6 rounded-[10px] text-[14px] font-bold cursor-pointer transition-colors duration-200 hover:bg-[#2d27a8] text-center; }
+        .btn-cancel { @apply w-full sm:w-auto bg-[#f1f5fb] text-[#4a5568] border-none py-2.5 px-6 rounded-[10px] text-[14px] font-bold cursor-pointer transition-colors duration-200 hover:bg-[#e4eaf2] text-center; }
     }
 </style>
 
-<div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+<div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 sm:py-8">
 
-    <div class="mb-6 flex justify-between items-center">
-        <h1 class="text-[22px] font-extrabold text-[#1a2b4a]">My Profile</h1>
-        <span class="text-[13px] text-[#7a8fa6]">Joined {{ profile.joined_at|date:"d M Y" }}</span>
+    <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <h1 class="text-[20px] sm:text-[22px] font-extrabold text-[#1a2b4a]">My Profile</h1>
+        <span class="text-[12px] sm:text-[13px] text-[#7a8fa6]">Joined {{ profile.joined_at|date:"d M Y" }}</span>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-6">
@@ -46,7 +46,7 @@
 
             <div class="bg-white rounded-[16px] shadow-sm border border-gray-100 relative overflow-hidden">
                 <div class="h-[80px] bg-gradient-to-r from-[#4238ca] to-[#3b82f6]"></div>
-                <div class="px-6 pb-6 flex flex-col items-center -mt-12">
+                <div class="px-5 sm:px-6 pb-6 flex flex-col items-center -mt-12">
 
                     <div class="relative mb-3">
                         <svg class="absolute -top-1 -left-1" width="100" height="100" viewBox="0 0 100 100">
@@ -88,7 +88,7 @@
                         </form>
                     </div>
 
-                    <h2 class="text-[18px] font-bold text-[#1a2b4a] text-center flex items-center justify-center gap-2">
+                    <h2 class="text-[17px] sm:text-[18px] font-bold text-[#1a2b4a] text-center flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
                         {{ profile.full_name }}
                         {% if profile.batch_name %}
                             <span class="bg-[#eef3ff] text-[#4238ca] border border-[#c5d4f0] text-[10px] font-extrabold px-2 py-0.5 rounded-full tracking-wider uppercase shadow-sm">
@@ -96,27 +96,27 @@
                             </span>
                         {% endif %}
                     </h2>
-                    <p class="text-[13px] text-[#7a8fa6] text-center mb-4">
+                    <p class="text-[12.5px] sm:text-[13px] text-[#7a8fa6] text-center mb-4 mt-1 sm:mt-0 px-2">
                         {{ profile.resume_headline|default:"Add your resume headline" }}
                     </p>
-                    <div class="w-full space-y-2 text-[13px] text-[#4a5568]">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-envelope text-[#aab8c8] w-4"></i>
+                    <div class="w-full space-y-2 text-[12.5px] sm:text-[13px] text-[#4a5568]">
+                        <div class="flex items-center gap-3 break-all">
+                            <i class="fa-solid fa-envelope text-[#aab8c8] w-4 text-center shrink-0"></i>
                             {{ request.user.email }}
                         </div>
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-phone text-[#aab8c8] w-4"></i>
+                            <i class="fa-solid fa-phone text-[#aab8c8] w-4 text-center shrink-0"></i>
                             {{ profile.phone_number|default:"Add phone number" }}
                         </div>
                         {% if profile.date_of_birth %}
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-cake-candles text-[#aab8c8] w-4"></i>
+                            <i class="fa-solid fa-cake-candles text-[#aab8c8] w-4 text-center shrink-0"></i>
                             {{ profile.date_of_birth|date:"d M Y" }}
                         </div>
                         {% endif %}
                         {% if profile.languages_known %}
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-language text-[#aab8c8] w-4"></i>
+                            <i class="fa-solid fa-language text-[#aab8c8] w-4 text-center shrink-0"></i>
                             {{ profile.languages_known }}
                         </div>
                         {% endif %}
@@ -124,16 +124,16 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100">
+            <div class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-[15px] font-bold text-[#1a2b4a]">Profile Strength</h3>
-                    <span class="text-[14px] font-extrabold" id="strength-pct">—</span>
+                    <h3 class="text-[14px] sm:text-[15px] font-bold text-[#1a2b4a]">Profile Strength</h3>
+                    <span class="text-[13px] sm:text-[14px] font-extrabold" id="strength-pct">—</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
                     <div class="h-2 rounded-full transition-all" id="strength-bar" style="width:0%"></div>
                 </div>
-                <p class="text-[12px] text-[#7a8fa6] mb-3">Complete your profile to boost recruiter visibility.</p>
-                <ul class="text-[12.5px] space-y-2 text-[#4a5568]" id="strength-tips"></ul>
+                <p class="text-[11.5px] sm:text-[12px] text-[#7a8fa6] mb-3">Complete your profile to boost recruiter visibility.</p>
+                <ul class="text-[12px] sm:text-[12.5px] space-y-2 text-[#4a5568]" id="strength-tips"></ul>
             </div>
 
             <div class="bg-white rounded-[16px] py-4 shadow-sm border border-gray-100 hidden lg:block sticky top-[90px]">
@@ -151,28 +151,33 @@
 
         <div class="lg:w-2/3 space-y-5">
 
-            <div id="resume" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between flex-wrap gap-4">
-                <div>
-                    <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-1">Resume</h3>
+            <div id="resume" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="w-full sm:w-auto">
+                    <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-1">Resume</h3>
                     {% if profile.resume %}
-                        <p class="text-[13px] text-[#7a8fa6]">{{ profile.resume.name|cut:"trainee_resumes/" }}</p>
+                        <p class="text-[12.5px] sm:text-[13px] text-[#7a8fa6] break-all sm:break-normal">{{ profile.resume.name|cut:"trainee_resumes/" }}</p>
                     {% else %}
-                        <p class="text-[13px] text-[#e05c5c]">No resume uploaded yet.</p>
+                        <p class="text-[12.5px] sm:text-[13px] text-[#e05c5c]">No resume uploaded yet.</p>
                     {% endif %}
                 </div>
-                <div class="flex gap-3 flex-wrap">
+                <div class="flex gap-2.5 w-full sm:w-auto items-center shrink-0">
                     {% if profile.resume %}
-                    <a href="{{ profile.resume.url }}" target="_blank"
-                       class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] font-bold text-[13px] px-4 py-2 rounded-[8px] transition">
-                        <i class="fa-solid fa-download mr-1"></i> Download
-                    </a>
+                        <a href="{{ profile.resume.url }}" target="_blank"
+                        class="shrink-0 text-[#059669] bg-[#ecfdf5] hover:bg-[#d1fae5] font-bold text-[13px] px-3 sm:px-4 py-2 rounded-[8px] transition flex items-center justify-center">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                        
+                        <a href="{{ profile.resume.url }}" download
+                        class="shrink-0 text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] font-bold text-[13px] px-3 sm:px-4 py-2 rounded-[8px] transition flex items-center justify-center">
+                            <i class="fa-solid fa-download"></i>
+                        </a>
                     {% endif %}
                     
                     <!-- UPDATED: Pointing to unified trainee profile update -->
-                    <form method="POST" action="{% url 'update_trainee_profile' %}" enctype="multipart/form-data">
+                    <form method="POST" action="{% url 'update_trainee_profile' %}" enctype="multipart/form-data" class="w-full sm:w-auto m-0">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="resume">
-                        <label class="text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[13px] px-4 py-2 rounded-[8px] transition cursor-pointer">
+                        <label class="w-full sm:w-auto text-center text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[13px] px-4 py-2 rounded-[8px] transition cursor-pointer inline-block whitespace-nowrap m-0">
                             {% if profile.resume %}Update Resume{% else %}Upload Resume{% endif %}
                             <input type="file" name="resume" accept=".pdf,.doc,.docx" class="hidden" onchange="this.form.submit()">
                         </label>
@@ -180,44 +185,44 @@
                 </div>
             </div>
 
-            <div id="headline" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+            <div id="headline" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
                 <button onclick="openModal('modal-headline')"
                         class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition">
                     <i class="fa-solid fa-pen"></i>
                 </button>
-                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-3">Resume Headline</h3>
+                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-2 sm:mb-3">Resume Headline</h3>
                 {% if profile.resume_headline %}
-                    <p class="text-[14px] text-[#4a5568] leading-relaxed">{{ profile.resume_headline }}</p>
+                    <p class="text-[13.5px] sm:text-[14px] text-[#4a5568] leading-relaxed pr-6">{{ profile.resume_headline }}</p>
                 {% else %}
-                    <p class="text-[13px] text-[#aab8c8] italic">No headline added yet. Click the edit button to add one.</p>
+                    <p class="text-[12.5px] sm:text-[13px] text-[#aab8c8] italic pr-6">No headline added yet. Click the edit button to add one.</p>
                 {% endif %}
             </div>
 
-            <div id="summary" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+            <div id="summary" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
                 <button onclick="openModal('modal-summary')"
                         class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition">
                     <i class="fa-solid fa-pen"></i>
                 </button>
-                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-3">Profile Summary</h3>
+                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-2 sm:mb-3">Profile Summary</h3>
                 {% if profile.profile_summary %}
-                    <p class="text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ profile.profile_summary }}</p>
+                    <p class="text-[13.5px] sm:text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line pr-6">{{ profile.profile_summary }}</p>
                 {% else %}
-                    <p class="text-[13px] text-[#aab8c8] italic">No summary added yet. Click the edit button to add one.</p>
+                    <p class="text-[12.5px] sm:text-[13px] text-[#aab8c8] italic pr-6">No summary added yet. Click the edit button to add one.</p>
                 {% endif %}
             </div>
 
-            <div id="skills" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+            <div id="skills" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
                 <button onclick="openModal('modal-skill')"
                         class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition">
                     <i class="fa-solid fa-pen"></i>
                 </button>
-                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-4">Key Skills</h3>
-                <div class="flex flex-wrap gap-2.5">
+                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-3 sm:mb-4">Key Skills</h3>
+                <div class="flex flex-wrap gap-2 sm:gap-2.5">
                     {% for skill in profile.skills.all %}
-                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[13px] font-semibold px-4 py-1.5 rounded-full flex items-center gap-2">
+                    <span class="bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[12px] sm:text-[13px] font-semibold px-3 sm:px-4 py-1 sm:py-1.5 rounded-full flex items-center gap-2">
                         {{ skill.name }}
                         <!-- UPDATED: Pointing to unified trainee profile update -->
-                        <form method="POST" action="{% url 'update_trainee_profile' %}" class="inline">
+                        <form method="POST" action="{% url 'update_trainee_profile' %}" class="inline m-0">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="remove_skill">
                             <input type="hidden" name="skill_id" value="{{ skill.id }}">
@@ -227,45 +232,61 @@
                         </form>
                     </span>
                     {% empty %}
-                    <p class="text-[13px] text-[#aab8c8] italic w-full">No skills added yet.</p>
+                    <p class="text-[12.5px] sm:text-[13px] text-[#aab8c8] italic w-full">No skills added yet.</p>
                     {% endfor %}
                     <button onclick="openModal('modal-skill')"
-                        class="bg-white border-2 border-dashed border-[#aab8c8] text-[#7a8fa6] text-[13px] font-bold px-4 py-1.5 rounded-full cursor-pointer hover:border-[#4b6cf5] hover:text-[#4b6cf5] transition">
+                        class="bg-white border-2 border-dashed border-[#aab8c8] text-[#7a8fa6] text-[12px] sm:text-[13px] font-bold px-3 sm:px-4 py-1.5 rounded-full cursor-pointer hover:border-[#4b6cf5] hover:text-[#4b6cf5] transition">
                         <i class="fa-solid fa-plus"></i> Add Skill
                     </button>
                 </div>
             </div>
 
-            <div id="employment" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-[16px] font-bold text-[#1a2b4a]">Employment</h3>
+            <div id="employment" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 sm:mb-5">
+                    <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a]">Employment</h3>
                     <button onclick="openModal('modal-employment')"
-                            class="text-[#4b6cf5] font-bold text-[13px] hover:underline">
+                            class="text-[#4b6cf5] font-bold text-[13px] hover:underline self-start sm:self-auto">
                         + Add Employment
                     </button>
                 </div>
 
                 {% if profile.employments.all %}
-                <div class="relative pl-6 border-l-2 border-[#e4eaf2] space-y-6">
+                <div class="relative pl-4 sm:pl-6 border-l-2 border-[#e4eaf2] space-y-6">
                     {% for emp in profile.employments.all %}
                     <div class="relative">
-                        <div class="absolute -left-[31px] top-1 w-3 h-3 bg-[#4b6cf5] rounded-full border-4 border-white"></div>
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="text-[15px] font-bold text-[#1a2b4a]">{{ emp.designation }}</h4>
-                                <p class="text-[13.5px] text-[#4a5568] font-semibold">{{ emp.company_name }}</p>
-                                <p class="text-[12.5px] text-[#7a8fa6] mt-0.5">
+                        <div class="absolute -left-[23px] sm:-left-[31px] top-1 w-3 h-3 bg-[#4b6cf5] rounded-full border-4 border-white"></div>
+                        <div class="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
+                            <div class="pr-0 sm:pr-4 w-full sm:w-auto">
+                                <div class="flex justify-between items-start sm:hidden mb-1">
+                                    <h4 class="text-[14px] font-bold text-[#1a2b4a]">{{ emp.designation }}</h4>
+                                    <div class="flex gap-2 shrink-0 ml-2">
+                                        <button onclick="openEditEmployment({{ emp.id }}, '{{ emp.designation|escapejs }}', '{{ emp.company_name|escapejs }}', '{{ emp.start_date|date:'Y-m-d' }}', '{{ emp.end_date|date:'Y-m-d' }}', {{ emp.is_current|yesno:'true,false' }}, '{{ emp.location|escapejs }}', `{{ emp.description|escapejs }}`)"
+                                            class="text-[#aab8c8] hover:text-[#4b6cf5] transition text-[12px]">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <form method="POST" action="{% url 'delete_employment' emp.id %}" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[12px]"
+                                                    onclick="return confirm('Delete this employment?')">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <h4 class="text-[15px] font-bold text-[#1a2b4a] hidden sm:block">{{ emp.designation }}</h4>
+                                <p class="text-[13px] sm:text-[13.5px] text-[#4a5568] font-semibold">{{ emp.company_name }}</p>
+                                <p class="text-[12px] sm:text-[12.5px] text-[#7a8fa6] mt-0.5">
                                     {{ emp.start_date|date:"M Y" }} –
                                     {% if emp.is_current %}Present{% else %}{{ emp.end_date|date:"M Y" }}{% endif %}
                                     {% if emp.location %} | {{ emp.location }}{% endif %}
                                 </p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="openEditEmployment({{ emp.id }}, '{{ emp.designation }}', '{{ emp.company_name }}', '{{ emp.start_date|date:'Y-m-d' }}', '{{ emp.end_date|date:'Y-m-d' }}', {{ emp.is_current|yesno:'true,false' }}, '{{ emp.location }}', `{{ emp.description|escapejs }}`)"
+                            <div class="hidden sm:flex gap-2 shrink-0">
+                                <button onclick="openEditEmployment({{ emp.id }}, '{{ emp.designation|escapejs }}', '{{ emp.company_name|escapejs }}', '{{ emp.start_date|date:'Y-m-d' }}', '{{ emp.end_date|date:'Y-m-d' }}', {{ emp.is_current|yesno:'true,false' }}, '{{ emp.location|escapejs }}', `{{ emp.description|escapejs }}`)"
                                     class="text-[#aab8c8] hover:text-[#4b6cf5] transition text-[13px]">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
-                                <form method="POST" action="{% url 'delete_employment' emp.id %}">
+                                <form method="POST" action="{% url 'delete_employment' emp.id %}" class="m-0">
                                     {% csrf_token %}
                                     <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[13px]"
                                             onclick="return confirm('Delete this employment?')">
@@ -275,39 +296,41 @@
                             </div>
                         </div>
                         {% if emp.description %}
-                        <p class="mt-2 text-[13.5px] text-[#4a5568] leading-relaxed">{{ emp.description }}</p>
+                        <p class="mt-2 text-[13px] sm:text-[13.5px] text-[#4a5568] leading-relaxed">{{ emp.description }}</p>
                         {% endif %}
                     </div>
                     {% endfor %}
                 </div>
 
                 {% elif profile.is_fresher %}
-                <div class="flex items-center gap-2 text-[13px] text-[#057a2e] bg-[#e6fff0] px-4 py-3 rounded-[10px]">
-                    <i class="fa-solid fa-circle-check text-[16px]"></i>
-                    <span class="font-semibold">Marked as Fresher — recruiters will see you are open to entry-level roles.</span>
-                    <form method="POST" action="{% url 'mark_fresher' %}" class="ml-auto">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-[12px] sm:text-[13px] text-[#057a2e] bg-[#e6fff0] px-4 py-3 rounded-[10px]">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-[16px] shrink-0"></i>
+                        <span class="font-semibold">Marked as Fresher — recruiters will see you are open to entry-level roles.</span>
+                    </div>
+                    <form method="POST" action="{% url 'mark_fresher' %}" class="w-full sm:w-auto sm:ml-auto mt-2 sm:mt-0">
                         {% csrf_token %}
                         <input type="hidden" name="unmark" value="1">
-                        <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] text-[12px] font-bold whitespace-nowrap">
+                        <button type="submit" class="w-full sm:w-auto text-center sm:text-left text-[#c0392b] bg-[#ffdada] hover:bg-[#ffc2c2] px-3 py-1.5 rounded-[6px] sm:bg-transparent sm:hover:bg-transparent sm:p-0 sm:text-[#aab8c8] sm:hover:text-[#e05c5c] text-[12px] font-bold transition">
                             Remove
                         </button>
                     </form>
                 </div>
 
                 {% else %}
-                <div class="border-2 border-dashed border-[#e4eaf2] rounded-[12px] p-6 text-center">
-                    <i class="fa-solid fa-briefcase text-[32px] text-[#d8e4f0] mb-3 block"></i>
-                    <p class="text-[14px] font-bold text-[#1a2b4a] mb-1">No experience added yet</p>
-                    <p class="text-[13px] text-[#7a8fa6] mb-4">Are you a fresher or have work experience?</p>
-                    <div class="flex gap-3 justify-center flex-wrap">
+                <div class="border-2 border-dashed border-[#e4eaf2] rounded-[12px] p-5 sm:p-6 text-center">
+                    <i class="fa-solid fa-briefcase text-[28px] sm:text-[32px] text-[#d8e4f0] mb-2 sm:mb-3 block"></i>
+                    <p class="text-[13px] sm:text-[14px] font-bold text-[#1a2b4a] mb-1">No experience added yet</p>
+                    <p class="text-[12px] sm:text-[13px] text-[#7a8fa6] mb-4">Are you a fresher or have work experience?</p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
                         <button onclick="openModal('modal-employment')"
-                            class="bg-[#4b6cf5] text-white font-bold text-[13px] px-5 py-2 rounded-[8px] hover:bg-[#3b5ce5] transition">
+                            class="bg-[#4b6cf5] text-white font-bold text-[13px] px-5 py-2.5 sm:py-2 rounded-[8px] hover:bg-[#3b5ce5] transition w-full sm:w-auto">
                             <i class="fa-solid fa-plus mr-1"></i> Add Work Experience
                         </button>
-                        <form method="POST" action="{% url 'mark_fresher' %}">
+                        <form method="POST" action="{% url 'mark_fresher' %}" class="m-0 w-full sm:w-auto">
                             {% csrf_token %}
                             <button type="submit"
-                                class="bg-[#f1f5fb] text-[#4a5568] font-bold text-[13px] px-5 py-2 rounded-[8px] border border-[#d8e4f0] hover:bg-[#e4eaf2] transition">
+                                class="bg-[#f1f5fb] text-[#4a5568] font-bold text-[13px] px-5 py-2.5 sm:py-2 rounded-[8px] border border-[#d8e4f0] hover:bg-[#e4eaf2] transition w-full">
                                 <i class="fa-solid fa-user-graduate mr-1"></i> I am a Fresher
                             </button>
                         </form>
@@ -316,32 +339,50 @@
                 {% endif %}
             </div>
 
-            <div id="education" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-[16px] font-bold text-[#1a2b4a]">Education</h3>
+            <div id="education" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 sm:mb-5">
+                    <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a]">Education</h3>
                     <button onclick="openModal('modal-education')"
-                            class="text-[#4b6cf5] font-bold text-[13px] hover:underline">
+                            class="text-[#4b6cf5] font-bold text-[13px] hover:underline self-start sm:self-auto">
                         + Add Education
                     </button>
                 </div>
                 {% for edu in profile.educations.all %}
-                <div class="border-b border-[#f0f4f8] pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="text-[15px] font-bold text-[#1a2b4a]">
+                <div class="border-b border-[#f0f4f8] pb-4 sm:pb-5 mb-4 sm:mb-5 last:border-0 last:pb-0 last:mb-0">
+                    <div class="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0">
+                        <div class="w-full sm:w-auto pr-0 sm:pr-4">
+                            <div class="flex justify-between items-start sm:hidden mb-1">
+                                <h4 class="text-[14px] font-bold text-[#1a2b4a] pr-2">
+                                    {{ edu.education_level }}{% if edu.course %} — {{ edu.course }}{% endif %}
+                                </h4>
+                                <div class="flex gap-2 shrink-0">
+                                    <button onclick="openEditEducation({{ edu.id }}, '{{ edu.education_level|escapejs }}', '{{ edu.course|escapejs }}', '{{ edu.university|escapejs }}', {{ edu.start_year }}, {{ edu.end_year }}, '{{ edu.course_type|escapejs }}')"
+                                        class="text-[#aab8c8] hover:text-[#4b6cf5] transition text-[12px]">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <form method="POST" action="{% url 'delete_education' edu.id %}" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[12px]"
+                                                onclick="return confirm('Delete this education?')">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <h4 class="text-[15px] font-bold text-[#1a2b4a] hidden sm:block">
                                 {{ edu.education_level }}{% if edu.course %} — {{ edu.course }}{% endif %}
                             </h4>
-                            <p class="text-[13.5px] text-[#4a5568] font-semibold">{{ edu.university }}</p>
-                            <p class="text-[12.5px] text-[#7a8fa6] mt-0.5">
+                            <p class="text-[13px] sm:text-[13.5px] text-[#4a5568] font-semibold">{{ edu.university }}</p>
+                            <p class="text-[12px] sm:text-[12.5px] text-[#7a8fa6] mt-0.5">
                                 {{ edu.start_year }} – {{ edu.end_year }} | {{ edu.course_type }}
                             </p>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="openEditEducation({{ edu.id }}, '{{ edu.education_level }}', '{{ edu.course }}', '{{ edu.university }}', {{ edu.start_year }}, {{ edu.end_year }}, '{{ edu.course_type }}')"
+                        <div class="hidden sm:flex gap-2 shrink-0">
+                            <button onclick="openEditEducation({{ edu.id }}, '{{ edu.education_level|escapejs }}', '{{ edu.course|escapejs }}', '{{ edu.university|escapejs }}', {{ edu.start_year }}, {{ edu.end_year }}, '{{ edu.course_type|escapejs }}')"
                                 class="text-[#aab8c8] hover:text-[#4b6cf5] transition text-[13px]">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <form method="POST" action="{% url 'delete_education' edu.id %}">
+                            <form method="POST" action="{% url 'delete_education' edu.id %}" class="m-0">
                                 {% csrf_token %}
                                 <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[13px]"
                                         onclick="return confirm('Delete this education?')">
@@ -352,42 +393,65 @@
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-[13px] text-[#aab8c8] italic">No education added yet.</p>
+                <p class="text-[12.5px] sm:text-[13px] text-[#aab8c8] italic">No education added yet.</p>
                 {% endfor %}
             </div>
 
-            <div id="projects" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-[16px] font-bold text-[#1a2b4a]">Projects</h3>
+            <div id="projects" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 sm:mb-5">
+                    <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a]">Projects</h3>
                     <button onclick="openModal('modal-project')"
-                            class="text-[#4b6cf5] font-bold text-[13px] hover:underline">
+                            class="text-[#4b6cf5] font-bold text-[13px] hover:underline self-start sm:self-auto">
                         + Add Project
                     </button>
                 </div>
                 {% for proj in profile.projects.all %}
-                <div class="border-b border-[#f0f4f8] pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1 pr-4">
-                            <h4 class="text-[15px] font-bold text-[#1a2b4a] flex items-center gap-2">
+                <div class="border-b border-[#f0f4f8] pb-4 sm:pb-5 mb-4 sm:mb-5 last:border-0 last:pb-0 last:mb-0">
+                    <div class="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0">
+                        <div class="flex-1 w-full sm:w-auto pr-0 sm:pr-4">
+                            <div class="flex justify-between items-start sm:hidden mb-1">
+                                <h4 class="text-[14px] font-bold text-[#1a2b4a] flex items-center gap-2">
+                                    {{ proj.title }}
+                                    {% if proj.project_url %}
+                                    <a href="{{ proj.project_url }}" target="_blank" class="text-[#4b6cf5] text-[12px] bg-[#eef3ff] p-1 rounded-full w-6 h-6 flex items-center justify-center">
+                                        <i class="fa-solid fa-link"></i>
+                                    </a>
+                                    {% endif %}
+                                </h4>
+                                <div class="flex gap-2 shrink-0">
+                                    <button onclick="openEditProject({{ proj.id }}, '{{ proj.title|escapejs }}', '{{ proj.project_url|default:''|escapejs }}', '{{ proj.start_date|date:'Y-m-d' }}', '{{ proj.end_date|date:'Y-m-d' }}', {{ proj.is_ongoing|yesno:'true,false' }}, `{{ proj.description|escapejs }}`)"
+                                        class="text-[#aab8c8] hover:text-[#4b6cf5] transition text-[12px]">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <form method="POST" action="{% url 'delete_project' proj.id %}" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[12px]"
+                                                onclick="return confirm('Delete this project?')">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <h4 class="text-[15px] font-bold text-[#1a2b4a] hidden sm:flex items-center gap-2">
                                 {{ proj.title }}
                                 {% if proj.project_url %}
-                                <a href="{{ proj.project_url }}" target="_blank" class="text-[#4b6cf5] text-[12px]">
+                                <a href="{{ proj.project_url }}" target="_blank" class="text-[#4b6cf5] text-[12px] bg-[#eef3ff] p-1 rounded-full w-6 h-6 flex items-center justify-center hover:bg-[#dfe8ff] transition-colors">
                                     <i class="fa-solid fa-link"></i>
                                 </a>
                                 {% endif %}
                             </h4>
-                            <p class="text-[12.5px] text-[#7a8fa6] mt-0.5 mb-2">
+                            <p class="text-[12px] sm:text-[12.5px] text-[#7a8fa6] mt-0.5 mb-2">
                                 {% if proj.start_date %}{{ proj.start_date|date:"M Y" }} – {% endif %}
                                 {% if proj.is_ongoing %}Present{% elif proj.end_date %}{{ proj.end_date|date:"M Y" }}{% endif %}
                             </p>
-                            <p class="text-[13.5px] text-[#4a5568] leading-relaxed">{{ proj.description }}</p>
+                            <p class="text-[13px] sm:text-[13.5px] text-[#4a5568] leading-relaxed">{{ proj.description }}</p>
                         </div>
-                        <div class="flex gap-2 shrink-0">
-                            <button onclick="openEditProject({{ proj.id }}, '{{ proj.title }}', '{{ proj.project_url|default:'' }}', '{{ proj.start_date|date:'Y-m-d' }}', '{{ proj.end_date|date:'Y-m-d' }}', {{ proj.is_ongoing|yesno:'true,false' }}, `{{ proj.description|escapejs }}`)"
+                        <div class="hidden sm:flex gap-2 shrink-0">
+                            <button onclick="openEditProject({{ proj.id }}, '{{ proj.title|escapejs }}', '{{ proj.project_url|default:''|escapejs }}', '{{ proj.start_date|date:'Y-m-d' }}', '{{ proj.end_date|date:'Y-m-d' }}', {{ proj.is_ongoing|yesno:'true,false' }}, `{{ proj.description|escapejs }}`)"
                                 class="text-[#aab8c8] hover:text-[#4b6cf5] transition text-[13px]">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <form method="POST" action="{% url 'delete_project' proj.id %}">
+                            <form method="POST" action="{% url 'delete_project' proj.id %}" class="m-0">
                                 {% csrf_token %}
                                 <button type="submit" class="text-[#aab8c8] hover:text-[#e05c5c] transition text-[13px]"
                                         onclick="return confirm('Delete this project?')">
@@ -398,34 +462,34 @@
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-[13px] text-[#aab8c8] italic">No projects added yet.</p>
+                <p class="text-[12.5px] sm:text-[13px] text-[#aab8c8] italic">No projects added yet.</p>
                 {% endfor %}
             </div>
 
-            <div id="personal" class="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 relative">
+            <div id="personal" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
                 <button onclick="openModal('modal-personal')"
                         class="absolute top-5 right-5 text-[#aab8c8] hover:text-[#4b6cf5] transition">
                     <i class="fa-solid fa-pen"></i>
                 </button>
-                <h3 class="text-[16px] font-bold text-[#1a2b4a] mb-5">Personal Details</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-4 sm:mb-5">Personal Details</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 pr-6">
                     <div>
-                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Gender</span>
-                        <span class="text-[14px] text-[#1a2b4a] font-semibold">{{ profile.gender|default:"—" }}</span>
+                        <span class="block text-[11.5px] sm:text-[12px] text-[#7a8fa6] font-semibold mb-0.5 sm:mb-1">Gender</span>
+                        <span class="text-[13px] sm:text-[14px] text-[#1a2b4a] font-semibold">{{ profile.gender|default:"—" }}</span>
                     </div>
                     <div>
-                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Marital Status</span>
-                        <span class="text-[14px] text-[#1a2b4a] font-semibold">{{ profile.marital_status|default:"—" }}</span>
+                        <span class="block text-[11.5px] sm:text-[12px] text-[#7a8fa6] font-semibold mb-0.5 sm:mb-1">Marital Status</span>
+                        <span class="text-[13px] sm:text-[14px] text-[#1a2b4a] font-semibold">{{ profile.marital_status|default:"—" }}</span>
                     </div>
                     <div>
-                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Date of Birth</span>
-                        <span class="text-[14px] text-[#1a2b4a] font-semibold">
+                        <span class="block text-[11.5px] sm:text-[12px] text-[#7a8fa6] font-semibold mb-0.5 sm:mb-1">Date of Birth</span>
+                        <span class="text-[13px] sm:text-[14px] text-[#1a2b4a] font-semibold">
                             {{ profile.date_of_birth|date:"d M Y"|default:"—" }}
                         </span>
                     </div>
                     <div>
-                        <span class="block text-[12px] text-[#7a8fa6] font-semibold mb-0.5">Languages Known</span>
-                        <span class="text-[14px] text-[#1a2b4a] font-semibold">{{ profile.languages_known|default:"—" }}</span>
+                        <span class="block text-[11.5px] sm:text-[12px] text-[#7a8fa6] font-semibold mb-0.5 sm:mb-1">Languages Known</span>
+                        <span class="text-[13px] sm:text-[14px] text-[#1a2b4a] font-semibold">{{ profile.languages_known|default:"—" }}</span>
                     </div>
                 </div>
             </div>
@@ -435,24 +499,24 @@
 </div>
 
 <div id="modal-backdrop" onclick="closeAllModals()"
-     class="hidden fixed inset-0 bg-black/40 z-40 transition-opacity"></div>
+     class="hidden fixed inset-0 bg-black/50 z-40 transition-opacity"></div>
 
 <div class="modal" id="modal-headline">
     <p class="modal-title">Edit Resume Headline</p>
     <!-- UPDATED: Pointing to unified trainee profile update -->
-    <form method="POST" action="{% url 'update_trainee_profile' %}">
+    <form method="POST" action="{% url 'update_trainee_profile' %}" class="flex flex-col gap-4">
         {% csrf_token %}
         <input type="hidden" name="action" value="headline">
-        <div class="mb-4">
+        <div>
             <label class="form-label">Headline</label>
             <input type="text" name="resume_headline" maxlength="255"
                    value="{{ profile.resume_headline|default:'' }}"
                    placeholder="e.g. Python Full-Stack Developer with 2 years experience"
                    class="form-input">
         </div>
-        <div class="flex gap-3 justify-end">
-            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
-            <button type="submit" class="btn-primary">Save</button>
+        <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-2">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel order-2 sm:order-1">Cancel</button>
+            <button type="submit" class="btn-primary order-1 sm:order-2">Save</button>
         </div>
     </form>
 </div>
@@ -460,17 +524,17 @@
 <div class="modal" id="modal-summary">
     <p class="modal-title">Edit Profile Summary</p>
     <!-- UPDATED: Pointing to unified trainee profile update -->
-    <form method="POST" action="{% url 'update_trainee_profile' %}">
+    <form method="POST" action="{% url 'update_trainee_profile' %}" class="flex flex-col gap-4">
         {% csrf_token %}
         <input type="hidden" name="action" value="summary">
-        <div class="mb-4">
+        <div>
             <label class="form-label">Summary</label>
-            <textarea name="profile_summary" rows="6" placeholder="Write a brief professional summary..."
+            <textarea name="profile_summary" rows="5" placeholder="Write a brief professional summary..."
                       class="form-input resize-none">{{ profile.profile_summary|default:'' }}</textarea>
         </div>
-        <div class="flex gap-3 justify-end">
-            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
-            <button type="submit" class="btn-primary">Save</button>
+        <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-2">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel order-2 sm:order-1">Cancel</button>
+            <button type="submit" class="btn-primary order-1 sm:order-2">Save</button>
         </div>
     </form>
 </div>
@@ -478,40 +542,41 @@
 <div class="modal" id="modal-skill">
     <p class="modal-title">Add Skills</p>
     <!-- UPDATED: Pointing to unified trainee profile update -->
-    <form method="POST" action="{% url 'update_trainee_profile' %}">
+    <form method="POST" action="{% url 'update_trainee_profile' %}" class="flex flex-col gap-3">
         {% csrf_token %}
         <input type="hidden" name="action" value="add_skill">
-        <div class="mb-2">
+        <div>
             <label class="form-label">Skill Name(s)</label>
             <input type="text" name="skill_name" id="skill-input"
                    placeholder="e.g. Python, Django, React"
                    class="form-input" required>
+            <p class="text-[11px] sm:text-[11.5px] text-[#7a8fa6] mt-2">
+                <i class="fa-solid fa-circle-info text-[#aab8c8] mr-1"></i>
+                Separate multiple skills with commas
+            </p>
         </div>
-        <p class="text-[11.5px] text-[#7a8fa6] mb-4">
-            <i class="fa-solid fa-circle-info text-[#aab8c8] mr-1"></i>
-            Separate multiple skills with commas
-        </p>
-        <div id="skill-preview" class="flex flex-wrap gap-2 mb-4 hidden">
-            <p class="text-[12px] text-[#7a8fa6] font-semibold w-full mb-1">Preview:</p>
+        
+        <div id="skill-preview" class="flex flex-wrap gap-2 mb-2 hidden">
+            <p class="text-[12px] text-[#7a8fa6] font-semibold w-full mb-0.5">Preview:</p>
         </div>
-        <div class="flex gap-3 justify-end">
-            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
-            <button type="submit" class="btn-primary">Add Skills</button>
+        <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-3">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel order-2 sm:order-1">Cancel</button>
+            <button type="submit" class="btn-primary order-1 sm:order-2">Add Skills</button>
         </div>
     </form>
 </div>
 
 <div class="modal" id="modal-employment">
     <p class="modal-title" id="emp-modal-title">Add Employment</p>
-    <form method="POST" action="{% url 'save_employment' %}" id="emp-form">
+    <form method="POST" action="{% url 'save_employment' %}" id="emp-form" class="flex flex-col gap-3 sm:gap-4">
         {% csrf_token %}
         <input type="hidden" name="emp_id" id="emp_id" value="">
-        <div class="grid grid-cols-2 gap-3 mb-3">
-            <div class="col-span-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div class="sm:col-span-2">
                 <label class="form-label">Job Title / Designation</label>
                 <input type="text" name="designation" id="emp_designation" placeholder="e.g. Software Engineer" class="form-input" required>
             </div>
-            <div class="col-span-2">
+            <div class="sm:col-span-2">
                 <label class="form-label">Company Name</label>
                 <input type="text" name="company_name" id="emp_company" placeholder="e.g. TechCorp Solutions" class="form-input" required>
             </div>
@@ -523,121 +588,117 @@
                 <label class="form-label">End Date</label>
                 <input type="date" name="end_date" id="emp_end" class="form-input">
             </div>
-            <div class="col-span-2 flex items-center gap-2">
-                <input type="checkbox" name="is_current" id="emp_current" class="accent-[#3d35c4] w-4 h-4">
-                <label for="emp_current" class="text-[13px] font-semibold text-[#4a5568] cursor-pointer">
+            <div class="sm:col-span-2 flex items-center gap-2 mt-1 sm:mt-0">
+                <input type="checkbox" name="is_current" id="emp_current" class="accent-[#3d35c4] w-4 h-4 cursor-pointer">
+                <label for="emp_current" class="text-[13px] font-semibold text-[#4a5568] cursor-pointer select-none">
                     I currently work here
                 </label>
             </div>
-            <div>
+            <div class="sm:col-span-2">
                 <label class="form-label">Location <span class="text-[#aab8c8] font-normal">(optional)</span></label>
                 <input type="text" name="location" id="emp_location" placeholder="e.g. Chennai" class="form-input">
             </div>
-            <div class="col-span-2">
+            <div class="sm:col-span-2">
                 <label class="form-label">Description <span class="text-[#aab8c8] font-normal">(optional)</span></label>
                 <textarea name="description" id="emp_desc" rows="3"
                           placeholder="Key responsibilities and achievements..."
                           class="form-input resize-none"></textarea>
             </div>
         </div>
-        <div class="flex gap-3 justify-end">
-            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
-            <button type="submit" class="btn-primary">Save</button>
+        <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-3">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel order-2 sm:order-1">Cancel</button>
+            <button type="submit" class="btn-primary order-1 sm:order-2">Save</button>
         </div>
     </form>
 </div>
 
 <div class="modal" id="modal-education">
     <p class="modal-title" id="edu-modal-title">Add Education</p>
-    <form method="POST" action="{% url 'save_education' %}" id="edu-form">
+    <form method="POST" action="{% url 'save_education' %}" id="edu-form" class="flex flex-col gap-3 sm:gap-4">
         {% csrf_token %}
         <input type="hidden" name="edu_id" id="edu_id" value="">
-        <div class="space-y-3 mb-3">
-            <div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div class="sm:col-span-2">
                 <label class="form-label">Education Level</label>
                 <input type="text" name="education_level" id="edu_level"
                        placeholder="e.g. B.Tech / B.E." class="form-input" required>
             </div>
-            <div>
+            <div class="sm:col-span-2">
                 <label class="form-label">Course / Specialization</label>
                 <input type="text" name="course" id="edu_course"
                        placeholder="e.g. Computer Science" class="form-input">
             </div>
-            <div>
+            <div class="sm:col-span-2">
                 <label class="form-label">University / Institution</label>
                 <input type="text" name="university" id="edu_university"
                        placeholder="e.g. Anna University" class="form-input" required>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="form-label">Start Year</label>
-                    <input type="number" name="start_year" id="edu_start"
-                           placeholder="2019" min="1950" max="2099" class="form-input" required>
-                </div>
-                <div>
-                    <label class="form-label">End Year</label>
-                    <input type="number" name="end_year" id="edu_end"
-                           placeholder="2023" min="1950" max="2099" class="form-input" required>
-                </div>
+            <div>
+                <label class="form-label">Start Year</label>
+                <input type="number" name="start_year" id="edu_start"
+                       placeholder="2019" min="1950" max="2099" class="form-input" required>
             </div>
             <div>
+                <label class="form-label">End Year</label>
+                <input type="number" name="end_year" id="edu_end"
+                       placeholder="2023" min="1950" max="2099" class="form-input" required>
+            </div>
+            <div class="sm:col-span-2">
                 <label class="form-label">Course Type</label>
-                <select name="course_type" id="edu_type" class="form-input">
+                <select name="course_type" id="edu_type" class="form-input bg-white">
                     <option value="Full Time">Full Time</option>
                     <option value="Part Time">Part Time</option>
                     <option value="Correspondence">Correspondence</option>
                 </select>
             </div>
         </div>
-        <div class="flex gap-3 justify-end">
-            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
-            <button type="submit" class="btn-primary">Save</button>
+        <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-3">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel order-2 sm:order-1">Cancel</button>
+            <button type="submit" class="btn-primary order-1 sm:order-2">Save</button>
         </div>
     </form>
 </div>
 
 <div class="modal" id="modal-project">
     <p class="modal-title" id="proj-modal-title">Add Project</p>
-    <form method="POST" action="{% url 'save_project' %}" id="proj-form">
+    <form method="POST" action="{% url 'save_project' %}" id="proj-form" class="flex flex-col gap-3 sm:gap-4">
         {% csrf_token %}
         <input type="hidden" name="proj_id" id="proj_id" value="">
-        <div class="space-y-3 mb-3">
-            <div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div class="sm:col-span-2">
                 <label class="form-label">Project Title</label>
                 <input type="text" name="title" id="proj_title"
                        placeholder="e.g. E-Commerce Platform" class="form-input" required>
             </div>
-            <div>
+            <div class="sm:col-span-2">
                 <label class="form-label">Project URL <span class="text-[#aab8c8] font-normal">(optional)</span></label>
                 <input type="url" name="project_url" id="proj_url"
                        placeholder="https://github.com/..." class="form-input">
             </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="form-label">Start Date</label>
-                    <input type="date" name="start_date" id="proj_start" class="form-input">
-                </div>
-                <div id="proj-end-wrapper">
-                    <label class="form-label">End Date</label>
-                    <input type="date" name="end_date" id="proj_end" class="form-input">
-                </div>
+            <div>
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" id="proj_start" class="form-input">
             </div>
-            <div class="flex items-center gap-2">
-                <input type="checkbox" name="is_ongoing" id="proj_ongoing" class="accent-[#3d35c4] w-4 h-4">
-                <label for="proj_ongoing" class="text-[13px] font-semibold text-[#4a5568] cursor-pointer">
+            <div id="proj-end-wrapper">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" id="proj_end" class="form-input">
+            </div>
+            <div class="sm:col-span-2 flex items-center gap-2 mt-1 sm:mt-0">
+                <input type="checkbox" name="is_ongoing" id="proj_ongoing" class="accent-[#3d35c4] w-4 h-4 cursor-pointer">
+                <label for="proj_ongoing" class="text-[13px] font-semibold text-[#4a5568] cursor-pointer select-none">
                     This is an ongoing project
                 </label>
             </div>
-            <div>
+            <div class="sm:col-span-2">
                 <label class="form-label">Description</label>
                 <textarea name="description" id="proj_desc" rows="3"
                           placeholder="Brief description of the project..."
                           class="form-input resize-none" required></textarea>
             </div>
         </div>
-        <div class="flex gap-3 justify-end">
-            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
-            <button type="submit" class="btn-primary">Save</button>
+        <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-3">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel order-2 sm:order-1">Cancel</button>
+            <button type="submit" class="btn-primary order-1 sm:order-2">Save</button>
         </div>
     </form>
 </div>
@@ -645,13 +706,13 @@
 <div class="modal" id="modal-personal">
     <p class="modal-title">Edit Personal Details</p>
     <!-- UPDATED: Pointing to unified trainee profile update -->
-    <form method="POST" action="{% url 'update_trainee_profile' %}">
+    <form method="POST" action="{% url 'update_trainee_profile' %}" class="flex flex-col gap-3 sm:gap-4">
         {% csrf_token %}
         <input type="hidden" name="action" value="personal">
-        <div class="grid grid-cols-2 gap-3 mb-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
                 <label class="form-label">Gender</label>
-                <select name="gender" class="form-input">
+                <select name="gender" class="form-input bg-white">
                     <option value="">— Select —</option>
                     <option value="Male" {% if profile.gender == 'Male' %}selected{% endif %}>Male</option>
                     <option value="Female" {% if profile.gender == 'Female' %}selected{% endif %}>Female</option>
@@ -660,7 +721,7 @@
             </div>
             <div>
                 <label class="form-label">Marital Status</label>
-                <select name="marital_status" class="form-input">
+                <select name="marital_status" class="form-input bg-white">
                     <option value="">— Select —</option>
                     <option value="Single" {% if profile.marital_status == 'Single' %}selected{% endif %}>Single</option>
                     <option value="Married" {% if profile.marital_status == 'Married' %}selected{% endif %}>Married</option>
@@ -678,16 +739,16 @@
                        value="{{ profile.phone_number|default:'' }}"
                        placeholder="+91 00000 00000">
             </div>
-            <div class="col-span-2">
+            <div class="sm:col-span-2">
                 <label class="form-label">Languages Known</label>
                 <input type="text" name="languages_known" class="form-input"
                        value="{{ profile.languages_known|default:'' }}"
                        placeholder="e.g. English, Tamil, Hindi">
             </div>
         </div>
-        <div class="flex gap-3 justify-end">
-            <button type="button" onclick="closeAllModals()" class="btn-cancel">Cancel</button>
-            <button type="submit" class="btn-primary">Save</button>
+        <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-3">
+            <button type="button" onclick="closeAllModals()" class="btn-cancel order-2 sm:order-1">Cancel</button>
+            <button type="submit" class="btn-primary order-1 sm:order-2">Save</button>
         </div>
     </form>
 </div>
@@ -736,7 +797,7 @@ if (skillInput) {
             skillPreview.classList.remove('hidden');
             parts.forEach(p => {
                 const badge = document.createElement('span');
-                badge.className = 'skill-badge bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[12px] font-semibold px-3 py-1 rounded-full';
+                badge.className = 'skill-badge bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[11.5px] sm:text-[12px] font-semibold px-2.5 sm:px-3 py-1 rounded-full break-all';
                 badge.textContent = p;
                 skillPreview.appendChild(badge);
             });
@@ -819,7 +880,7 @@ function openEditEducation(id, level, course, university, startYear, endYear, ty
         { label: 'Profile Summary',      has: {{ profile.profile_summary|yesno:'true,false' }},        href: '#summary',    pct: 15 },
         { label: 'Resume Upload',        has: {{ profile.resume|yesno:'true,false' }},                 href: '#resume',     pct: 20 },
         { label: 'Key Skills',           has: {{ profile.skills.exists|yesno:'true,false' }},          href: '#skills',     pct: 15 },
-        { label: 'Employment / Fresher', has: {{ has_employment|yesno:'true,false' }},               href: '#employment', pct: 20 },        
+        { label: 'Employment / Fresher', has: {{ has_employment|yesno:'true,false' }},                 href: '#employment', pct: 20 },        
         { label: 'Education',            has: {{ profile.educations.exists|yesno:'true,false' }},       href: '#education',  pct: 10 },
         { label: 'Projects',             has: {{ profile.projects.exists|yesno:'true,false' }},        href: '#projects',   pct: 10 },
     ];
@@ -828,7 +889,7 @@ function openEditEducation(id, level, course, university, startYear, endYear, ty
     const tips = [];
     items.forEach(i => {
         if (i.has) total += i.pct;
-        else tips.push(`<li class="flex items-center gap-2"><i class="fa-solid fa-circle-plus text-[#f59e0b]"></i> <a href="${i.href}" class="text-[#4b6cf5] hover:underline">Add ${i.label}</a> <span class="text-[#aab8c8]">(+${i.pct}%)</span></li>`);
+        else tips.push(`<li class="flex items-start sm:items-center gap-2 leading-snug"><i class="fa-solid fa-circle-plus text-[#f59e0b] mt-0.5 sm:mt-0"></i> <span><a href="${i.href}" class="text-[#4b6cf5] hover:underline">Add ${i.label}</a> <span class="text-[#aab8c8] whitespace-nowrap">(+${i.pct}%)</span></span></li>`);
     });
 
     const color = total >= 70 ? '#22c55e' : total >= 40 ? '#f59e0b' : '#e05c5c';

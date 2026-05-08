@@ -12,14 +12,15 @@ from .otp_utils import generate_otp, send_otp_email
 from django.shortcuts import get_object_or_404
 from .recommender import get_recommendations, get_skill_gap
 from django.urls import reverse
-import razorpay
-import hmac
-import hashlib
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
-import json, uuid
+import json, uuid ,openpyxl ,hmac , hashlib ,razorpay ,random
 from .models import ChatSession
+from django.core.paginator import Paginator
+from django.http import HttpResponse
+from django.core.cache import cache
+from django.contrib.auth import get_user_model
 
 
 
@@ -179,13 +180,18 @@ def payment_success(request):
     razorpay_payment_id = request.POST.get('razorpay_payment_id')
     razorpay_signature  = request.POST.get('razorpay_signature')
 
-    # 1. Verify Razorpay Signature
-    key_secret = settings.RAZORPAY_KEY_SECRET.encode()
-    msg        = f"{razorpay_order_id}|{razorpay_payment_id}".encode()
+    if not all([razorpay_order_id, razorpay_payment_id, razorpay_signature]):
+        return render(request, 'payment_result.html', {
+            'success':     False,
+            'error_msg':   "Missing payment verification data.",
+            'ui_settings': get_ui(),
+        })
+
+    key_secret = settings.RAZORPAY_KEY_SECRET.encode('utf-8')
+    msg        = f"{razorpay_order_id}|{razorpay_payment_id}".encode('utf-8')
     generated  = hmac.new(key_secret, msg, hashlib.sha256).hexdigest()
 
-    if generated == razorpay_signature:
-        # 2. Fetch Order Details from Razorpay Notes
+    if hmac.compare_digest(generated, razorpay_signature):
         client = get_razorpay_client()
         try:
             rz_order_details = client.order.fetch(razorpay_order_id)
@@ -204,7 +210,6 @@ def payment_success(request):
                 'ui_settings': get_ui(),
             })
 
-        # 3. Create the PaymentOrder record (Finalizes the audit trail)
         payment_order, created = PaymentOrder.objects.get_or_create(
             razorpay_order_id=razorpay_order_id,
             defaults={
@@ -218,27 +223,20 @@ def payment_success(request):
             }
         )
 
-        # 4. Handle Plan Expiry Logic (Requirement 1 & Daily Plan support)
-        # Check if it's a day-based plan or a month-based plan
         if plan.days > 0:
             days_to_add = plan.days
         else:
             days_to_add = 30 * plan.months
 
-        # Requirement 2: Expiry Stacking
-        # If user is already Pro, add time to their existing expiry date
         current_expiry = profile.pro_expiry_date
         if profile.subscription_type == 'Pro' and current_expiry and current_expiry > timezone.now():
             new_expiry = current_expiry + timedelta(days=days_to_add)
         else:
             new_expiry = timezone.now() + timedelta(days=days_to_add)
 
-        # 5. Update Profile
         profile.subscription_type = 'Pro'
         profile.pro_expiry_date   = new_expiry
         profile.save()
-
-        # 6. Send Success Email
         subject = "Welcome to Pro! Your Subscription is Active"
         message = f"""Hi {profile.full_name},
 
@@ -266,12 +264,12 @@ The {get_ui().site_name if get_ui() else 'VCS'} Team
             'ui_settings':    get_ui(),
         })
     else:
-        # Invalid signature
         return render(request, 'payment_result.html', {
             'success':     False,
-            'error_msg':   "Payment verification failed.",
+            'error_msg':   "Payment verification failed. Invalid signature.",
             'ui_settings': get_ui(),
         })
+
 
 # ── PAYMENT FAILED CALLBACK ────────────────────────────────────────────────
 def payment_failed(request):
@@ -360,6 +358,109 @@ def login_view(request):
     })
 
 
+def send_reset_otp(request):
+    """Generates a 6-digit OTP, saves it to the cache for 10 mins, and emails it."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            
+            if not email:
+                return JsonResponse({'error': 'Email is required.'}, status=400)
+                
+            if not User.objects.filter(email=email).exists():
+                return JsonResponse({'error': 'No account found with this email address.'}, status=404)
+            
+            otp = str(random.randint(100000, 999999))
+            cache_key = f'pwd_reset_otp_{email}'
+            cache.set(cache_key, otp, timeout=600)
+            subject = 'Your Password Reset Code'
+            message = (
+                f"Hello,\n\n"
+                f"We received a request to reset your password.\n"
+                f"Your 6-digit verification code is: {otp}\n\n"
+                f"This code will expire in 10 minutes. If you did not request this, please ignore this email.\n\n"
+                f"Regards,\n"
+                f"The Team at Vetri Consultancy Services"
+            )
+            
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+            )
+            
+            return JsonResponse({'success': True, 'message': 'OTP sent successfully.'})
+            
+        except Exception as e:
+            print(f"CRITICAL OTP ERROR: {str(e)}") 
+            return JsonResponse({'error': f'Failed to send email. Please try again later.'}, status=500)
+            
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+
+def verify_reset_otp(request):
+    """Checks if the submitted OTP matches the cached OTP."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            otp = data.get('otp')
+            
+            # Retrieve the OTP from the cache
+            cached_otp = cache.get(f'pwd_reset_otp_{email}')
+            
+            if not cached_otp:
+                return JsonResponse({'error': 'OTP has expired. Please request a new one.'}, status=400)
+                
+            if cached_otp != otp:
+                return JsonResponse({'error': 'Invalid OTP. Please try again.'}, status=400)
+                
+            return JsonResponse({'success': True, 'message': 'OTP verified successfully.'})
+            
+        except Exception as e:
+            return JsonResponse({'error': 'An error occurred during verification.'}, status=500)
+            
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+
+def reset_password(request):
+    """Re-verifies the OTP for security, then changes the user's password."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            otp = data.get('otp')
+            new_password = data.get('new_password')
+            
+            # Strictly verify the OTP one last time before allowing the password change
+            cached_otp = cache.get(f'pwd_reset_otp_{email}')
+            if not cached_otp or cached_otp != otp:
+                return JsonResponse({'error': 'Session expired or invalid OTP.'}, status=400)
+                
+            if len(new_password) < 8:
+                return JsonResponse({'error': 'Password must be at least 8 characters long.'}, status=400)
+                
+            # Update the user's password
+            user = User.objects.get(email=email)
+            user.set_password(new_password)
+            user.save()
+            
+            # Delete the OTP from the cache so it cannot be reused
+            cache.delete(f'pwd_reset_otp_{email}')
+            
+            return JsonResponse({'success': True, 'message': 'Password reset successful.'})
+            
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': 'An error occurred while resetting the password.'}, status=500)
+            
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+
 # ── LOGOUT ─────────────────────────────────────────────────────────────────
 def logout_view(request):
     logout(request)
@@ -371,6 +472,21 @@ def send_registration_otp(request):
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Invalid request.'})
 
+    now      = timezone.now()
+    otp_log  = request.session.get('otp_send_log', [])
+    ten_mins = now - timedelta(minutes=10)
+
+    # Keep only timestamps within last 10 minutes
+    otp_log  = [t for t in otp_log if timezone.datetime.fromisoformat(t) > ten_mins]
+
+    if len(otp_log) >= 3:
+        return JsonResponse({
+            'success': False,
+            'error': 'Too many attempts. Please wait 10 minutes before requesting a new code.'
+        })
+
+    otp_log.append(now.isoformat())
+    request.session['otp_send_log'] = otp_log
     email = request.POST.get('target', '').strip()
 
     if not email:
@@ -414,6 +530,8 @@ def candidate_register(request):
         # Field validations
         if not full_name:
             errors['full_name'] = "Full name is required."
+        elif any(char.isdigit() for char in full_name):
+            errors['full_name'] = "Full name cannot contain numbers."
         if not username:
             errors['username'] = "Username is required."
         elif ' ' in username:
@@ -422,6 +540,10 @@ def candidate_register(request):
             errors['email'] = "Email is required."
         if not phone:
             errors['phone_number'] = "Mobile number is required."
+        elif not phone.isdigit():
+            errors['phone_number'] = "Mobile number must contain only numbers."
+        elif len(phone) < 7 or len(phone) > 15:
+            errors['phone_number'] = "Mobile number must be between 7 and 15 digits."
         if not pass1:
             errors['password1'] = "Password is required."
         elif len(pass1) < 8:
@@ -583,10 +705,8 @@ def candidate_dashboard(request):
 def candidate_profile(request):
     if request.user.role != User.Role.CANDIDATE:
         return redirect('login')
-    
     profile, _ = CandidateProfile.objects.get_or_create(
-        user=request.user,
-        defaults={'full_name': request.user.username}
+        user=request.user, defaults={'full_name': request.user.username}
     )
 
     days_left = None
@@ -598,23 +718,11 @@ def candidate_profile(request):
         else:
             days_left = 0
 
-    return render(request, 'candidate_profile.html', {
-        'profile': profile,
-        'days_left': days_left
-    })
-
-
-@login_required(login_url='login')
-def candidate_profile(request):
-    if request.user.role != User.Role.CANDIDATE:
-        return redirect('login')
-    profile, _ = CandidateProfile.objects.get_or_create(
-        user=request.user, defaults={'full_name': request.user.username}
-    )
     has_employment = profile.employments.exists() or profile.is_fresher
     return render(request, 'candidate_profile.html', {
         'profile': profile,
         'has_employment': has_employment,
+        'days_left': days_left,
         'ui_settings': get_ui(),
         'quick_links': [
             ('resume', 'Resume'), ('headline', 'Resume Headline'),
@@ -702,7 +810,7 @@ def update_resume(request):
     return redirect('candidate_profile')
 
 
-login_required(login_url='login')
+@login_required(login_url='login')
 def add_skill(request):
     if request.method == 'POST':
         raw = request.POST.get('skill_name', '').strip()
@@ -1007,12 +1115,25 @@ def company_register(request):
             errors['password1'] = "Minimum 8 characters."
         if pass1 and pass2 and pass1 != pass2:
             errors['password2'] = "Passwords do not match."
-        if not reg_doc:
-            errors['registration_document'] = "Registration document required."
-        if not gst_doc:
-            errors['gst_document'] = "GST document required."
         if not terms:
             errors['terms'] = "You must accept the terms."
+
+        ALLOWED_DOC_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png']
+        MAX_DOC_SIZE = 5 * 1024 * 1024 
+
+        def _validate_document(f, field_name, err_dict):
+            if not f:
+                err_dict[field_name] = f"{field_name.replace('_', ' ').title()} is required."
+                return
+            ext = f.name.rsplit('.', 1)[-1].lower()
+            if ext not in ALLOWED_DOC_EXTENSIONS:
+                err_dict[field_name] = "Only PDF, JPG, PNG files are allowed."
+            elif f.size > MAX_DOC_SIZE:
+                err_dict[field_name] = "File too large. Max 5 MB."
+
+        _validate_document(reg_doc, 'registration_document', errors)
+        _validate_document(gst_doc, 'gst_document', errors)
+
         if username and not errors.get('username'):
             if User.objects.filter(username__iexact=username).exists():
                 errors['username'] = "Username already taken."
@@ -1042,6 +1163,7 @@ def company_register(request):
             password = pass1,
             role     = User.Role.COMPANY,
         )
+        
         profile = CompanyProfile.objects.create(
             user                  = user,
             company_name          = company_name,
@@ -1055,13 +1177,13 @@ def company_register(request):
             instagram_url         = request.POST.get('instagram_url') or None,
             facebook_url          = request.POST.get('facebook_url') or None,
         )
+        
         for photo in photos:
             if photo:
                 CompanyPhoto.objects.create(company=profile, photo=photo)
 
         messages.success(request, "Registered! Awaiting admin approval.")
         return redirect('login')
-
     return render(request, 'company_register.html', {'ui_settings': get_ui()})
 
 
@@ -1229,14 +1351,27 @@ def company_dashboard(request):
         return redirect('login')
     
     profile = request.user.company_profile
-    my_jobs = Job.objects.filter(company_profile=profile).order_by('-posted_at')
-    applications = JobApplication.objects.filter(job__company_profile=profile).select_related('job', 'candidate', 'candidate__user').order_by('-applied_at')
+    
+    # Get all records
+    my_jobs_list = Job.objects.filter(company_profile=profile).order_by('-posted_at')
+    applications_list = JobApplication.objects.filter(job__company_profile=profile).select_related('job', 'candidate', 'candidate__user').order_by('-applied_at')
 
+    # Calculate stats using the full unpaginated querysets
     stats = {
-        'jobs_count': my_jobs.count(),
-        'applicants_count': applications.count(),
-        'hired_count': applications.filter(status='Offered').count() 
+        'jobs_count': my_jobs_list.count(),
+        'applicants_count': applications_list.count(),
+        'hired_count': applications_list.filter(status='Offered').count() 
     }
+    
+    # --- Pagination for Jobs (e.g., 5 jobs per page) ---
+    job_paginator = Paginator(my_jobs_list, 5) 
+    job_page_number = request.GET.get('job_page')
+    my_jobs = job_paginator.get_page(job_page_number)
+    
+    # --- Pagination for Applications (e.g., 10 applications per page) ---
+    app_paginator = Paginator(applications_list, 10) 
+    app_page_number = request.GET.get('app_page')
+    applications = app_paginator.get_page(app_page_number)
     
     return render(request, 'company_dashboard.html', {
         'profile': profile,
@@ -1359,11 +1494,51 @@ def company_edit_job(request, job_id):
 @login_required(login_url='login')
 def update_application_status(request, app_id):
     if request.method == 'POST' and request.user.role == User.Role.COMPANY:
-        status = request.POST.get('status')
+        new_status = request.POST.get('status')
         app = get_object_or_404(JobApplication, id=app_id, job__company_profile=request.user.company_profile)
-        app.status = status
-        app.save()
-        messages.success(request, f"Applicant status updated to {status}.")
+        
+        if new_status and new_status != app.status:
+            app.status = new_status
+            app.save()
+
+            if app.candidate:
+                applicant_email = app.candidate.user.email
+                applicant_name  = app.candidate.full_name
+            elif app.trainee:
+                applicant_email = app.trainee.user.email
+                applicant_name  = app.trainee.full_name
+            else:
+                messages.error(request, "Applicant not found.")
+                return redirect('company_dashboard')
+                
+            company_name = app.job.company_profile.company_name
+            job_title = app.job.title
+            
+            subject = f"Application Update: {job_title} at {company_name}"
+            message = (
+                f"Dear {applicant_name},\n\n"
+                f"There has been an update to your recent job application.\n\n"
+                f"Position: {job_title}\n"
+                f"Company: {company_name}\n"
+                f"New Status: {new_status}\n\n"
+                f"Thank you for applying!\n\n"
+                f"Best regards,\n"
+                f"The Team at VCS"
+            )
+            
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [applicant_email],
+                    fail_silently=False,
+                )
+                messages.success(request, f"Applicant status updated to '{new_status}' and email sent.")
+            except Exception as e:
+                messages.warning(request, f"Status updated to '{new_status}', but the email failed to send. Error: {e}")
+        else:
+            messages.info(request, "Applicant status was already set to that value.")
     return redirect('company_dashboard')
 
 
@@ -1516,7 +1691,7 @@ def _can_user_apply(user):
 
 
 def job_detail(request, slug):
-    job = Job.objects.select_related('category').get(slug=slug, is_active=True)
+    job = get_object_or_404(Job, slug=slug, is_active=True)
 
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         if request.POST.get('action') == 'send_hr_email' and request.user.is_authenticated:
@@ -1605,7 +1780,7 @@ def apply_job(request, slug):
         
     if not _can_user_apply(request.user):
         messages.error(request, "You have reached your limit of 5 free applications this month. Please upgrade to Pro to continue applying.")
-        return redirect('upgrade_plan')
+        return redirect('upgrade_subscription')
    
     profile = request.user.candidate_profile if request.user.role == 'candidate' else request.user.trainee_profile
 
@@ -1776,6 +1951,58 @@ def candidate_terms_view(request):
         'current_role': 'candidate'
     })
 
+@login_required(login_url='login')
+def export_applications_excel(request):
+    # Ensure only companies can access this
+    if request.user.role != User.Role.COMPANY:
+        return redirect('login')
+        
+    profile = request.user.company_profile
+    
+    # Get ALL applications for this company's jobs
+    applications = JobApplication.objects.filter(
+        job__company_profile=profile
+    ).select_related('job', 'candidate', 'candidate__user').order_by('-applied_at')
+    
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Job Applications"
+    headers = ["Candidate Name", "Email", "Phone", "Applied For", "Status", "Date Applied"]
+    sheet.append(headers)
+    
+    for cell in sheet[1]:
+        cell.font = openpyxl.styles.Font(bold=True)
+    
+    for app in applications:
+        sheet.append([
+            app.candidate.full_name,
+            app.candidate.user.email,
+            app.candidate.phone_number,
+            app.job.title,
+            app.status,
+            app.applied_at.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+
+    for col in sheet.columns:
+        max_length = 0
+        column = col[0].column_letter 
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        sheet.column_dimensions[column].width = adjusted_width
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="vcs_applications_export.xlsx"'
+    workbook.save(response)
+    return response
+
+
 
 def _get_session_key(request):
     key = request.session.get('chat_session_key')
@@ -1784,17 +2011,32 @@ def _get_session_key(request):
         request.session['chat_session_key'] = key
     return key
 
+
 @login_required
 def chatbot_api(request):
-    if request.method == 'POST':
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed.'}, status=405)
+        
+    # Reject non-AJAX requests
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        return JsonResponse({'error': 'Bad request (AJAX only).'}, status=400)
+        
+    try:
         data = json.loads(request.body)
-        query = data.get('query', '').strip()
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
         
-        if not query: return JsonResponse({'error': 'Empty question.'}, status=400)
+    # Hard cap the query to 1000 chars to prevent memory/processing abuse
+    query = data.get('query', '').strip()[:1000]
+    
+    if not query:
+        return JsonResponse({'error': 'Empty question.'}, status=400)
         
-        from .rag_engine import chat
-        result = chat(query=query, session_key=_get_session_key(request), user=request.user)
-        return JsonResponse(result)
+    from .rag_engine import chat
+
+    result = chat(query=query, session_key=_get_session_key(request), user=request.user)
+    return JsonResponse(result)
+    
 
 @login_required
 def chatbot_history(request):
