@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OTP Login</title>
+</head>
+<body>
+
+<h2>Mobile OTP Login</h2>
+
+{% for message in messages %}
+<p>{{ message }}</p>
+{% endfor %}
+
+<!-- STEP 1: SEND OTP -->
+{% if step == "send" %}
+<form method="POST">
+    {% csrf_token %}
+    <input type="text" name="phone" placeholder="Enter mobile number" required>
+    <button type="submit">Send OTP</button>
+</form>
+{% endif %}
+
+<!-- STEP 2: VERIFY OTP -->
+{% if step == "verify" %}
+<form method="POST">
+    {% csrf_token %}
+    <input type="text" name="otp" placeholder="Enter OTP" required>
+    <button type="submit">Verify OTP</button>
+</form>
+{% endif %}
+
+</body>
+</html>

@@ -3,6 +3,11 @@
 
 {% block content %}
 <style type="text/tailwindcss">
+    /* ADDED SMOOTH SCROLLING HERE */
+    html {
+        scroll-behavior: smooth;
+    }
+
     @layer components {
         input.error { @apply border-[#e74c3c] bg-[#fff5f5] !important; }
         input.success { @apply border-[#27ae60] bg-[#f5fff9] !important; }
@@ -21,16 +26,15 @@
         
         .pwd-check-item.met { @apply text-[#27ae60]; }
         .pwd-check-item.met i { @apply text-[#27ae60]; }
-        
-        .modal { @apply hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-[92%] sm:w-full max-w-[540px] max-h-[85vh] overflow-y-auto bg-white rounded-[20px] p-5 sm:p-7 shadow-2xl; }
+
+        /* ── TRANSLATED MODAL CSS TO TAILWIND ── */
+        .modal { @apply hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-[92%] sm:w-full max-w-[540px] max-h-[85vh] overflow-y-auto bg-white rounded-[20px] p-4 sm:p-6 lg:p-[28px] shadow-2xl; }
         .modal.open { @apply block; }
-        .modal-title { @apply text-[18px] sm:text-[20px] font-extrabold text-[#1a2b4a] mb-4 sm:mb-6; }
-        
-        .form-label { @apply block text-[12.5px] font-bold text-black mb-1.5; }
-        .form-input { @apply w-full py-2.5 px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white; }
-        
-        .btn-primary { @apply w-full sm:w-auto bg-[#3d35c4] text-white border-none py-2.5 px-6 rounded-[10px] text-[14px] font-bold cursor-pointer transition-colors duration-200 hover:bg-[#2d27a8] text-center; }
-        .btn-cancel { @apply w-full sm:w-auto bg-[#f1f5fb] text-[#4a5568] border-none py-2.5 px-6 rounded-[10px] text-[14px] font-bold cursor-pointer transition-colors duration-200 hover:bg-[#e4eaf2] text-center; }
+        .modal-title { @apply text-[16px] sm:text-[18px] lg:text-[20px] font-extrabold text-[#1a2b4a] mb-4 sm:mb-5 lg:mb-6; }
+        .form-label { @apply block text-[11.5px] sm:text-[12.5px] font-bold text-black mb-1.5; }
+        .form-input { @apply w-full py-2 sm:py-2.5 px-3 sm:px-3.5 border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[12.5px] sm:text-[13px] text-[#1a2b4a] bg-[#f8fbff] outline-none transition-all duration-200 focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)] focus:bg-white; }
+        .btn-primary { @apply w-full sm:w-auto bg-[#3d35c4] text-white border-none py-2 sm:py-2.5 px-5 sm:px-6 rounded-[10px] text-[13px] sm:text-[14px] font-bold cursor-pointer transition-colors duration-200 hover:bg-[#2d27a8] text-center; }
+        .btn-cancel { @apply w-full sm:w-auto bg-[#f1f5fb] text-[#4a5568] border-none py-2 sm:py-2.5 px-5 sm:px-6 rounded-[10px] text-[13px] sm:text-[14px] font-bold cursor-pointer transition-colors duration-200 hover:bg-[#e4eaf2] text-center; }
     }
     
     /* Custom Scrollbar for Modals */
@@ -39,14 +43,14 @@
     .modal::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 </style>
 
-<div class="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8">
+<div class="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8 py-5 sm:py-8">
 
-    <div class="mb-5 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <h1 class="text-[22px] sm:text-[24px] font-extrabold text-[#1a2b4a]">My Profile</h1>
-        <span class="text-[12.5px] sm:text-[13px] text-[#7a8fa6]">Member since {{ profile.created_at|date:"d M Y" }}</span>
+    <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
+        <h1 class="text-[20px] sm:text-[22px] lg:text-[24px] font-extrabold text-[#1a2b4a]">My Profile</h1>
+        <span class="text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#7a8fa6]">Joined {{ profile.joined_at|date:"d M Y" }}</span>
     </div>
 
-    {% if profile.subscription_type == 'Free' %}
+    {% if profile.subscription_type == 'Free' or not profile.subscription_type %}
     <div class="bg-gradient-to-r from-[#f59e0b] to-[#ea580c] rounded-[16px] p-5 sm:p-6 mb-6 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-[0_4px_20px_rgba(245,158,11,0.2)] gap-4 sm:gap-6">
         <div class="min-w-0">
             <h2 class="text-[16px] sm:text-[18px] font-extrabold mb-1"><i class="fa-solid fa-crown text-[#fde68a] mr-1"></i> Upgrade to PRO</h2>
@@ -61,11 +65,13 @@
     </div>
     {% endif %}
 
-    <div class="flex flex-col md:flex-row gap-6">
-        <div class="md:w-1/3 lg:w-[320px] shrink-0 space-y-6">
+    <div class="flex flex-col lg:flex-row gap-5 lg:gap-6">
+
+        <div class="lg:w-1/3 xl:w-[320px] shrink-0 space-y-5 lg:space-y-6">
+
             <div class="bg-white rounded-[16px] shadow-sm border border-gray-100 relative overflow-hidden">
-                <div class="h-[75px] sm:h-[85px] bg-gradient-to-r from-[#4238ca] to-[#3b82f6]"></div>
-                <div class="px-5 sm:px-6 pb-6 flex flex-col items-center -mt-12">
+                <div class="h-[70px] sm:h-[80px] bg-gradient-to-r from-[#4238ca] to-[#3b82f6]"></div>
+                <div class="px-4 sm:px-5 lg:px-6 pb-5 lg:pb-6 flex flex-col items-center -mt-10 sm:-mt-12">
 
                     <div class="relative mb-3">
                         <svg class="absolute -top-1 -left-1" width="100" height="100" viewBox="0 0 100 100">
@@ -78,56 +84,62 @@
                                     transform="rotate(-90 50 50)"/>
                         </svg>
 
-                        <div class="w-[90px] h-[90px] bg-white rounded-full p-1 shadow-md relative z-10">
+                        <div class="w-[80px] h-[80px] sm:w-[90px] sm:h-[90px] bg-white rounded-full p-1 shadow-md relative z-10">
                             {% if profile.profile_photo %}
                                 <img src="{{ profile.profile_photo.url }}"
                                      alt="Profile" class="w-full h-full rounded-full object-cover" id="profile-img">
                             {% else %}
                                 <div class="w-full h-full rounded-full bg-[#eef3ff] flex items-center justify-center" id="profile-initials">
-                                    <span class="text-[22px] font-extrabold text-[#4238ca]">
+                                    <span class="text-[18px] sm:text-[22px] font-extrabold text-[#4238ca]">
                                         {{ profile.full_name|slice:":2"|upper }}
                                     </span>
                                 </div>
                             {% endif %}
                         </div>
 
-                        <form method="POST" action="{% url 'update_profile_photo' %}"
+                        <form method="POST" action="{% url 'update_trainee_profile' %}"
                               enctype="multipart/form-data" id="photo-form">
                             {% csrf_token %}
-                            <label class="absolute bottom-0 right-0 z-20 w-[28px] h-[28px] bg-[#4238ca] rounded-full
+                            <input type="hidden" name="action" value="photo">
+                            <label class="absolute bottom-0 right-0 z-20 w-[24px] h-[24px] sm:w-[26px] sm:h-[26px] bg-[#4238ca] rounded-full
                                           flex items-center justify-center cursor-pointer shadow-md
-                                          hover:bg-[#3730a3] transition border-[2.5px] border-white"
+                                          hover:bg-[#3730a3] transition border-[2px] sm:border-[2.5px] border-white"
                                    title="Upload photo">
-                                <i class="fa-solid fa-camera text-white text-[11px]"></i>
+                                <i class="fa-solid fa-camera text-white text-[9px] sm:text-[10px]"></i>
                                 <input type="file" name="profile_photo" accept="image/*"
                                        class="hidden" onchange="previewPhoto(this)">
                             </label>
                         </form>
                     </div>
 
-                    <h2 class="text-[17px] sm:text-[19px] font-extrabold text-[#1a2b4a] text-center flex items-center justify-center gap-2">
+                    <h2 class="text-[16px] sm:text-[18px] lg:text-[19px] font-extrabold text-[#1a2b4a] text-center flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
                         {{ profile.full_name }}
+                        {% if profile.batch_name %}
+                            <span class="bg-[#eef3ff] text-[#4238ca] border border-[#c5d4f0] text-[9.5px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-full tracking-wider uppercase shadow-sm">
+                                {{ profile.batch_name }}
+                            </span>
+                        {% endif %}
                     </h2>
-                    <p class="text-[12.5px] sm:text-[13.5px] text-[#7a8fa6] text-center mb-4 leading-snug px-2">
+                    <p class="text-[12px] sm:text-[13px] lg:text-[13.5px] text-[#7a8fa6] text-center mb-3 sm:mb-4 mt-1 sm:mt-0 px-2 leading-snug">
                         {{ profile.resume_headline|default:"Add your resume headline" }}
                     </p>
-                    <div class="w-full space-y-2.5 text-[12.5px] sm:text-[13px] text-[#4a5568]">
-                        <div class="flex items-center gap-3">
+                    <div class="w-full space-y-1.5 sm:space-y-2 text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#4a5568]">
+                        <div class="flex items-center gap-2.5 sm:gap-3 break-all">
                             <i class="fa-solid fa-envelope text-[#aab8c8] w-4 text-center shrink-0"></i>
                             <span class="truncate">{{ request.user.email }}</span>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2.5 sm:gap-3">
                             <i class="fa-solid fa-phone text-[#aab8c8] w-4 text-center shrink-0"></i>
                             {{ profile.phone_number|default:"Add phone number" }}
                         </div>
                         {% if profile.date_of_birth %}
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2.5 sm:gap-3">
                             <i class="fa-solid fa-cake-candles text-[#aab8c8] w-4 text-center shrink-0"></i>
                             {{ profile.date_of_birth|date:"d M Y" }}
                         </div>
                         {% endif %}
                         {% if profile.languages_known %}
-                        <div class="flex items-start gap-3">
+                        <div class="flex items-start gap-2.5 sm:gap-3">
                             <i class="fa-solid fa-language text-[#aab8c8] w-4 text-center mt-0.5 shrink-0"></i>
                             <span class="leading-snug">{{ profile.languages_known }}</span>
                         </div>
@@ -136,24 +148,24 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100">
-                <div class="flex justify-between items-center mb-3">
+            <div class="bg-white rounded-[16px] p-4 sm:p-5 lg:p-6 shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-2 sm:mb-3">
                     <h3 class="text-[14px] sm:text-[15px] font-bold text-[#1a2b4a]">Profile Strength</h3>
-                    <span class="text-[14px] font-extrabold" id="strength-pct">—</span>
+                    <span class="text-[13px] sm:text-[14px] font-extrabold" id="strength-pct">—</span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
-                    <div class="h-2 rounded-full transition-all duration-700" id="strength-bar" style="width:0%"></div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5 sm:h-2 mb-3 sm:mb-4">
+                    <div class="h-1.5 sm:h-2 rounded-full transition-all duration-700" id="strength-bar" style="width:0%"></div>
                 </div>
-                <p class="text-[12px] text-[#7a8fa6] mb-3 leading-snug">Complete your profile to boost recruiter visibility.</p>
-                <ul class="text-[12px] sm:text-[12.5px] space-y-2 text-[#4a5568]" id="strength-tips"></ul>
+                <p class="text-[11.5px] sm:text-[12px] text-[#7a8fa6] mb-3 leading-snug">Complete your profile to boost recruiter visibility.</p>
+                <ul class="text-[11.5px] sm:text-[12px] lg:text-[12.5px] space-y-1.5 sm:space-y-2 text-[#4a5568]" id="strength-tips"></ul>
             </div>
 
-            <div class="bg-white rounded-[16px] py-5 shadow-sm border border-gray-100 hidden md:block sticky top-[90px]">
-                <h3 class="text-[12px] font-extrabold text-[#7a8fa6] px-6 mb-3 uppercase tracking-wider">Quick Links</h3>
-                <nav class="flex flex-col text-[13px] font-semibold text-[#4a5568]">
+            <div class="bg-white rounded-[16px] py-4 sm:py-5 shadow-sm border border-gray-100 hidden md:block lg:sticky top-[90px]">
+                <h3 class="text-[12px] font-extrabold text-[#7a8fa6] px-5 lg:px-6 mb-2 sm:mb-3 uppercase tracking-wider">Quick Links</h3>
+                <nav class="flex flex-col text-[12.5px] sm:text-[13px] font-semibold text-[#4a5568]">
                     {% for anchor, label in quick_links %}
                     <a href="#{{ anchor }}"
-                       class="px-6 py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-[3px] border-transparent hover:border-[#4b6cf5]">
+                       class="px-5 lg:px-6 py-2 sm:py-2.5 hover:bg-[#f8fbff] hover:text-[#4b6cf5] transition-colors border-l-[3px] border-transparent hover:border-[#4b6cf5]">
                         {{ label }}
                     </a>
                     {% endfor %}
@@ -161,10 +173,9 @@
             </div>
         </div>
 
-        <div class="flex-1 min-w-0 space-y-6">
-            
+        <div class="lg:w-2/3 space-y-5">
             {% if profile.subscription_type == 'Pro' %}
-            <div class="bg-white rounded-[16px] sm:rounded-[20px] p-5 sm:p-6 shadow-sm border border-[#e4eaf2]">
+            <div class="bg-white rounded-[16px] sm:rounded-[20px] p-4 sm:p-5 lg:p-6 shadow-sm border border-[#e4eaf2]">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     
                     <div class="p-3 sm:p-4 rounded-[14px] bg-[#f8fbff] border border-[#e4eaf2]">
@@ -176,7 +187,7 @@
 
                     <div class="p-3 sm:p-4 rounded-[14px] bg-[#f8fbff] border border-[#e4eaf2]">
                         <p class="text-[10.5px] sm:text-[11px] text-[#7a8fa6] font-bold uppercase tracking-wide mb-1">Days Remaining</p>
-                        <p class="text-[15px] sm:text-[16px] font-black text-[#1a2b4a]">
+                        <p class="text-[14px] sm:text-[15px] lg:text-[16px] font-black text-[#1a2b4a]">
                             {% if days_left is not None %}
                                 <span class="text-[#10b981]">{{ days_left }} Days</span>
                             {% else %}
@@ -187,7 +198,7 @@
 
                     <div class="p-3 sm:p-4 rounded-[14px] bg-[#f8fbff] border border-[#e4eaf2]">
                         <p class="text-[10.5px] sm:text-[11px] text-[#7a8fa6] font-bold uppercase tracking-wide mb-1">Expiry Date</p>
-                        <p class="text-[15px] sm:text-[16px] font-black text-[#1a2b4a]">
+                        <p class="text-[14px] sm:text-[15px] lg:text-[16px] font-black text-[#1a2b4a]">
                             {% if profile.pro_expiry_date %}
                                 {{ profile.pro_expiry_date|date:"d M, Y" }}
                             {% else %}
@@ -200,30 +211,31 @@
             </div>
             {% endif %}
 
-            <div id="resume" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div id="resume" class="bg-white rounded-[16px] p-4 sm:p-5 lg:p-6 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 scroll-mt-[100px]">
                 <div class="w-full sm:flex-1 min-w-0">
                     <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-1">Resume</h3>
                     {% if profile.resume %}
-                        <p class="text-[12.5px] sm:text-[13px] text-[#7a8fa6] truncate w-full pr-2">{{ profile.resume.name|cut:"resumes/" }}</p>
+                        <p class="text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#7a8fa6] truncate w-full pr-2">{{ profile.resume.name|cut:"trainee_resumes/" }}</p>
                     {% else %}
-                        <p class="text-[12.5px] sm:text-[13px] text-[#e05c5c]">No resume uploaded yet.</p>
+                        <p class="text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#e05c5c]">No resume uploaded yet.</p>
                     {% endif %}
                 </div>
-                <div class="flex gap-2.5 w-full sm:w-auto items-center shrink-0">
+                <div class="flex gap-2 sm:gap-2.5 flex-wrap w-full sm:w-auto items-center shrink-0">
                     {% if profile.resume %}
                         <a href="{{ profile.resume.url }}" target="_blank"
-                        class="shrink-0 text-[#059669] bg-[#ecfdf5] hover:bg-[#d1fae5] font-bold text-[13px] px-3 sm:px-4 py-2 sm:py-2.5 rounded-[8px] transition flex items-center justify-center">
+                        class="shrink-0 text-[#059669] bg-[#ecfdf5] hover:bg-[#d1fae5] font-bold text-[12.5px] sm:text-[13px] px-3 sm:px-4 py-2 sm:py-2.5 rounded-[8px] transition flex items-center justify-center">
                             <i class="fa-solid fa-eye"></i>
                         </a>
                         <a href="{{ profile.resume.url }}" download
-                        class="shrink-0 text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] font-bold text-[13px] px-3 sm:px-4 py-2 sm:py-2.5 rounded-[8px] transition flex items-center justify-center">
+                        class="shrink-0 text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] font-bold text-[12.5px] sm:text-[13px] px-3 sm:px-4 py-2 sm:py-2.5 rounded-[8px] transition flex items-center justify-center">
                             <i class="fa-solid fa-download"></i>
                         </a>
                     {% endif %}
                     
-                    <form method="POST" action="{% url 'update_resume' %}" enctype="multipart/form-data" class="shrink-0 flex-1 sm:flex-none m-0">
+                    <form method="POST" action="{% url 'update_trainee_profile' %}" enctype="multipart/form-data" class="shrink-0 flex-1 sm:flex-none m-0">
                         {% csrf_token %}
-                        <label class="w-full block text-center text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[12.5px] sm:text-[13px] px-4 py-2 sm:py-2.5 rounded-[8px] transition cursor-pointer whitespace-nowrap m-0">
+                        <input type="hidden" name="action" value="resume">
+                        <label class="w-full block text-center text-white bg-[#4b6cf5] hover:bg-[#3b5ce5] font-bold text-[12px] sm:text-[12.5px] lg:text-[13px] px-4 py-2 sm:py-2.5 rounded-[8px] transition cursor-pointer whitespace-nowrap m-0">
                             {% if profile.resume %}Update Resume{% else %}Upload Resume{% endif %}
                             <input type="file" name="resume" accept=".pdf,.doc,.docx" class="hidden" onchange="this.form.submit()">
                         </label>
@@ -231,89 +243,105 @@
                 </div>
             </div>
 
-            <div id="headline" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
+            <div id="headline" class="bg-white rounded-[16px] p-4 sm:p-5 lg:p-6 shadow-sm border border-gray-100 relative scroll-mt-[100px]">
                 <button onclick="openModal('modal-headline')"
-                        class="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-full flex items-center justify-center bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
-                    <i class="fa-solid fa-pen text-[12px]"></i>
+                        class="absolute top-4 right-4 sm:top-5 sm:right-5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
+                    <i class="fa-solid fa-pen text-[11px] sm:text-[12px]"></i>
                 </button>
-                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-2 sm:mb-3 pr-10">Resume Headline</h3>
+                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-2 sm:mb-3 pr-8 sm:pr-10">Resume Headline</h3>
                 {% if profile.resume_headline %}
-                    <p class="text-[13.5px] sm:text-[14px] text-[#4a5568] leading-relaxed">{{ profile.resume_headline }}</p>
+                    <p class="text-[13px] sm:text-[13.5px] lg:text-[14px] text-[#4a5568] leading-relaxed">{{ profile.resume_headline }}</p>
                 {% else %}
-                    <p class="text-[12.5px] sm:text-[13px] text-[#aab8c8] italic">No headline added yet. Click the edit button to add one.</p>
+                    <p class="text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#aab8c8] italic">No headline added yet. Click the edit button to add one.</p>
                 {% endif %}
             </div>
 
-            <div id="summary" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
+            <div id="summary" class="bg-white rounded-[16px] p-4 sm:p-5 lg:p-6 shadow-sm border border-gray-100 relative scroll-mt-[100px]">
                 <button onclick="openModal('modal-summary')"
-                        class="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-full flex items-center justify-center bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
-                    <i class="fa-solid fa-pen text-[12px]"></i>
+                        class="absolute top-4 right-4 sm:top-5 sm:right-5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
+                    <i class="fa-solid fa-pen text-[11px] sm:text-[12px]"></i>
                 </button>
-                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-2 sm:mb-3 pr-10">Profile Summary</h3>
+                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-2 sm:mb-3 pr-8 sm:pr-10">Profile Summary</h3>
                 {% if profile.profile_summary %}
-                    <p class="text-[13.5px] sm:text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ profile.profile_summary }}</p>
+                    <p class="text-[13px] sm:text-[13.5px] lg:text-[14px] text-[#4a5568] leading-relaxed whitespace-pre-line">{{ profile.profile_summary }}</p>
                 {% else %}
-                    <p class="text-[12.5px] sm:text-[13px] text-[#aab8c8] italic">No summary added yet. Click the edit button to add one.</p>
+                    <p class="text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#aab8c8] italic">No summary added yet. Click the edit button to add one.</p>
                 {% endif %}
             </div>
 
-            <div id="skills" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
+            <div id="skills" class="bg-white rounded-[16px] p-4 sm:p-5 lg:p-6 shadow-sm border border-gray-100 relative scroll-mt-[100px]">
                 <button onclick="openModal('modal-skill')"
-                        class="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-full flex items-center justify-center bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
-                    <i class="fa-solid fa-pen text-[12px]"></i>
+                        class="absolute top-4 right-4 sm:top-5 sm:right-5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
+                    <i class="fa-solid fa-pen text-[11px] sm:text-[12px]"></i>
                 </button>
-                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-3 sm:mb-4 pr-10">Key Skills</h3>
-                <div class="flex flex-wrap gap-2.5">
+                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-3 sm:mb-4 pr-8 sm:pr-10">Key Skills</h3>
+                <div class="flex flex-wrap gap-2 sm:gap-2.5">
                     {% for skill in profile.skills.all %}
-                    <span class="bg-[#f8fbff] border border-[#d8e4f0] text-[#4a5568] text-[12.5px] sm:text-[13px] font-semibold pl-3 pr-1 py-1 sm:py-1.5 rounded-full flex items-center gap-1.5 transition-colors hover:border-[#aab8c8]">
+                    <span class="bg-[#f8fbff] border border-[#d8e4f0] text-[#4a5568] text-[12px] sm:text-[12.5px] lg:text-[13px] font-semibold pl-2.5 sm:pl-3 pr-1 py-1 sm:py-1.5 rounded-full flex items-center gap-1 sm:gap-1.5 transition-colors hover:border-[#aab8c8]">
                         {{ skill.name }}
-                        <form method="POST" action="{% url 'remove_skill' skill.id %}" class="inline m-0 flex items-center">
+                        <form method="POST" action="{% url 'update_trainee_profile' %}" class="inline m-0 flex items-center">
                             {% csrf_token %}
-                            <button type="submit" class="w-5 h-5 flex items-center justify-center rounded-full text-[#aab8c8] hover:bg-[#ffe4e4] hover:text-[#e05c5c] transition-colors">
-                                <i class="fa-solid fa-xmark text-[10px]"></i>
+                            <input type="hidden" name="action" value="remove_skill">
+                            <input type="hidden" name="skill_id" value="{{ skill.id }}">
+                            <button type="submit" class="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full text-[#aab8c8] hover:bg-[#ffe4e4] hover:text-[#e05c5c] transition-colors">
+                                <i class="fa-solid fa-xmark text-[9px] sm:text-[10px]"></i>
                             </button>
                         </form>
                     </span>
                     {% empty %}
-                    <p class="text-[12.5px] sm:text-[13px] text-[#aab8c8] italic w-full">No skills added yet.</p>
+                    <p class="text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#aab8c8] italic w-full">No skills added yet.</p>
                     {% endfor %}
                     <button onclick="openModal('modal-skill')"
-                        class="bg-white border-[1.5px] border-dashed border-[#aab8c8] text-[#7a8fa6] text-[12.5px] sm:text-[13px] font-bold px-4 py-1.5 rounded-full cursor-pointer hover:border-[#4b6cf5] hover:text-[#4b6cf5] hover:bg-[#f8fbff] transition-colors">
+                        class="bg-white border-[1.5px] border-dashed border-[#aab8c8] text-[#7a8fa6] text-[12px] sm:text-[12.5px] lg:text-[13px] font-bold px-3 sm:px-4 py-1 sm:py-1.5 rounded-full cursor-pointer hover:border-[#4b6cf5] hover:text-[#4b6cf5] hover:bg-[#f8fbff] transition-colors">
                         <i class="fa-solid fa-plus mr-1"></i> Add Skill
                     </button>
                 </div>
             </div>
 
-            <div id="employment" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
-                <div class="flex justify-between items-center mb-5 gap-3">
+            <div id="employment" class="bg-white rounded-[16px] p-4 sm:p-5 lg:p-6 shadow-sm border border-gray-100 relative scroll-mt-[100px]">
+                <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-4 sm:mb-5 gap-2">
                     <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a]">Employment</h3>
                     <button onclick="openModal('modal-employment')"
-                            class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] px-3 py-1.5 rounded-lg font-bold text-[12px] sm:text-[13px] transition-colors whitespace-nowrap">
+                            class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] px-3 py-1.5 rounded-lg font-bold text-[12px] sm:text-[12.5px] lg:text-[13px] transition-colors whitespace-nowrap">
                         <i class="fa-solid fa-plus mr-1"></i> Add
                     </button>
                 </div>
 
                 {% if profile.employments.all %}
-                <div class="relative pl-5 sm:pl-7 border-l-2 border-[#e4eaf2] space-y-7">
+                <div class="relative pl-4 sm:pl-5 lg:pl-7 border-l-2 border-[#e4eaf2] space-y-5 sm:space-y-7">
                     {% for emp in profile.employments.all %}
                     <div class="relative">
-                        <div class="absolute -left-[27px] sm:-left-[35px] top-1 w-3 h-3 bg-[#4b6cf5] rounded-full border-[3px] border-white shadow-sm box-content"></div>
-                        
-                        <div class="flex justify-between items-start gap-3">
+                        <div class="absolute -left-[23px] sm:-left-[27px] lg:-left-[35px] top-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#4b6cf5] rounded-full border-[2.5px] sm:border-[3px] border-white shadow-sm box-content"></div>
+                        <div class="flex justify-between items-start gap-2 sm:gap-3">
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[14.5px] sm:text-[15.5px] font-bold text-[#1a2b4a] leading-tight mb-1">{{ emp.designation }}</h4>
-                                <p class="text-[13px] sm:text-[13.5px] text-[#4a5568] font-semibold">{{ emp.company_name }}</p>
-                                <p class="text-[12px] sm:text-[12.5px] text-[#7a8fa6] mt-0.5 mb-2.5">
+                                <div class="flex justify-between items-start sm:hidden mb-1">
+                                    <h4 class="text-[14px] font-bold text-[#1a2b4a] leading-tight pr-2">{{ emp.designation }}</h4>
+                                    <div class="flex gap-1.5 shrink-0">
+                                        <button onclick="openEditEmployment({{ emp.id }}, '{{ emp.designation|escapejs }}', '{{ emp.company_name|escapejs }}', '{{ emp.start_date|date:'Y-m-d' }}', '{{ emp.end_date|date:'Y-m-d' }}', {{ emp.is_current|yesno:'true,false' }}, '{{ emp.location|escapejs }}', `{{ emp.description|escapejs }}`)"
+                                            class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
+                                            <i class="fa-solid fa-pen text-[11px]"></i>
+                                        </button>
+                                        <form method="POST" action="{% url 'delete_employment' emp.id %}" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#ffe4e4] hover:text-[#e05c5c] transition-colors"
+                                                    onclick="return confirm('Delete this employment?')">
+                                                <i class="fa-solid fa-trash text-[11px]"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <h4 class="text-[14.5px] sm:text-[15.5px] font-bold text-[#1a2b4a] leading-tight mb-1 hidden sm:block">{{ emp.designation }}</h4>
+                                <p class="text-[12.5px] sm:text-[13px] lg:text-[13.5px] text-[#4a5568] font-semibold">{{ emp.company_name }}</p>
+                                <p class="text-[11.5px] sm:text-[12px] lg:text-[12.5px] text-[#7a8fa6] mt-0.5 mb-2 sm:mb-2.5">
                                     {{ emp.start_date|date:"M Y" }} –
                                     {% if emp.is_current %}Present{% else %}{{ emp.end_date|date:"M Y" }}{% endif %}
                                     {% if emp.location %} <span class="mx-1">|</span> {{ emp.location }}{% endif %}
                                 </p>
                                 {% if emp.description %}
-                                <p class="text-[13px] sm:text-[13.5px] text-[#4a5568] leading-relaxed">{{ emp.description }}</p>
+                                <p class="text-[12.5px] sm:text-[13px] lg:text-[13.5px] text-[#4a5568] leading-relaxed">{{ emp.description }}</p>
                                 {% endif %}
                             </div>
-                            
-                            <div class="flex gap-1.5 shrink-0 mt-0.5">
+                            <div class="hidden sm:flex gap-1.5 shrink-0 mt-0.5">
                                 <button onclick="openEditEmployment({{ emp.id }}, '{{ emp.designation|escapejs }}', '{{ emp.company_name|escapejs }}', '{{ emp.start_date|date:'Y-m-d' }}', '{{ emp.end_date|date:'Y-m-d' }}', {{ emp.is_current|yesno:'true,false' }}, '{{ emp.location|escapejs }}', `{{ emp.description|escapejs }}`)"
                                     class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors" title="Edit">
                                     <i class="fa-solid fa-pen text-[11px] sm:text-[12px]"></i>
@@ -332,36 +360,36 @@
                 </div>
 
                 {% elif profile.is_fresher %}
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[12.5px] sm:text-[13px] text-[#057a2e] bg-[#e6fff0] border border-[#b2f2bb] px-4 py-3.5 rounded-[12px]">
-                    <div class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-circle-check text-[18px] shrink-0"></i>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#057a2e] bg-[#e6fff0] border border-[#b2f2bb] px-4 py-3 sm:py-3.5 rounded-[12px]">
+                    <div class="flex items-center gap-2 sm:gap-2.5">
+                        <i class="fa-solid fa-circle-check text-[16px] sm:text-[18px] shrink-0"></i>
                         <span class="font-semibold leading-snug">Marked as Fresher — recruiters will see you are open to entry-level roles.</span>
                     </div>
                     <form method="POST" action="{% url 'mark_fresher' %}" class="w-full sm:w-auto m-0 shrink-0">
                         {% csrf_token %}
                         <input type="hidden" name="unmark" value="1">
-                        <button type="submit" class="w-full sm:w-auto text-center bg-white border border-[#b2f2bb] text-[#057a2e] hover:bg-[#d1fae5] px-4 py-1.5 rounded-[6px] text-[12px] font-bold transition-colors">
+                        <button type="submit" class="w-full sm:w-auto text-center bg-white border border-[#b2f2bb] text-[#057a2e] hover:bg-[#d1fae5] px-4 py-1.5 rounded-[6px] text-[11.5px] sm:text-[12px] font-bold transition-colors">
                             Remove Status
                         </button>
                     </form>
                 </div>
 
                 {% else %}
-                <div class="border-[1.5px] border-dashed border-[#d8e4f0] bg-[#f8fbff] rounded-[16px] p-6 text-center">
-                    <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-[#e4eaf2]">
-                        <i class="fa-solid fa-briefcase text-[20px] text-[#aab8c8]"></i>
+                <div class="border-[1.5px] border-dashed border-[#d8e4f0] bg-[#f8fbff] rounded-[16px] p-5 sm:p-6 text-center">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-sm border border-[#e4eaf2]">
+                        <i class="fa-solid fa-briefcase text-[18px] sm:text-[20px] text-[#aab8c8]"></i>
                     </div>
-                    <p class="text-[14px] sm:text-[15px] font-extrabold text-[#1a2b4a] mb-1.5">No experience added yet</p>
-                    <p class="text-[12.5px] sm:text-[13px] text-[#7a8fa6] mb-5">Are you a fresher or do you have work experience?</p>
-                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <p class="text-[13px] sm:text-[14px] lg:text-[15px] font-extrabold text-[#1a2b4a] mb-1 sm:mb-1.5">No experience added yet</p>
+                    <p class="text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#7a8fa6] mb-4 sm:mb-5">Are you a fresher or do you have work experience?</p>
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                         <button onclick="openModal('modal-employment')"
-                            class="bg-[#4b6cf5] text-white font-bold text-[13px] px-6 py-2.5 rounded-[10px] hover:bg-[#3b5ce5] transition w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm">
+                            class="bg-[#4b6cf5] text-white font-bold text-[12.5px] sm:text-[13px] px-5 sm:px-6 py-2 sm:py-2.5 rounded-[10px] hover:bg-[#3b5ce5] transition w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm">
                             <i class="fa-solid fa-plus"></i> Add Experience
                         </button>
                         <form method="POST" action="{% url 'mark_fresher' %}" class="m-0 w-full sm:w-auto">
                             {% csrf_token %}
                             <button type="submit"
-                                class="bg-white text-[#4a5568] font-bold text-[13px] px-6 py-2.5 rounded-[10px] border border-[#d8e4f0] hover:bg-[#f1f5fb] hover:text-[#1a2b4a] transition w-full flex items-center justify-center gap-2 shadow-sm">
+                                class="bg-white text-[#4a5568] font-bold text-[12.5px] sm:text-[13px] px-5 sm:px-6 py-2 sm:py-2.5 rounded-[10px] border border-[#d8e4f0] hover:bg-[#f1f5fb] hover:text-[#1a2b4a] transition w-full flex items-center justify-center gap-2 shadow-sm">
                                 <i class="fa-solid fa-user-graduate"></i> I am a Fresher
                             </button>
                         </form>
@@ -370,31 +398,50 @@
                 {% endif %}
             </div>
 
-            <div id="education" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
-                <div class="flex justify-between items-center mb-5 gap-3">
+            <!-- ADDED scroll-mt-[100px] -->
+            <div id="education" class="bg-white rounded-[16px] p-4 sm:p-5 lg:p-6 shadow-sm border border-gray-100 relative scroll-mt-[100px]">
+                <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-4 sm:mb-5 gap-2">
                     <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a]">Education</h3>
                     <button onclick="openModal('modal-education')"
-                            class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] px-3 py-1.5 rounded-lg font-bold text-[12px] sm:text-[13px] transition-colors whitespace-nowrap">
+                            class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] px-3 py-1.5 rounded-lg font-bold text-[12px] sm:text-[12.5px] lg:text-[13px] transition-colors whitespace-nowrap">
                         <i class="fa-solid fa-plus mr-1"></i> Add
                     </button>
                 </div>
 
                 {% if profile.educations.exists %}
-                <div class="space-y-5">
+                <div class="space-y-4 sm:space-y-5">
                     {% for edu in profile.educations.all %}
-                    <div class="border-b border-[#f0f4f8] pb-5 last:border-0 last:pb-0">
-                        <div class="flex justify-between items-start gap-3">
+                    <div class="border-b border-[#f0f4f8] pb-4 sm:pb-5 last:border-0 last:pb-0">
+                        <div class="flex justify-between items-start gap-2 sm:gap-3">
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[14.5px] sm:text-[15.5px] font-bold text-[#1a2b4a] leading-tight mb-1">
+                                <div class="flex justify-between items-start sm:hidden mb-1">
+                                    <h4 class="text-[14px] font-bold text-[#1a2b4a] leading-tight pr-2">
+                                        {{ edu.education_level }}{% if edu.course %} <span class="text-[#aab8c8] mx-0.5">—</span> {{ edu.course }}{% endif %}
+                                    </h4>
+                                    <div class="flex gap-1.5 shrink-0">
+                                        <button onclick="openEditEducation({{ edu.id }}, '{{ edu.education_level|escapejs }}', '{{ edu.course|escapejs }}', '{{ edu.university|escapejs }}', {{ edu.start_year }}, {{ edu.end_year }}, '{{ edu.course_type|escapejs }}')"
+                                            class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
+                                            <i class="fa-solid fa-pen text-[11px]"></i>
+                                        </button>
+                                        <form method="POST" action="{% url 'delete_education' edu.id %}" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#ffe4e4] hover:text-[#e05c5c] transition-colors"
+                                                    onclick="return confirm('Delete this education?')">
+                                                <i class="fa-solid fa-trash text-[11px]"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <h4 class="text-[14.5px] sm:text-[15.5px] font-bold text-[#1a2b4a] leading-tight mb-1 hidden sm:block">
                                     {{ edu.education_level }}{% if edu.course %} <span class="text-[#aab8c8] mx-0.5">—</span> {{ edu.course }}{% endif %}
                                 </h4>
-                                <p class="text-[13px] sm:text-[13.5px] text-[#4a5568] font-semibold">{{ edu.university }}</p>
-                                <p class="text-[12px] sm:text-[12.5px] text-[#7a8fa6] mt-0.5">
+                                <p class="text-[12.5px] sm:text-[13px] lg:text-[13.5px] text-[#4a5568] font-semibold">{{ edu.university }}</p>
+                                <p class="text-[11.5px] sm:text-[12px] lg:text-[12.5px] text-[#7a8fa6] mt-0.5">
                                     {{ edu.start_year }} – {{ edu.end_year }} <span class="mx-1">|</span> {{ edu.course_type }}
                                 </p>
                             </div>
                             
-                            <div class="flex gap-1.5 shrink-0 mt-0.5">
+                            <div class="hidden sm:flex gap-1.5 shrink-0 mt-0.5">
                                 <button onclick="openEditEducation({{ edu.id }}, '{{ edu.education_level|escapejs }}', '{{ edu.course|escapejs }}', '{{ edu.university|escapejs }}', {{ edu.start_year }}, {{ edu.end_year }}, '{{ edu.course_type|escapejs }}')"
                                     class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors" title="Edit">
                                     <i class="fa-solid fa-pen text-[11px] sm:text-[12px]"></i>
@@ -402,7 +449,7 @@
                                 <form method="POST" action="{% url 'delete_education' edu.id %}" class="m-0">
                                     {% csrf_token %}
                                     <button type="submit" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#ffe4e4] hover:text-[#e05c5c] transition-colors"
-                                            onclick="return confirm('Delete this education?')" title="Delete">
+                                            onclick="return confirm('Delete this education?')">
                                         <i class="fa-solid fa-trash text-[11px] sm:text-[12px]"></i>
                                     </button>
                                 </form>
@@ -412,26 +459,50 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-[12.5px] sm:text-[13px] text-[#aab8c8] italic">No education added yet.</p>
+                <p class="text-[12px] sm:text-[12.5px] lg:text-[13px] text-[#aab8c8] italic">No education added yet.</p>
                 {% endif %}
             </div>
 
-            <div id="projects" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
-                <div class="flex justify-between items-center mb-5 gap-3">
+            <!-- ADDED scroll-mt-[100px] -->
+            <div id="projects" class="bg-white rounded-[16px] p-4 sm:p-5 lg:p-6 shadow-sm border border-gray-100 relative scroll-mt-[100px]">
+                <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-4 sm:mb-5 gap-2">
                     <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a]">Projects</h3>
                     <button onclick="openModal('modal-project')"
-                            class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] px-3 py-1.5 rounded-lg font-bold text-[12px] sm:text-[13px] transition-colors whitespace-nowrap">
+                            class="text-[#4b6cf5] bg-[#eef3ff] hover:bg-[#dfe8ff] px-3 py-1.5 rounded-lg font-bold text-[12px] sm:text-[12.5px] lg:text-[13px] transition-colors whitespace-nowrap">
                         <i class="fa-solid fa-plus mr-1"></i> Add
                     </button>
                 </div>
 
                 {% if profile.projects.exists %}
-                <div class="space-y-5">
+                <div class="space-y-4 sm:space-y-5">
                     {% for proj in profile.projects.all %}
-                    <div class="border-b border-[#f0f4f8] pb-5 last:border-0 last:pb-0">
-                        <div class="flex justify-between items-start gap-3">
+                    <div class="border-b border-[#f0f4f8] pb-4 sm:pb-5 last:border-0 last:pb-0">
+                        <div class="flex justify-between items-start gap-2 sm:gap-3">
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[14.5px] sm:text-[15.5px] font-bold text-[#1a2b4a] leading-tight mb-1 flex items-center gap-2 flex-wrap">
+                                <div class="flex justify-between items-start sm:hidden mb-1">
+                                    <h4 class="text-[14px] font-bold text-[#1a2b4a] leading-tight pr-2 flex items-center gap-1.5 flex-wrap">
+                                        {{ proj.title }}
+                                        {% if proj.project_url %}
+                                        <a href="{{ proj.project_url }}" target="_blank" class="text-[#4b6cf5] bg-[#eef3ff] w-5 h-5 flex items-center justify-center rounded-full hover:bg-[#dfe8ff] transition-colors shrink-0">
+                                            <i class="fa-solid fa-link text-[9px]"></i>
+                                        </a>
+                                        {% endif %}
+                                    </h4>
+                                    <div class="flex gap-1.5 shrink-0">
+                                        <button onclick="openEditProject({{ proj.id }}, '{{ proj.title|escapejs }}', '{{ proj.project_url|default:''|escapejs }}', '{{ proj.start_date|date:'Y-m-d' }}', '{{ proj.end_date|date:'Y-m-d' }}', {{ proj.is_ongoing|yesno:'true,false' }}, `{{ proj.description|escapejs }}`)"
+                                            class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
+                                            <i class="fa-solid fa-pen text-[11px]"></i>
+                                        </button>
+                                        <form method="POST" action="{% url 'delete_project' proj.id %}" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#ffe4e4] hover:text-[#e05c5c] transition-colors"
+                                                    onclick="return confirm('Delete this project?')">
+                                                <i class="fa-solid fa-trash text-[11px]"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <h4 class="text-[14.5px] sm:text-[15.5px] font-bold text-[#1a2b4a] leading-tight mb-1 hidden sm:flex items-center gap-2 flex-wrap">
                                     {{ proj.title }}
                                     {% if proj.project_url %}
                                     <a href="{{ proj.project_url }}" target="_blank" class="text-[#4b6cf5] bg-[#eef3ff] w-6 h-6 flex items-center justify-center rounded-full hover:bg-[#dfe8ff] transition-colors shrink-0" title="View Project">
@@ -439,14 +510,14 @@
                                     </a>
                                     {% endif %}
                                 </h4>
-                                <p class="text-[12px] sm:text-[12.5px] text-[#7a8fa6] mb-2.5">
+                                <p class="text-[11.5px] sm:text-[12px] lg:text-[12.5px] text-[#7a8fa6] mt-0.5 mb-2 sm:mb-2.5">
                                     {% if proj.start_date %}{{ proj.start_date|date:"M Y" }} – {% endif %}
                                     {% if proj.is_ongoing %}Present{% elif proj.end_date %}{{ proj.end_date|date:"M Y" }}{% endif %}
                                 </p>
-                                <p class="text-[13px] sm:text-[13.5px] text-[#4a5568] leading-relaxed">{{ proj.description }}</p>
+                                <p class="text-[12.5px] sm:text-[13px] lg:text-[13.5px] text-[#4a5568] leading-relaxed pr-0 sm:pr-4">{{ proj.description }}</p>
                             </div>
                             
-                            <div class="flex gap-1.5 shrink-0 mt-0.5">
+                            <div class="hidden sm:flex gap-1.5 shrink-0 mt-0.5">
                                 <button onclick="openEditProject({{ proj.id }}, '{{ proj.title|escapejs }}', '{{ proj.project_url|default:''|escapejs }}', '{{ proj.start_date|date:'Y-m-d' }}', '{{ proj.end_date|date:'Y-m-d' }}', {{ proj.is_ongoing|yesno:'true,false' }}, `{{ proj.description|escapejs }}`)"
                                     class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors" title="Edit">
                                     <i class="fa-solid fa-pen text-[11px] sm:text-[12px]"></i>
@@ -454,7 +525,7 @@
                                 <form method="POST" action="{% url 'delete_project' proj.id %}" class="m-0">
                                     {% csrf_token %}
                                     <button type="submit" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-50 text-[#aab8c8] hover:bg-[#ffe4e4] hover:text-[#e05c5c] transition-colors"
-                                            onclick="return confirm('Delete this project?')" title="Delete">
+                                            onclick="return confirm('Delete this project?')">
                                         <i class="fa-solid fa-trash text-[11px] sm:text-[12px]"></i>
                                     </button>
                                 </form>
@@ -468,31 +539,32 @@
                 {% endif %}
             </div>
 
-            <div id="personal" class="bg-white rounded-[16px] p-5 sm:p-6 shadow-sm border border-gray-100 relative">
+            <!-- ADDED scroll-mt-[100px] -->
+            <div id="personal" class="bg-white rounded-[16px] p-4 sm:p-5 lg:p-6 shadow-sm border border-gray-100 relative scroll-mt-[100px]">
                 <button onclick="openModal('modal-personal')"
-                        class="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-full flex items-center justify-center bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
-                    <i class="fa-solid fa-pen text-[12px]"></i>
+                        class="absolute top-4 right-4 sm:top-5 sm:right-5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-slate-50 text-[#aab8c8] hover:bg-[#eef3ff] hover:text-[#4b6cf5] transition-colors">
+                    <i class="fa-solid fa-pen text-[11px] sm:text-[12px]"></i>
                 </button>
-                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-4 sm:mb-5 pr-10">Personal Details</h3>
+                <h3 class="text-[15px] sm:text-[16px] font-bold text-[#1a2b4a] mb-3 sm:mb-4 lg:mb-5 pr-8 sm:pr-10">Personal Details</h3>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 sm:gap-x-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 sm:gap-y-4 gap-x-4 sm:gap-x-6 lg:gap-x-8">
                     <div>
-                        <span class="block text-[11.5px] sm:text-[12px] text-[#7a8fa6] font-semibold mb-1">Gender</span>
-                        <span class="text-[13.5px] sm:text-[14px] text-[#1a2b4a] font-semibold block truncate">{{ profile.gender|default:"—" }}</span>
+                        <span class="block text-[11px] sm:text-[11.5px] lg:text-[12px] text-[#7a8fa6] font-semibold mb-0.5 sm:mb-1">Gender</span>
+                        <span class="text-[13px] sm:text-[13.5px] lg:text-[14px] text-[#1a2b4a] font-semibold block truncate">{{ profile.gender|default:"—" }}</span>
                     </div>
                     <div>
-                        <span class="block text-[11.5px] sm:text-[12px] text-[#7a8fa6] font-semibold mb-1">Marital Status</span>
-                        <span class="text-[13.5px] sm:text-[14px] text-[#1a2b4a] font-semibold block truncate">{{ profile.marital_status|default:"—" }}</span>
+                        <span class="block text-[11px] sm:text-[11.5px] lg:text-[12px] text-[#7a8fa6] font-semibold mb-0.5 sm:mb-1">Marital Status</span>
+                        <span class="text-[13px] sm:text-[13.5px] lg:text-[14px] text-[#1a2b4a] font-semibold block truncate">{{ profile.marital_status|default:"—" }}</span>
                     </div>
                     <div>
-                        <span class="block text-[11.5px] sm:text-[12px] text-[#7a8fa6] font-semibold mb-1">Date of Birth</span>
-                        <span class="text-[13.5px] sm:text-[14px] text-[#1a2b4a] font-semibold block truncate">
+                        <span class="block text-[11px] sm:text-[11.5px] lg:text-[12px] text-[#7a8fa6] font-semibold mb-0.5 sm:mb-1">Date of Birth</span>
+                        <span class="text-[13px] sm:text-[13.5px] lg:text-[14px] text-[#1a2b4a] font-semibold block truncate">
                             {{ profile.date_of_birth|date:"d M Y"|default:"—" }}
                         </span>
                     </div>
                     <div>
-                        <span class="block text-[11.5px] sm:text-[12px] text-[#7a8fa6] font-semibold mb-1">Languages Known</span>
-                        <span class="text-[13.5px] sm:text-[14px] text-[#1a2b4a] font-semibold block break-words leading-snug">{{ profile.languages_known|default:"—" }}</span>
+                        <span class="block text-[11px] sm:text-[11.5px] lg:text-[12px] text-[#7a8fa6] font-semibold mb-0.5 sm:mb-1">Languages Known</span>
+                        <span class="text-[13px] sm:text-[13.5px] lg:text-[14px] text-[#1a2b4a] font-semibold block break-words leading-snug">{{ profile.languages_known|default:"—" }}</span>
                     </div>
                 </div>
             </div>
@@ -509,13 +581,15 @@
         <p class="modal-title !mb-0">Edit Resume Headline</p>
         <button onclick="closeAllModals()" class="text-[#aab8c8] hover:text-[#e05c5c] transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
-    <form method="POST" action="{% url 'update_headline' %}" class="flex flex-col gap-4">
+    <form method="POST" action="{% url 'update_trainee_profile' %}" class="flex flex-col gap-4">
         {% csrf_token %}
+        <input type="hidden" name="action" value="headline">
         <div>
             <label class="form-label">Headline</label>
             <input type="text" name="resume_headline" maxlength="255"
                    value="{{ profile.resume_headline|default:'' }}"
                    placeholder="e.g. Python Full-Stack Developer with 2 years experience"
+                   pattern=".*[^\d\s].*" title="Headline cannot be just numbers."
                    class="form-input">
         </div>
         <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-2 mt-2 border-t border-[#f0f4f8]">
@@ -530,8 +604,9 @@
         <p class="modal-title !mb-0">Edit Profile Summary</p>
         <button onclick="closeAllModals()" class="text-[#aab8c8] hover:text-[#e05c5c] transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
-    <form method="POST" action="{% url 'update_summary' %}" class="flex flex-col gap-4">
+    <form method="POST" action="{% url 'update_trainee_profile' %}" class="flex flex-col gap-4">
         {% csrf_token %}
+        <input type="hidden" name="action" value="summary">
         <div>
             <label class="form-label">Summary</label>
             <textarea name="profile_summary" rows="5" placeholder="Write a brief professional summary..."
@@ -549,12 +624,14 @@
         <p class="modal-title !mb-0">Add Skills</p>
         <button onclick="closeAllModals()" class="text-[#aab8c8] hover:text-[#e05c5c] transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
-    <form method="POST" action="{% url 'add_skill' %}" class="flex flex-col gap-3">
+    <form method="POST" action="{% url 'update_trainee_profile' %}" class="flex flex-col gap-3">
         {% csrf_token %}
+        <input type="hidden" name="action" value="add_skill">
         <div>
             <label class="form-label">Skill Name(s)</label>
             <input type="text" name="skill_name" id="skill-input"
                    placeholder="e.g. Python, Django, React"
+                   pattern=".*[^\d\s].*" title="Skill cannot be just numbers."
                    class="form-input" required>
             <p class="text-[11px] sm:text-[11.5px] text-[#7a8fa6] mt-2 flex items-center gap-1.5">
                 <i class="fa-solid fa-circle-info text-[#aab8c8]"></i>
@@ -563,7 +640,7 @@
         </div>
         
         <div id="skill-preview" class="flex flex-wrap gap-2 mb-2 hidden">
-            <p class="text-[12px] text-[#7a8fa6] font-semibold w-full mb-0.5">Preview:</p>
+            <p class="text-[11.5px] sm:text-[12px] text-[#7a8fa6] font-semibold w-full mb-0.5">Preview:</p>
         </div>
         <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-3 mt-1 border-t border-[#f0f4f8]">
             <button type="button" onclick="closeAllModals()" class="btn-cancel order-2 sm:order-1">Cancel</button>
@@ -582,15 +659,15 @@
         <input type="hidden" name="emp_id" id="emp_id" value="">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div class="sm:col-span-2">
-                <label class="form-label">Job Title / Designation</label>
-                <input type="text" name="designation" id="emp_designation" placeholder="e.g. Software Engineer" class="form-input" required>
+                <label class="form-label">Job Title / Designation <span class="text-[#e74c3c]">*</span></label>
+                <input type="text" name="designation" id="emp_designation" placeholder="e.g. Software Engineer" class="form-input" pattern=".*[^\d\s].*" title="Job Title cannot be a number." required>
             </div>
             <div class="sm:col-span-2">
-                <label class="form-label">Company Name</label>
-                <input type="text" name="company_name" id="emp_company" placeholder="e.g. TechCorp Solutions" class="form-input" required>
+                <label class="form-label">Company Name <span class="text-[#e74c3c]">*</span></label>
+                <input type="text" name="company_name" id="emp_company" placeholder="e.g. TechCorp Solutions" class="form-input" pattern=".*[^\d\s].*" title="Company Name cannot be a number." required>
             </div>
             <div>
-                <label class="form-label">Start Date</label>
+                <label class="form-label">Start Date <span class="text-[#e74c3c]">*</span></label>
                 <input type="date" name="start_date" id="emp_start" class="form-input" required>
             </div>
             <div id="end-date-wrapper">
@@ -605,7 +682,7 @@
             </div>
             <div class="sm:col-span-2">
                 <label class="form-label">Location <span class="text-[#aab8c8] font-normal">(optional)</span></label>
-                <input type="text" name="location" id="emp_location" placeholder="e.g. Chennai" class="form-input">
+                <input type="text" name="location" id="emp_location" placeholder="e.g. Chennai" pattern=".*[^\d\s].*" title="Location cannot be a number." class="form-input">
             </div>
             <div class="sm:col-span-2">
                 <label class="form-label">Description <span class="text-[#aab8c8] font-normal">(optional)</span></label>
@@ -631,27 +708,27 @@
         <input type="hidden" name="edu_id" id="edu_id" value="">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div class="sm:col-span-2">
-                <label class="form-label">Education Level</label>
+                <label class="form-label">Education Level <span class="text-[#e74c3c]">*</span></label>
                 <input type="text" name="education_level" id="edu_level"
-                       placeholder="e.g. B.Tech / B.E." class="form-input" required>
+                       placeholder="e.g. B.Tech / B.E." pattern=".*[^\d\s].*" title="Education Level cannot be a number." class="form-input" required>
             </div>
             <div class="sm:col-span-2">
-                <label class="form-label">Course / Specialization</label>
+                <label class="form-label">Course / Specialization <span class="text-[#e74c3c]">*</span></label>
                 <input type="text" name="course" id="edu_course"
-                       placeholder="e.g. Computer Science" class="form-input">
+                       placeholder="e.g. Computer Science" pattern=".*[^\d\s].*" title="Course cannot be a number." class="form-input">
             </div>
             <div class="sm:col-span-2">
-                <label class="form-label">University / Institution</label>
+                <label class="form-label">University / Institution <span class="text-[#e74c3c]">*</span></label>
                 <input type="text" name="university" id="edu_university"
-                       placeholder="e.g. Anna University" class="form-input" required>
+                       placeholder="e.g. Anna University" pattern=".*[^\d\s].*" title="University cannot be a number." class="form-input" required>
             </div>
             <div>
-                <label class="form-label">Start Year</label>
+                <label class="form-label">Start Year <span class="text-[#e74c3c]">*</span></label>
                 <input type="number" name="start_year" id="edu_start"
                        placeholder="2019" min="1950" max="2099" class="form-input" required>
             </div>
             <div>
-                <label class="form-label">End Year</label>
+                <label class="form-label">End Year <span class="text-[#e74c3c]">*</span></label>
                 <input type="number" name="end_year" id="edu_end"
                        placeholder="2023" min="1950" max="2099" class="form-input" required>
             </div>
@@ -681,9 +758,9 @@
         <input type="hidden" name="proj_id" id="proj_id" value="">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div class="sm:col-span-2">
-                <label class="form-label">Project Title</label>
+                <label class="form-label">Project Title <span class="text-[#e74c3c]">*</span></label>
                 <input type="text" name="title" id="proj_title"
-                       placeholder="e.g. E-Commerce Platform" class="form-input" required>
+                       placeholder="e.g. E-Commerce Platform" pattern=".*[^\d\s].*" title="Project Title cannot be a number." class="form-input" required>
             </div>
             <div class="sm:col-span-2">
                 <label class="form-label">Project URL <span class="text-[#aab8c8] font-normal">(optional)</span></label>
@@ -691,8 +768,8 @@
                        placeholder="https://github.com/..." class="form-input">
             </div>
             <div>
-                <label class="form-label">Start Date</label>
-                <input type="date" name="start_date" id="proj_start" class="form-input">
+                <label class="form-label">Start Date <span class="text-[#e74c3c]">*</span></label>
+                <input type="date" name="start_date" id="proj_start" class="form-input" required>
             </div>
             <div id="proj-end-wrapper">
                 <label class="form-label">End Date</label>
@@ -705,7 +782,7 @@
                 </label>
             </div>
             <div class="sm:col-span-2">
-                <label class="form-label">Description</label>
+                <label class="form-label">Description <span class="text-[#e74c3c]">*</span></label>
                 <textarea name="description" id="proj_desc" rows="3"
                           placeholder="Brief description of the project..."
                           class="form-input resize-none" required></textarea>
@@ -752,12 +829,14 @@
             <div>
                 <label class="form-label">Phone Number</label>
                 <input type="tel" name="phone_number" class="form-input"
+                       pattern="\d{10}" maxlength="10" title="Phone number must be exactly 10 digits."
                        value="{{ profile.phone_number|default:'' }}"
-                       placeholder="+91 00000 00000">
+                       placeholder="e.g. 9876543210">
             </div>
             <div class="sm:col-span-2">
                 <label class="form-label">Languages Known</label>
                 <input type="text" name="languages_known" class="form-input"
+                       pattern=".*[^\d\s].*" title="Language cannot be a number."
                        value="{{ profile.languages_known|default:'' }}"
                        placeholder="e.g. English, Tamil, Hindi">
             </div>
@@ -770,7 +849,135 @@
 </div>
 
 <script>
-/* ── Modal helpers ── */
+/* ── STRICT FRONTEND VALIDATION & MODAL LOGIC ── */
+document.addEventListener("DOMContentLoaded", function() {
+
+    // 1. Force Phone Number to only accept Digits
+    const phoneInput = document.querySelector('input[name="phone_number"]');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, ''); 
+        });
+    }
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    // 2. Age Validation (Must be at least 15)
+    const dobInput = document.querySelector('input[name="date_of_birth"]');
+    if (dobInput) {
+        const maxDob = new Date(today.getFullYear() - 15, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+        dobInput.max = maxDob;
+    }
+
+    // 3. Prevent Future Dates for Start Dates
+    ['emp_start', 'proj_start'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.max = todayStr;
+    });
+
+    // 4. Education Years Validation (Cannot be future, End >= Start)
+    const eduStart = document.getElementById('edu_start');
+    const eduEnd = document.getElementById('edu_end');
+    if (eduStart) {
+        eduStart.max = today.getFullYear();
+        function validateEduYears() {
+            if (eduStart.value && eduEnd.value) {
+                if (parseInt(eduEnd.value) < parseInt(eduStart.value)) {
+                    eduEnd.setCustomValidity("End Year cannot be before Start Year.");
+                } else {
+                    eduEnd.setCustomValidity("");
+                }
+            } else {
+                eduEnd.setCustomValidity("");
+            }
+        }
+        eduStart.addEventListener('input', validateEduYears);
+        eduEnd.addEventListener('input', validateEduYears);
+    }
+
+    // 5. Relational Date Validation (End Date must be > Start Date)
+    function validateRelationalDates(startId, endId, currentId, errorMsg) {
+        const start = document.getElementById(startId);
+        const end = document.getElementById(endId);
+        const current = document.getElementById(currentId);
+
+        function check() {
+            if (!start || !end) return;
+            // If "Current" is checked, ignore End Date validation
+            if (current && current.checked) {
+                end.setCustomValidity("");
+                return;
+            }
+            if (start.value && end.value) {
+                if (new Date(end.value) <= new Date(start.value)) {
+                    end.setCustomValidity(errorMsg);
+                } else {
+                    end.setCustomValidity("");
+                }
+            } else {
+                end.setCustomValidity("");
+            }
+        }
+        if(start) start.addEventListener('change', check);
+        if(end) end.addEventListener('change', check);
+        if(current) current.addEventListener('change', check);
+    }
+
+    // Bind Relational Validations
+    validateRelationalDates('emp_start', 'emp_end', 'emp_current', "End Date must be after the Start Date.");
+    validateRelationalDates('proj_start', 'proj_end', 'proj_ongoing', "End Date must be after the Start Date.");
+
+
+    // Render Skill Tags
+    const skillInput   = document.getElementById('skill-input');
+    const skillPreview = document.getElementById('skill-preview');
+
+    if (skillInput) {
+        skillInput.addEventListener('input', function () {
+            const val = this.value;
+            const parts = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            skillPreview.querySelectorAll('.skill-badge').forEach(b => b.remove());
+
+            if (parts.length > 0) {
+                skillPreview.classList.remove('hidden');
+                parts.forEach(p => {
+                    const badge = document.createElement('span');
+                    badge.className = 'skill-badge bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[11px] sm:text-[12px] font-semibold px-2.5 sm:px-3 py-1 rounded-full break-all';
+                    badge.textContent = p;
+                    skillPreview.appendChild(badge);
+                });
+            } else {
+                skillPreview.classList.add('hidden');
+            }
+        });
+    }
+
+    // Toggle logic for current job/project
+    document.getElementById('emp_current')?.addEventListener('change', function () {
+        document.getElementById('end-date-wrapper').style.opacity = this.checked ? '0.4' : '1';
+        document.getElementById('emp_end').disabled = this.checked;
+    });
+    document.getElementById('proj_ongoing')?.addEventListener('change', function () {
+        document.getElementById('proj-end-wrapper').style.opacity = this.checked ? '0.4' : '1';
+        document.getElementById('proj_end').disabled = this.checked;
+    });
+
+    // Profile photo preview
+    window.previewPhoto = function(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const container = document.querySelector('.w-\\[80px\\].h-\\[80px\\]') || document.querySelector('.w-\\[90px\\].h-\\[90px\\]');
+                container.innerHTML = `<img src="${e.target.result}" class="w-full h-full rounded-full object-cover">`;
+            };
+            reader.readAsDataURL(input.files[0]);
+            document.getElementById('photo-form').submit();
+        }
+    };
+});
+
+/* ── Modal Helpers & Auto Openers ── */
 function openModal(id) {
     document.getElementById('modal-backdrop').classList.remove('hidden');
     document.getElementById(id).classList.add('open');
@@ -783,53 +990,6 @@ function closeAllModals() {
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
 
-/* ── Profile photo preview + auto-submit ── */
-function previewPhoto(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const container = document.querySelector('.w-\\[90px\\].h-\\[90px\\]');
-            container.innerHTML = `<img src="${e.target.result}" class="w-full h-full rounded-full object-cover">`;
-        };
-        reader.readAsDataURL(input.files[0]);
-        // Auto submit
-        document.getElementById('photo-form').submit();
-    }
-}
-
-/* ── Skill input live preview ── */
-const skillInput   = document.getElementById('skill-input');
-const skillPreview = document.getElementById('skill-preview');
-
-if (skillInput) {
-    skillInput.addEventListener('input', function () {
-        const val = this.value;
-        const parts = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
-        // Clear old badges (keep the label)
-        skillPreview.querySelectorAll('.skill-badge').forEach(b => b.remove());
-
-        if (parts.length > 0) {
-            skillPreview.classList.remove('hidden');
-            parts.forEach(p => {
-                const badge = document.createElement('span');
-                badge.className = 'skill-badge bg-[#f1f5fb] border border-[#d8e4f0] text-[#4a5568] text-[11px] sm:text-[12px] font-semibold px-2.5 sm:px-3 py-1 rounded-full break-all';
-                badge.textContent = p;
-                skillPreview.appendChild(badge);
-            });
-        } else {
-            skillPreview.classList.add('hidden');
-        }
-    });
-}
-
-/* ── Employment: current job toggle ── */
-document.getElementById('emp_current').addEventListener('change', function () {
-    document.getElementById('end-date-wrapper').style.opacity = this.checked ? '0.4' : '1';
-    document.getElementById('emp_end').disabled = this.checked;
-});
-
-/* ── Employment: open edit ── */
 function openEditEmployment(id, designation, company, start, end, isCurrent, location, desc) {
     document.getElementById('emp-modal-title').textContent = 'Edit Employment';
     document.getElementById('emp_id').value          = id;
@@ -850,13 +1010,6 @@ function openEditEmployment(id, designation, company, start, end, isCurrent, loc
     openModal('modal-employment');
 }
 
-/* ── Project: ongoing toggle ── */
-document.getElementById('proj_ongoing').addEventListener('change', function () {
-    document.getElementById('proj-end-wrapper').style.opacity = this.checked ? '0.4' : '1';
-    document.getElementById('proj_end').disabled = this.checked;
-});
-
-/* ── Project: open edit ── */
 function openEditProject(id, title, url, start, end, ongoing, desc) {
     document.getElementById('proj-modal-title').textContent = 'Edit Project';
     document.getElementById('proj_id').value    = id;
@@ -876,7 +1029,6 @@ function openEditProject(id, title, url, start, end, ongoing, desc) {
     openModal('modal-project');
 }
 
-/* ── Education: open edit ── */
 function openEditEducation(id, level, course, university, startYear, endYear, type) {
     document.getElementById('edu-modal-title').textContent = 'Edit Education';
     document.getElementById('edu_id').value         = id;
@@ -910,19 +1062,16 @@ function openEditEducation(id, level, course, university, startYear, endYear, ty
 
     const color = total >= 70 ? '#22c55e' : total >= 40 ? '#f59e0b' : '#e05c5c';
 
-    // Bar
     document.getElementById('strength-pct').textContent      = total + '%';
     document.getElementById('strength-pct').style.color      = color;
     document.getElementById('strength-bar').style.width      = total + '%';
     document.getElementById('strength-bar').style.background = color;
     document.getElementById('strength-tips').innerHTML        = tips.join('');
 
-    // SVG Ring — circumference = 2π×46 ≈ 289
     const ring   = document.getElementById('progress-ring');
     const offset = 289 - (289 * total / 100);
     ring.style.strokeDashoffset = offset;
     ring.style.stroke           = color;
 })();
 </script>
-
-{% endblock %}
+{% endblock %} 

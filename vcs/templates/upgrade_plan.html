@@ -292,6 +292,15 @@
     </div>
 </div>
 
+<!-- NEW: Verifying Payment Overlay -->
+<div id="verifying-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center p-4 transition-all">
+    <div class="bg-white rounded-[24px] p-8 max-w-[400px] w-full text-center shadow-2xl animate-[fade-in-up_0.3s_ease-out]">
+        <div class="w-16 h-16 border-4 border-[#e4eaf2] border-t-[#1a2b4a] rounded-full animate-spin mx-auto mb-6"></div>
+        <h3 class="text-[20px] font-extrabold text-[#1a2b4a] mb-2">Verifying Payment...</h3>
+        <p class="text-[14px] text-[#7a8fa6] font-medium leading-relaxed">Please wait while we securely confirm your transaction. Do not refresh or close this page.</p>
+    </div>
+</div>
+
 <form id="payment-form" method="POST" action="{% url 'payment_success' %}">
     {% csrf_token %}
     <input type="hidden" name="razorpay_order_id" id="rzp_order_id">
@@ -310,9 +319,17 @@
         prefill: { name: "{{ profile.full_name }}", email: "{{ request.user.email }}" },
         theme: { color: "#1a2b4a" },
         handler: function(response) {
+            // Fill out hidden form inputs
             document.getElementById('rzp_order_id').value = response.razorpay_order_id;
             document.getElementById('rzp_payment_id').value = response.razorpay_payment_id;
             document.getElementById('rzp_signature').value = response.razorpay_signature;
+            
+            // Hide the payment modal and show the verifying overlay
+            document.getElementById('payment-modal').classList.add('hidden');
+            document.getElementById('verifying-overlay').classList.remove('hidden');
+            document.getElementById('verifying-overlay').classList.add('flex'); // Ensure flex is applied for centering
+            
+            // Submit the form
             document.getElementById('payment-form').submit();
         }
     };

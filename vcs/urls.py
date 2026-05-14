@@ -26,6 +26,9 @@ urlpatterns = [
     path('services/feeds/',                   views.feed_list,         name='feed_list'),
     path('services/feeds/<slug:slug>/',       views.feed_detail,       name='feed_detail'),
 
+    path("otp_login/", views.otp_login, name="otp_login"),
+    path("success/", views.success, name="success"),
+
 
     path('jobs/',                        views.job_list,            name='job_list'),
     path('jobs/<slug:slug>/',            views.job_detail,          name='job_detail'),

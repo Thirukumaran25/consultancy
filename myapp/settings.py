@@ -29,6 +29,9 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('your_app_password')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 
+MSG91_AUTH_KEY = "YOUR_MSG91_AUTH_KEY"
+MSG91_TEMPLATE_ID = "YOUR_TEMPLATE_ID"
+
 
 RAZORPAY_KEY_ID     = os.getenv('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
@@ -297,3 +300,13 @@ CKEDITOR_5_CONFIGS = {
         },
     }
 }
+
+
+
+RATELIMIT_USE_CACHE = 'default'
+RATELIMIT_FAIL_OPEN = False   
+
+# ── Security Headers (add these) ──────────────────────────────────────────
+SECURE_BROWSER_XSS_FILTER   = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS              = 'DENY'

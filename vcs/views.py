@@ -21,7 +21,9 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
-
+import re
+from datetime import datetime
+from .constants import STATE_MAPPINGS
 
 
 def get_razorpay_client():
@@ -648,7 +650,9 @@ def candidate_dashboard(request):
     }
 
     recent_apps = all_apps.select_related('job').order_by('-applied_at')[:5]
-    recommended = get_recommendations(profile, limit=6)
+    applied_ids = list(all_apps.values_list('job_id', flat=True))
+    current_date = timezone.now().date()
+    recommended = get_recommendations(profile, limit=15)
     recommendations_with_gap = []
     
     candidate_skills_norm = set(
@@ -657,6 +661,12 @@ def candidate_dashboard(request):
     )
 
     for job, score in recommended:
+        if job.id in applied_ids:
+            continue
+            
+        if job.deadline and job.deadline < current_date:
+            continue
+
         job_skills_raw = [s.strip() for s in (job.skills_required or '').split(',') if s.strip()]
         
         matching = []
@@ -664,7 +674,6 @@ def candidate_dashboard(request):
         
         for skill in job_skills_raw:
             skill_norm = skill.lower().replace(" ", "")
-            
             if skill_norm in candidate_skills_norm:
                 matching.append(skill) 
             else:
@@ -678,6 +687,10 @@ def candidate_dashboard(request):
             'matching': matching[:4],
             'missing':  missing[:3],
         })
+
+        if len(recommendations_with_gap) >= 3:
+            break
+    # ───────────────────────────────────────────────────────────────────────
 
     checks = [
         bool(profile.resume_headline),
@@ -758,28 +771,68 @@ def update_summary(request):
             messages.error(request, f"Could not update summary: {e}")
     return redirect('candidate_profile')
 
+def _is_numeric(value):
+    """Helper function to check if a string contains only numbers/spaces."""
+    if not value:
+        return False
+    return value.replace(' ', '').isdigit()
 
 @login_required(login_url='login')
 def update_personal(request):
+    # Lock the redirect URL strictly to the profile page
+    redirect_url = 'trainee_profile' if request.user.role == 'trainee' else 'candidate_profile'
+
     if request.method == 'POST':
         try:
-            p = request.user.candidate_profile
+            # Dynamically get the correct profile based on role
+            if request.user.role == 'candidate':
+                p = request.user.candidate_profile
+            elif request.user.role == 'trainee':
+                p = request.user.trainee_profile
+            else:
+                messages.error(request, "Invalid profile type.")
+                return redirect(redirect_url)
+            
+            phone = request.POST.get('phone_number', '').strip()
+            languages = request.POST.get('languages_known', '').strip()
+            dob = request.POST.get('date_of_birth', '').strip()
+
+            # --- STRICT VALIDATION ---
+            if phone and not re.fullmatch(r'\d{10}', phone.replace(' ', '').replace('-', '')):
+                messages.error(request, "Phone Number must be exactly 10 digits.")
+                return redirect(redirect_url)
+
+            if languages and _is_numeric(languages):
+                messages.error(request, "Language can't be a number.")
+                return redirect(redirect_url)
+
+            if dob:
+                dob_obj = datetime.strptime(dob, '%Y-%m-%d').date()
+                today = timezone.now().date()
+                age = today.year - dob_obj.year - ((today.month, today.day) < (dob_obj.month, dob_obj.day))
+                
+                if age < 15:
+                    messages.error(request, "Age must be at least 15 years old.")
+                    return redirect(redirect_url)
+            # -------------------------
+
             p.gender          = request.POST.get('gender') or None
             p.marital_status  = request.POST.get('marital_status') or None
-            p.phone_number    = request.POST.get('phone_number', '').strip() or None
-            p.languages_known = request.POST.get('languages_known', '').strip() or None
-
-            dob = request.POST.get('date_of_birth', '').strip()
-            p.date_of_birth = dob if dob else None
+            p.phone_number    = phone or None
+            p.languages_known = languages or None
+            p.date_of_birth   = dob if dob else None
 
             p.save(update_fields=[
                 'gender', 'marital_status', 'phone_number',
                 'languages_known', 'date_of_birth'
             ])
-            messages.success(request, "Personal details updated.")
+            messages.success(request, "Personal details updated successfully.")
+            
+        except ValueError:
+            messages.error(request, "Invalid date format.")
         except Exception as e:
             messages.error(request, f"Could not update personal details: {e}")
-    return redirect('candidate_profile')
+    return redirect(redirect_url)
 
 
 @login_required(login_url='login')
@@ -878,177 +931,305 @@ def update_profile_photo(request):
 
 @login_required(login_url='login')
 def save_employment(request):
+    redirect_url = 'trainee_profile' if request.user.role == 'trainee' else 'candidate_profile'
+    
     if request.method == 'POST':
         try:
-            profile    = request.user.candidate_profile
+            # 1. Dynamically get the right profile
+            if request.user.role == 'candidate':
+                profile = request.user.candidate_profile
+                owner_kwarg = {'candidate': profile} # Used to map to the correct DB column
+            elif request.user.role == 'trainee':
+                profile = request.user.trainee_profile
+                owner_kwarg = {'trainee': profile}
+            else:
+                return redirect('dashboard')
+
             emp_id     = request.POST.get('emp_id', '').strip()
             is_current = request.POST.get('is_current') == 'on'
 
             designation  = request.POST.get('designation', '').strip()
             company_name = request.POST.get('company_name', '').strip()
+            location     = request.POST.get('location', '').strip()
             start_date   = request.POST.get('start_date', '').strip()
+            end_date     = request.POST.get('end_date', '').strip()
 
             if not designation or not company_name or not start_date:
                 messages.error(request, "Designation, Company, and Start Date are required.")
-                return redirect('candidate_profile')
+                return redirect(redirect_url)
+
+            # --- STRICT VALIDATION ---
+            if _is_numeric(designation) or _is_numeric(company_name):
+                messages.error(request, "Titles and Company names cannot be just numbers.")
+                return redirect(redirect_url)
+
+            if location and _is_numeric(location):
+                messages.error(request, "Location cannot be just a number.")
+                return redirect(redirect_url)
+
+            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+            if start_date_obj > timezone.now().date(): # Fixed: Changed >= to > so 'today' is valid
+                messages.error(request, "Start Date cannot be a future date.")
+                return redirect(redirect_url)
+
+            if not is_current and end_date:
+                end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+                if end_date_obj <= start_date_obj:
+                    messages.error(request, "End Date must be after the Start Date.")
+                    return redirect(redirect_url)
+            # -------------------------
 
             data = {
                 'designation':  designation,
                 'company_name': company_name,
                 'start_date':   start_date,
-                'end_date':     None if is_current else (request.POST.get('end_date', '').strip() or None),
+                'end_date':     None if is_current else (end_date or None),
                 'is_current':   is_current,
-                'location':     request.POST.get('location', '').strip() or None,
+                'location':     location or None,
                 'description':  request.POST.get('description', '').strip() or None,
             }
 
             if emp_id:
-                updated = Employment.objects.filter(id=emp_id, candidate=profile).update(**data)
+                # Unpacks owner_kwarg to either candidate=profile or trainee=profile
+                updated = Employment.objects.filter(id=emp_id, **owner_kwarg).update(**data)
                 if updated:
                     messages.success(request, "Employment updated.")
                 else:
                     messages.error(request, "Employment record not found.")
             else:
-                Employment.objects.create(candidate=profile, **data)
+                Employment.objects.create(**owner_kwarg, **data)
                 messages.success(request, "Employment added.")
 
+        except ValueError:
+            messages.error(request, "Invalid date format.")
         except Exception as e:
             messages.error(request, f"Could not save employment: {e}")
-    return redirect('candidate_profile')
+            
+    return redirect(redirect_url)
 
 
 @login_required(login_url='login')
 def delete_employment(request, emp_id):
+    redirect_url = 'trainee_profile' if request.user.role == 'trainee' else 'candidate_profile'
+    
     if request.method == 'POST':
         try:
-            deleted, _ = Employment.objects.filter(
-                id=emp_id, candidate=request.user.candidate_profile
-            ).delete()
+            if request.user.role == 'candidate':
+                owner_kwarg = {'candidate': request.user.candidate_profile}
+            elif request.user.role == 'trainee':
+                owner_kwarg = {'trainee': request.user.trainee_profile}
+            else:
+                return redirect('dashboard')
+
+            deleted, _ = Employment.objects.filter(id=emp_id, **owner_kwarg).delete()
+            
             if deleted:
                 messages.success(request, "Employment deleted.")
             else:
                 messages.error(request, "Record not found.")
         except Exception as e:
             messages.error(request, f"Could not delete employment: {e}")
-    return redirect('candidate_profile')
+            
+    return redirect(redirect_url)
 
 
 @login_required(login_url='login')
 def save_education(request):
+    redirect_url = 'trainee_profile' if request.user.role == 'trainee' else 'candidate_profile'
+    
     if request.method == 'POST':
         try:
-            profile    = request.user.candidate_profile
-            edu_id     = request.POST.get('edu_id', '').strip()
+            # 1. Dynamically get the right profile
+            if request.user.role == 'candidate':
+                profile = request.user.candidate_profile
+                owner_kwarg = {'candidate': profile}
+            elif request.user.role == 'trainee':
+                profile = request.user.trainee_profile
+                owner_kwarg = {'trainee': profile}
+            else:
+                return redirect('dashboard')
+
+            edu_id = request.POST.get('edu_id', '').strip()
 
             education_level = request.POST.get('education_level', '').strip()
             university      = request.POST.get('university', '').strip()
             start_year      = request.POST.get('start_year', '').strip()
             end_year        = request.POST.get('end_year', '').strip()
+            course          = request.POST.get('course', '').strip()
 
             if not education_level or not university or not start_year or not end_year:
                 messages.error(request, "Education level, University, and Years are required.")
-                return redirect('candidate_profile')
+                return redirect(redirect_url)
+
+            # --- STRICT VALIDATION ---
+            if _is_numeric(education_level) or _is_numeric(university) or (course and _is_numeric(course)):
+                messages.error(request, "Text fields cannot be just numbers.")
+                return redirect(redirect_url)
+
+            current_year = timezone.now().year
+            start_year_int = int(start_year)
+            end_year_int = int(end_year)
+
+            if start_year_int > current_year:
+                messages.error(request, "Start Year can't be a future year.")
+                return redirect(redirect_url)
+                
+            if end_year_int < start_year_int:
+                messages.error(request, "End Year can't be before Start Year.")
+                return redirect(redirect_url)
+            # -------------------------
 
             data = {
                 'education_level': education_level,
-                'course':          request.POST.get('course', '').strip() or None,
+                'course':          course or None,
                 'university':      university,
-                'start_year':      int(start_year),
-                'end_year':        int(end_year),
+                'start_year':      start_year_int,
+                'end_year':        end_year_int,
                 'course_type':     request.POST.get('course_type', 'Full Time'),
             }
 
             if edu_id:
-                updated = Education.objects.filter(id=edu_id, candidate=profile).update(**data)
+                updated = Education.objects.filter(id=edu_id, **owner_kwarg).update(**data)
                 if updated:
                     messages.success(request, "Education updated.")
                 else:
                     messages.error(request, "Education record not found.")
             else:
-                Education.objects.create(candidate=profile, **data)
+                Education.objects.create(**owner_kwarg, **data)
                 messages.success(request, "Education added.")
 
         except ValueError:
             messages.error(request, "Invalid year format.")
         except Exception as e:
             messages.error(request, f"Could not save education: {e}")
-    return redirect('candidate_profile')
+            
+    return redirect(redirect_url)
 
 
 @login_required(login_url='login')
 def delete_education(request, edu_id):
+    redirect_url = 'trainee_profile' if request.user.role == 'trainee' else 'candidate_profile'
+    
     if request.method == 'POST':
         try:
-            deleted, _ = Education.objects.filter(
-                id=edu_id, candidate=request.user.candidate_profile
-            ).delete()
+            if request.user.role == 'candidate':
+                owner_kwarg = {'candidate': request.user.candidate_profile}
+            elif request.user.role == 'trainee':
+                owner_kwarg = {'trainee': request.user.trainee_profile}
+            else:
+                return redirect('dashboard')
+
+            deleted, _ = Education.objects.filter(id=edu_id, **owner_kwarg).delete()
+            
             if deleted:
                 messages.success(request, "Education deleted.")
             else:
                 messages.error(request, "Record not found.")
         except Exception as e:
             messages.error(request, f"Could not delete education: {e}")
-    return redirect('candidate_profile')
+            
+    return redirect(redirect_url)
 
 
 @login_required(login_url='login')
 def save_project(request):
+    redirect_url = 'trainee_profile' if request.user.role == 'trainee' else 'candidate_profile'
+    
     if request.method == 'POST':
         try:
-            profile    = request.user.candidate_profile
+            # 1. Dynamically get the right profile
+            if request.user.role == 'candidate':
+                profile = request.user.candidate_profile
+                owner_kwarg = {'candidate': profile}
+            elif request.user.role == 'trainee':
+                profile = request.user.trainee_profile
+                owner_kwarg = {'trainee': profile}
+            else:
+                return redirect('dashboard')
+
             proj_id    = request.POST.get('proj_id', '').strip()
             is_ongoing = request.POST.get('is_ongoing') == 'on'
 
             title = request.POST.get('title', '').strip()
             description = request.POST.get('description', '').strip()
+            start_date_str = request.POST.get('start_date', '').strip()
+            end_date_str = request.POST.get('end_date', '').strip()
 
             if not title or not description:
                 messages.error(request, "Title and Description are required.")
-                return redirect('candidate_profile')
+                return redirect(redirect_url)
+
+            # --- STRICT VALIDATION ---
+            if _is_numeric(title):
+                messages.error(request, "Project Title can't be a number.")
+                return redirect(redirect_url)
+
+            if start_date_str:
+                start_date_obj = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                if start_date_obj > timezone.now().date(): # Fixed to allow 'today'
+                    messages.error(request, "Start Date can't be a future date.")
+                    return redirect(redirect_url)
+
+                if not is_ongoing and end_date_str:
+                    end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                    if end_date_obj <= start_date_obj:
+                        messages.error(request, "End Date must be after Start Date.")
+                        return redirect(redirect_url)
+            # -------------------------
 
             project_url = request.POST.get('project_url', '').strip()
-            # Basic URL validation
             if project_url and not project_url.startswith(('http://', 'https://')):
                 project_url = 'https://' + project_url
 
             data = {
                 'title':       title,
                 'project_url': project_url or None,
-                'start_date':  request.POST.get('start_date', '').strip() or None,
-                'end_date':    None if is_ongoing else (request.POST.get('end_date', '').strip() or None),
+                'start_date':  start_date_str or None,
+                'end_date':    None if is_ongoing else (end_date_str or None),
                 'is_ongoing':  is_ongoing,
                 'description': description,
             }
 
             if proj_id:
-                updated = Project.objects.filter(id=proj_id, candidate=profile).update(**data)
+                updated = Project.objects.filter(id=proj_id, **owner_kwarg).update(**data)
                 if updated:
                     messages.success(request, "Project updated.")
                 else:
                     messages.error(request, "Project not found.")
             else:
-                Project.objects.create(candidate=profile, **data)
+                Project.objects.create(**owner_kwarg, **data)
                 messages.success(request, "Project added.")
 
+        except ValueError:
+            messages.error(request, "Invalid date format.")
         except Exception as e:
             messages.error(request, f"Could not save project: {e}")
-    return redirect('candidate_profile')
+    return redirect(redirect_url)
 
 
 @login_required(login_url='login')
 def delete_project(request, proj_id):
+    redirect_url = 'trainee_profile' if request.user.role == 'trainee' else 'candidate_profile'
+    
     if request.method == 'POST':
         try:
-            deleted, _ = Project.objects.filter(
-                id=proj_id, candidate=request.user.candidate_profile
-            ).delete()
+            if request.user.role == 'candidate':
+                owner_kwarg = {'candidate': request.user.candidate_profile}
+            elif request.user.role == 'trainee':
+                owner_kwarg = {'trainee': request.user.trainee_profile}
+            else:
+                return redirect('dashboard')
+
+            deleted, _ = Project.objects.filter(id=proj_id, **owner_kwarg).delete()
+            
             if deleted:
                 messages.success(request, "Project deleted.")
             else:
                 messages.error(request, "Record not found.")
         except Exception as e:
             messages.error(request, f"Could not delete project: {e}")
-    return redirect('candidate_profile')
+            
+    return redirect(redirect_url)
 
 
 @login_required(login_url='login')
@@ -1182,6 +1363,29 @@ def company_register(request):
             if photo:
                 CompanyPhoto.objects.create(company=profile, photo=photo)
 
+        admin_email = getattr(settings, 'ADMIN_EMAIL', settings.EMAIL_HOST_USER)
+        subject = f"Action Required: New Company Registration - {company_name}"
+        message = (
+            f"Hello Admin,\n\n"
+            f"A new company has just registered on the platform and requires your approval.\n\n"
+            f"Company Details:\n"
+            f"- Name: {company_name}\n"
+            f"- Email: {email}\n"
+            f"- Location: {location}\n\n"
+            f"Please log in to the Django Admin dashboard to review their registration and GST documents."
+        )
+
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [admin_email],      
+                fail_silently=True,      
+            )
+        except Exception as e:
+            print(f"Failed to send admin notification email: {e}")
+
         messages.success(request, "Registered! Awaiting admin approval.")
         return redirect('login')
     return render(request, 'company_register.html', {'ui_settings': get_ui()})
@@ -1305,28 +1509,35 @@ def trainee_dashboard(request):
     }
     
     recent_apps = apps.order_by('-applied_at')[:5]
+    applied_ids = list(apps.values_list('job_id', flat=True))
+    current_date = timezone.now().date()
+    
     recommended = []
-    raw_recs = get_recommendations(profile, limit=4) 
+    raw_recs = get_recommendations(profile, limit=15) 
     
     if raw_recs:
         if hasattr(profile.skills, 'values_list'):
             user_skills_normalized = set(s.lower().replace(" ", "") for s in profile.skills.values_list('name', flat=True))
         else:
-            # For comma-separated strings
             user_skills_normalized = set(s.lower().replace(" ", "") for s in (profile.skills or "").split(',') if s.strip())
 
         for job, score in raw_recs:
+            if job.id in applied_ids:
+                continue
+
+            if job.deadline and job.deadline < current_date:
+                continue
+
             raw_job_skills = [s.strip() for s in (job.skills_required or '').split(',') if s.strip()]
             
             matching = []
             missing = []
             
             for skill in raw_job_skills:
-                # Normalize the job skill for the check (lowercase + no spaces)
                 normalized_job_skill = skill.lower().replace(" ", "")
                 
                 if normalized_job_skill in user_skills_normalized:
-                    matching.append(skill) # Keeps original "REST API" for display
+                    matching.append(skill)
                 else:
                     missing.append(skill)
             
@@ -1337,12 +1548,16 @@ def trainee_dashboard(request):
                 'missing': missing[:3]
             })
 
+            if len(recommended) >= 3:
+                break
+
     return render(request, 'trainee/trainee_dashboard.html', {
         'profile': profile,
         'stats': stats,
         'recent_apps': recent_apps,
         'recommended': recommended,
     })
+
 
 
 @login_required(login_url='login')
@@ -1543,9 +1758,14 @@ def update_application_status(request, app_id):
 
 
 def job_list(request):
-    jobs = Job.objects.filter(is_active=True).select_related('category')
+    current_date = timezone.now().date()
+    jobs = Job.objects.filter(
+        is_active=True
+    ).filter(
+        Q(deadline__gte=current_date) | Q(deadline__isnull=True)
+    ).select_related('category')
+    
     q          = request.GET.get('q', '').strip()
-    location   = request.GET.get('location', '').strip()
     job_type   = request.GET.get('job_type', '').strip()
     work_mode  = request.GET.get('work_mode', '').strip()
     experience = request.GET.get('experience', '').strip()
@@ -1553,18 +1773,48 @@ def job_list(request):
     salary     = request.GET.get('salary', '').strip()
     sort       = request.GET.get('sort', '').strip()
 
-    any_filter_active = any([q, location, job_type, work_mode, experience, category, salary, sort])
+    any_filter_active = any([q, job_type, work_mode, experience, category, salary, sort])
 
+    # ── 1. Handle Profile, Applied Jobs, and Recommendations ──────────────────
+    applied_ids = []
+    recommended_ids_ordered = []
+    profile = None
+
+    if request.user.is_authenticated:
+        if getattr(request.user, 'role', '') == 'candidate' and hasattr(request.user, 'candidate_profile'):
+            profile = request.user.candidate_profile
+            applied_ids = list(JobApplication.objects.filter(candidate=profile).values_list('job_id', flat=True))
+        elif getattr(request.user, 'role', '') == 'trainee' and hasattr(request.user, 'trainee_profile'):
+            profile = request.user.trainee_profile
+            applied_ids = list(JobApplication.objects.filter(trainee=profile).values_list('job_id', flat=True))
+
+        if applied_ids:
+            jobs = jobs.exclude(id__in=applied_ids)
+
+        if profile and not any_filter_active:
+            recs = get_recommendations(profile, limit=50)
+            recommended_ids_ordered = [job.id for job, score in recs if score > 0 and job.id not in applied_ids]
+
+    # ── 2. Apply Search & Filters ─────────────────────────────────────────────
     if q:
-        jobs = jobs.filter(
+        q_lower = q.lower().replace(" ", "")
+        
+        q_query = (
             Q(title__icontains=q) |
             Q(company__icontains=q) |
             Q(skills_required__icontains=q) |
             Q(location__icontains=q)
-        ).distinct()
+        )
+        
+        for state_group in STATE_MAPPINGS:
+            state_name_normalized = state_group[0].replace(" ", "")
+            if q_lower == state_name_normalized or q_lower == state_group[1]:
+                for term in state_group:
+                    q_query |= Q(location__icontains=term)
+                break 
+        
+        jobs = jobs.filter(q_query).distinct()
 
-    if location:
-        jobs = jobs.filter(location__icontains=location)
     if job_type:
         jobs = jobs.filter(job_type=job_type)
     if work_mode:
@@ -1579,30 +1829,7 @@ def job_list(request):
             lo, hi = salary_map[salary]
             jobs = jobs.filter(salary_min__gte=lo, salary_max__lte=hi)
 
-    # ── Applied job ids & Recommendations ──────────────────────────────────
-    applied_ids   = []
-    recommended_ids_ordered = []
-    profile       = None
-
-    if request.user.is_authenticated:
-        # 1. Dynamically fetch the correct profile based on the user's role
-        if getattr(request.user, 'role', '') == 'candidate' and hasattr(request.user, 'candidate_profile'):
-            profile = request.user.candidate_profile
-        elif getattr(request.user, 'role', '') == 'trainee' and hasattr(request.user, 'trainee_profile'):
-            profile = request.user.trainee_profile
-
-        if profile:
-            applied_ids = list(
-                JobApplication.objects.filter(
-                    candidate__user=request.user
-                ).values_list('job_id', flat=True)
-            )
-
-            if not any_filter_active:
-                recs = get_recommendations(profile, limit=50)
-                recommended_ids_ordered = [job.id for job, score in recs if score > 0]
-
-    # ── Sort ───────────────────────────────────────────────────────────────
+    # ── 3. Sorting ────────────────────────────────────────────────────────────
     if sort == 'salary':
         jobs = jobs.order_by('-salary_max')
     elif sort == 'featured':
@@ -1614,22 +1841,23 @@ def job_list(request):
 
     jobs_list = list(jobs)
 
+    # ── 4. Apply Recommendation Sorting ───────────────────────────────────────
     if recommended_ids_ordered and not any_filter_active and not sort:
         score_map = {jid: idx for idx, jid in enumerate(recommended_ids_ordered)}
 
         def sort_key(job):
-            rec_rank = score_map.get(job.id, 9999)  # not in recs = goes to end
+            rec_rank = score_map.get(job.id, 9999) 
             featured_boost = 0 if job.is_featured else 1
             return (featured_boost, rec_rank)
 
         jobs_list.sort(key=sort_key)
 
-    from django.core.paginator import Paginator
+    # ── 5. Pagination ─────────────────────────────────────────────────────────
     paginator   = Paginator(jobs_list, 10)
     page_number = request.GET.get('page', 1)
     page_obj    = paginator.get_page(page_number)
     
-    # ── Attach Match Scores Directly to Job Objects ──
+    # ── 6. Attach Match Scores Directly to Job Objects ────────────────────────
     if recommended_ids_ordered and profile:
         recs = get_recommendations(profile, limit=50)
         score_dict = {job.id: round(score * 100) for job, score in recs}
@@ -1651,12 +1879,11 @@ def job_list(request):
             ('6-10', '6 – 10 LPA'),
             ('10+',  '10+ LPA'),
         ],
-        'applied_ids':   applied_ids,
-        # Note: We removed 'match_scores' from here because we attached it to page_obj directly!
+        'applied_ids':   applied_ids, 
         'ui_settings':   get_ui(),
         'is_recommended_view': bool(recommended_ids_ordered and not any_filter_active and not sort),
         'filters': {
-            'q': q, 'location': location, 'job_type': job_type,
+            'q': q, 'job_type': job_type,
             'work_mode': work_mode, 'experience': experience,
             'category': category, 'salary': salary, 'sort': sort,
         },
@@ -1721,14 +1948,12 @@ def job_detail(request, slug):
                 
         return JsonResponse({'success': False, 'error': 'Unauthorized'})
 
-    similar = Job.objects.filter(
-        is_active=True, category=job.category
-    ).exclude(id=job.id)[:4]
-
+    # ── User Profile & Application Data ──
     already_applied = False
     application     = None
     profile         = None 
     can_apply       = False 
+    applied_ids     = [] 
     
     if request.user.is_authenticated:
         role = getattr(request.user, 'role', '')
@@ -1738,14 +1963,26 @@ def job_detail(request, slug):
             application = JobApplication.objects.filter(job=job, candidate__user=request.user).first()
             if hasattr(request.user, 'candidate_profile'):
                 profile = request.user.candidate_profile
+                applied_ids = list(JobApplication.objects.filter(candidate=profile).values_list('job_id', flat=True))
                 
         elif role == 'trainee':
             application = JobApplication.objects.filter(job=job, trainee__user=request.user).first()
             if hasattr(request.user, 'trainee_profile'):
                 profile = request.user.trainee_profile
+                applied_ids = list(JobApplication.objects.filter(trainee=profile).values_list('job_id', flat=True))
                 
         already_applied = application is not None
 
+    current_date = timezone.now().date()
+    
+    similar_qs = Job.objects.filter(
+        is_active=True, 
+        category=job.category).filter(Q(deadline__gte=current_date) | Q(deadline__isnull=True)).exclude(id=job.id )
+    
+    if applied_ids:
+        similar_qs = similar_qs.exclude(id__in=applied_ids)
+        
+    similar = similar_qs[:4]
     skills_list = [
         s.strip() for s in (job.skills_required or '').split(',') if s.strip()
     ]
@@ -1762,7 +1999,7 @@ def job_detail(request, slug):
         'requirements':    [r.strip() for r in (job.requirements or '').split('\n') if r.strip()],
         'benefits':        [r.strip() for r in (job.benefits or '').split('\n') if r.strip()],
         'ui_settings':     get_ui() if 'get_ui' in globals() else None,
-        'today': timezone.now().date(),
+        'today':           current_date,
     })
 
 
@@ -1809,6 +2046,7 @@ def apply_job(request, slug):
 
         cover_letter = request.POST.get('cover_letter', '').strip()
         
+        # 1. Create the Application
         if request.user.role == 'candidate':
             JobApplication.objects.create(
                 job=job,
@@ -1821,7 +2059,33 @@ def apply_job(request, slug):
                 trainee=profile,    
                 cover_letter=cover_letter or None,
             )
-        messages.success(request, f"Successfully applied for {job.title}!")
+            
+        # 2. Send the confirmation email
+        company_name = job.company if job.company else job.company_profile.company_name
+        
+        subject = f"Application Received: {job.title} at {company_name}"
+        message = (
+            f"Hi {profile.full_name},\n\n"
+            f"Thank you for applying to the {job.title} position at {company_name} through our platform.\n\n"
+            f"Your application has been successfully submitted to the employer. We will notify you if your application status changes (e.g., if you are shortlisted or selected for an interview).\n\n"
+            f"You can track your active applications directly from your profile dashboard.\n\n"
+            f"Best of luck with your job search!\n"
+            f"The Team at VCS"
+        )
+        
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [request.user.email],
+                fail_silently=True, 
+            )
+            messages.success(request, f"Successfully applied for {job.title}! A confirmation email has been sent.")
+        except Exception as e:
+            messages.success(request, f"Successfully applied for {job.title}!")
+            print(f"Failed to send application email to {request.user.email}: {e}")
+            
     return redirect('job_detail', slug=slug)
 
 
@@ -2056,3 +2320,63 @@ def chatbot_clear(request):
         if old_key:
             ChatSession.objects.filter(session_key=old_key).delete()
         return JsonResponse({'status': 'cleared'})
+
+
+
+
+
+import random
+import requests
+
+from django.conf import settings
+from django.core.cache import cache
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+
+def otp_login(request):
+    """
+    Handles BOTH:
+    1. Send OTP
+    2. Verify OTP
+    in a single view (single module flow)
+    """
+    if request.method == "POST" and "phone" in request.POST:
+        phone = request.POST.get("phone")
+        otp = random.randint(100000, 999999)
+        cache.set(phone, otp, timeout=300)
+
+        url = "https://control.msg91.com/api/v5/otp"
+
+        payload = {
+            "template_id": settings.MSG91_TEMPLATE_ID,
+            "mobile": f"91{phone}",
+            "authkey": settings.MSG91_AUTH_KEY,
+            "otp": otp,
+        }
+
+        response = requests.post(url, data=payload)
+
+        if response.status_code == 200:
+            request.session["phone"] = phone
+            messages.success(request, "OTP sent successfully")
+            return render(request, "otp.html", {"step": "verify"})
+
+        messages.error(request, "Failed to send OTP")
+        return render(request, "otp.html", {"step": "send"})
+
+    if request.method == "POST" and "otp" in request.POST:
+        entered_otp = request.POST.get("otp")
+        phone = request.session.get("phone")
+        stored_otp = cache.get(phone)
+
+        if stored_otp and str(stored_otp) == entered_otp:
+            messages.success(request, "OTP verified successfully")
+            return redirect("success")
+
+        messages.error(request, "Invalid OTP")
+        return render(request, "otp.html", {"step": "verify"})
+    return render(request, "otp.html", {"step": "send"})
+
+def success(request):
+    return render(request, "success.html")

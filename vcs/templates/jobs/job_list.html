@@ -10,34 +10,34 @@
                 <div class="flex flex-col md:flex-row gap-3">
                     <div class="relative flex-1">
                         <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#aab8c8]"></i>
+                        <!-- Updated placeholder to show location is supported here -->
                         <input type="text" name="q" value="{{ filters.q }}"
-                               placeholder="Job title, skills, or company"
+                               placeholder="Job title, skills, company, or location..."
                                class="w-full pl-11 pr-4 py-3 border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[14px] font-['Exo'] text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5] focus:shadow-[0_0_0_3px_rgba(75,108,245,0.12)]">
                     </div>
-                    <div class="relative md:w-[220px]">
-                        <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-[#aab8c8]"></i>
-                        <input type="text" name="location" value="{{ filters.location }}"
-                               placeholder="City or location"
-                               class="w-full pl-11 pr-4 py-3 border-[1.5px] border-[#d8e4f0] rounded-[10px] text-[14px] font-['Exo'] text-[#1a2b4a] bg-[#f8fbff] outline-none focus:border-[#4b6cf5]">
+                    
+                    <div class="flex gap-2 sm:gap-3">
+                        <button type="submit"
+                            class="flex-1 md:flex-none bg-[#3d35c4] text-white font-bold text-[14px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition font-['Exo'] whitespace-nowrap flex justify-center items-center">
+                            <i class="fa-solid fa-search mr-2"></i> Search
+                        </button>
+                        
+                        <!-- New Clear Filter Button -->
+                        <a href="{% url 'job_list' %}" 
+                           class="flex-none bg-white border-[1.5px] border-[#d8e4f0] text-[#e05c5c] hover:bg-[#fff0f0] hover:border-[#ffc2c2] font-bold text-[14px] px-5 py-3 rounded-[10px] transition flex justify-center items-center" 
+                           title="Clear all filters">
+                            <i class="fa-solid fa-eraser"></i> <span class="hidden sm:inline ml-2">Clear</span>
+                        </a>
                     </div>
-                    <button type="submit"
-                        class="bg-[#3d35c4] text-white font-bold text-[14px] px-8 py-3 rounded-[10px] hover:bg-[#2d27a8] transition font-['Exo'] whitespace-nowrap">
-                        <i class="fa-solid fa-search mr-2"></i> Search Jobs
-                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <div class="max-w-[1200px] mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6 relative">
+        <div id="filter-backdrop" class="fixed inset-0 bg-black/50 z-[45] hidden opacity-0 transition-opacity duration-300 lg:hidden"></div>
 
-        <!-- Mobile Backdrop -->
-        <div id="filter-backdrop" class="fixed inset-0 bg-black/50 z-[55] hidden opacity-0 transition-opacity duration-300 lg:hidden"></div>
-
-        <!-- Sidebar Filters -->
-        <aside id="filter-sidebar" class="fixed inset-y-0 left-0 z-[60] w-[280px] h-full bg-[#eef2f7] overflow-y-auto transform -translate-x-full transition-transform duration-300 lg:static lg:w-[260px] lg:h-auto lg:bg-transparent lg:overflow-visible lg:translate-x-0 shrink-0 p-4 lg:p-0 border-r border-gray-200 lg:border-none">
-            
-            <!-- Mobile Header inside Sidebar -->
+        <aside id="filter-sidebar" class="fixed inset-y-0 left-0 z-[60] lg:z-[45] w-[280px] h-full bg-[#eef2f7] overflow-y-auto transform -translate-x-full transition-transform duration-300 lg:static lg:w-[260px] lg:h-auto lg:bg-transparent lg:overflow-visible lg:translate-x-0 shrink-0 p-4 lg:p-0 border-r border-gray-200 lg:border-none">
             <div class="flex justify-between items-center lg:hidden mb-4 pb-4 border-b border-gray-300">
                 <h2 class="text-[16px] font-extrabold text-[#1a2b4a] uppercase tracking-wide">Filters</h2>
                 <button type="button" id="close-filter-btn" class="text-[#aab8c8] hover:text-[#e74c3c] text-[20px] focus:outline-none">
@@ -47,7 +47,6 @@
 
             <form method="GET" action="{% url 'job_list' %}" id="sidebar-form" class="space-y-4">
                 <input type="hidden" name="q" value="{{ filters.q }}">
-                <input type="hidden" name="location" value="{{ filters.location }}">
 
                 <div class="bg-white rounded-[14px] p-5 shadow-sm border border-gray-100">
                     <h3 class="text-[13px] font-extrabold text-[#1a2b4a] mb-3 uppercase tracking-wide">Experience</h3>
@@ -242,7 +241,7 @@
                             </span>
                             {% else %}
                             <a href="{% url 'job_detail' job.slug %}"
-                            class="bg-[#3d35c4] text-white text-[13px] font-bold px-5 py-2 rounded-[8px] hover:bg-[#2d27a8] transition no-underline">
+                            class="bg-[#3d35c4] text-white text-[10px] lg:text-[13px] font-bold px-5 py-2 rounded-[8px] hover:bg-[#2d27a8] transition no-underline">
                                 Apply Now
                             </a>
                             {% endif %}
